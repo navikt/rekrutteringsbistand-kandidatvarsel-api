@@ -45,3 +45,10 @@ spec:
       value: {{adGroupRekbisJobbsokerrettet}}
     - name: AD_GROUP_REKBIS_UTVIKLER
       value: {{adGroupRekbisUtvikler}}
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_15
+        tier: {{dbTier}}
+        databases:
+          - name: kandidatvarsler
+            envVarPrefix: DB

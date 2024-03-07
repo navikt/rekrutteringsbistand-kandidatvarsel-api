@@ -9,5 +9,6 @@
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/webjars",
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/openapi",
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/api"
-    ]
+    ],
+    "dbTier": "db-f1-micro"
 }
