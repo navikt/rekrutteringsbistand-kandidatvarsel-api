@@ -1,0 +1,10 @@
+{
+    "adGruppeModiaGenerellTilgang": "67a06857-0028-4a90-bf4c-9c9a92c7d733",
+    "adGruppeModiaOppfolging": "554a66fb-fbec-4b92-90c1-0d9c085c362c",
+    "ingress": [
+        "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/swagger",
+        "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/webjars",
+        "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/openapi",
+        "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/api"
+    ]
+}

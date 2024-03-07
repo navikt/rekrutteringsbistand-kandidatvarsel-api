@@ -1,0 +1,60 @@
+name: Build, test and deploy
+on: [push, workflow_dispatch]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.docker.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - run: ./gradlew assemble
+
+      - uses: nais/docker-build-push@v0
+        if: github.actor != 'dependabot[bot]'
+        id: docker
+        with:
+          team: toi
+          tag: ${{ github.sha }}
+          dockerfile: Dockerfile
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+
+  deploy-to-dev:
+    name: Deploy to dev
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fakedings_Dev'
+    needs: build-test-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: nais/nais.yaml
+          VAR: image=${{ needs.build-test-deploy.outputs.image }}
+          VARS: nais/dev-gcp.json
+
+  deploy-to-prod:
+    name: Deploy to prod
+    if: github.ref == 'refs/heads/main'
+    needs: [build-test-deploy, deploy-to-dev]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: nais/nais.yaml
+          VAR: image=${{ needs.build-test-deploy.outputs.image }}
+          VARS: nais/prod-gcp.json

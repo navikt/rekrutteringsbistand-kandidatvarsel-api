@@ -1,0 +1,38 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: rekrutteringsbistand-kandidatvarsel-api
+  namespace: toi
+  labels:
+    team: toi
+spec:
+  image: {{{image}}}
+  ingresses:
+  {{#each ingress as |url|}}
+     - {{ url }}
+  {{/each}}
+  liveness:
+    path: /internal/alive
+  readiness:
+    path: /internal/ready
+  secureLogs:
+    enabled: true
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: false
+      claims:
+        extra:
+          - NAVident
+        groups:
+          - id: {{adGruppeModiaGenerellTilgang}}
+          - id: {{adGruppeModiaOppfolging}}
+  accessPolicy:
+    inbound:
+      rules:
+        - application: rekrutteringsbistand
+  env:
+    - name: MODIA_GENERELL_GRUPPE
+      value: {{adGruppeModiaGenerellTilgang}}
+    - name: MODIA_OPPFOLGING_GRUPPE
+      value: {{adGruppeModiaOppfolging}}

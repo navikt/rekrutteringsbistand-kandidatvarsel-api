@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="MainKt" type="JetRunConfigurationType" nameIsGenerated="true">
+    <envs>
+      <env name="AZURE_APP_CLIENT_ID" value="1" />
+      <env name="AZURE_APP_WELL_KNOWN_URL" value="https://fakedings.intern.dev.nav.no/fake/" />
+      <env name="AZURE_OPENID_CONFIG_ISSUER" value="https://fakedings.intern.dev.nav.no/fake" />
+      <env name="AZURE_OPENID_CONFIG_JWKS_URI" value="https://fakedings.intern.dev.nav.no/fake/jwks" />
+      <env name="MODIA_GENERELL_GRUPPE" value="67a06857-0028-4a90-bf4c-9c9a92c7d733" />
+      <env name="MODIA_OPPFOLGING_GRUPPE" value="554a66fb-fbec-4b92-90c1-0d9c085c362c" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="no.nav.toi.MainKt" />
+    <module name="rekrutteringsbistand-kandidatvarsel-api.main" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
