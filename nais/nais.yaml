@@ -25,14 +25,23 @@ spec:
         extra:
           - NAVident
         groups:
-          - id: {{adGruppeModiaGenerellTilgang}}
-          - id: {{adGruppeModiaOppfolging}}
+          - id: {{adGroupModiaGenerellTilgang}}
+          - id: {{adGroupModiaOppfolging}}
+          - id: {{adGroupRekbisArbeidsgiverrettet}}
+          - id: {{adGroupRekbisJobbsokerrettet}}
+          - id: {{adGroupRekbisUtvikler}}
   accessPolicy:
     inbound:
       rules:
         - application: rekrutteringsbistand
   env:
-    - name: MODIA_GENERELL_GRUPPE
-      value: {{adGruppeModiaGenerellTilgang}}
-    - name: MODIA_OPPFOLGING_GRUPPE
-      value: {{adGruppeModiaOppfolging}}
+    - name: AD_GROUP_MODIA_GENERELL
+      value: {{adGroupModiaGenerellTilgang}}
+    - name: AD_GROUP_MODIA_OPPFOLGING
+      value: {{adGroupModiaOppfolging}}
+    - name: AD_GROUP_REKBIS_ARBEIDSGIVERRETTET
+      value: {{adGroupRekbisArbeidsgiverrettet}}
+    - name: AD_GROUP_REKBIS_JOBBSOKERRETTET
+      value: {{adGroupRekbisJobbsokerrettet}}
+    - name: AD_GROUP_REKBIS_UTVIKLER
+      value: {{adGroupRekbisUtvikler}}

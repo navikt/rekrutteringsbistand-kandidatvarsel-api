@@ -97,8 +97,11 @@ fun main() {
                 null
         ),
         rolleUuidSpesifikasjon = RolleUuidSpesifikasjon(
-            modiaGenerell = UUID.fromString(getenvOrThrow("MODIA_GENERELL_GRUPPE")),
-            modiaOppfølging = UUID.fromString(getenvOrThrow("MODIA_OPPFOLGING_GRUPPE")),
+            modiaGenerell = UUID.fromString(getenvOrThrow("AD_GROUP_MODIA_GENERELL")),
+            modiaOppfølging = UUID.fromString(getenvOrThrow("AD_GROUP_MODIA_OPPFOLGING")),
+            rekbisUtvikler = UUID.fromString(getenvOrThrow("AD_GROUP_REKBIS_UTVIKLER")),
+            rekbisArbeidsgiverrettet = UUID.fromString(getenvOrThrow("AD_GROUP_REKBIS_ARBEIDSGIVERRETTET")),
+            rekbisJobbsøkerrettet = UUID.fromString(getenvOrThrow("AD_GROUP_REKBIS_JOBBSOKERRETTET")),
         ),
     ).start()
 }
