@@ -53,6 +53,7 @@ class App(
 
         javalin.handleHealth()
         javalin.handleMe()
+        javalin.handleBackfill()
 
 
         javalin.azureAdAuthentication(
