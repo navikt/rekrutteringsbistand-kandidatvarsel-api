@@ -1,4 +1,4 @@
-package no.nav.toi
+package no.nav.toi.kandidatvarsel
 
 import no.nav.common.audit_log.cef.AuthorizationDecision
 import no.nav.common.audit_log.cef.CefMessage
@@ -7,12 +7,11 @@ import no.nav.common.audit_log.log.AuditLogger
 import no.nav.common.audit_log.log.AuditLoggerImpl
 import org.slf4j.LoggerFactory
 
-
 object AuditLogg {
     private val secureLog = LoggerFactory.getLogger("secureLog")!!
     private val auditLogger: AuditLogger = AuditLoggerImpl()
 
-    private fun logCefMessage(navIdent: String, userid: String, msg: String) {
+    fun logCefMessage(navIdent: String, userid: String, msg: String) {
         val message = CefMessage.builder()
             .applicationName("Rekrutteringsbistand")
             .loggerName("rekrutteringsbistand-kandidatvarsel-api")

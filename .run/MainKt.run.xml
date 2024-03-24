@@ -11,7 +11,7 @@
       <env name="AD_GROUP_REKBIS_JOBBSOKERRETTET" value="0dba8374-bf36-4d89-bbba-662447d57b94" />
       <env name="AD_GROUP_REKBIS_UTVIKLER" value="a1749d9a-52e0-4116-bb9f-935c38f6c74a" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="no.nav.toi.MainKt" />
+    <option name="MAIN_CLASS_NAME" value="no.nav.toi.kandidatvarsel.MainKt" />
     <module name="rekrutteringsbistand-kandidatvarsel-api.main" />
     <shortenClasspath name="NONE" />
     <method v="2">

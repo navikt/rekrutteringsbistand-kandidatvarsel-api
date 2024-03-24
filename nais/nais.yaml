@@ -45,6 +45,14 @@ spec:
       value: {{adGroupRekbisJobbsokerrettet}}
     - name: AD_GROUP_REKBIS_UTVIKLER
       value: {{adGroupRekbisUtvikler}}
+    - name: AUTHORIZED_PARTY_NAMES
+      value: {{adAuthorizedPartyNames}}
+    {{#each env }}
+    - name: {{ @key }}
+      value: {{ this }}
+    {{/each}}
+  kafka:
+    pool: {{{ kafkaPool }}}
   gcp:
     sqlInstances:
       - type: POSTGRES_15

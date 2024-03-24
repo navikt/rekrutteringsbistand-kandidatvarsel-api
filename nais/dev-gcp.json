@@ -4,11 +4,18 @@
     "adGroupRekbisJobbsokerrettet": "0dba8374-bf36-4d89-bbba-662447d57b94",
     "adGroupRekbisArbeidsgiverrettet": "52bc2af7-38d1-468b-b68d-0f3a4de45af2",
     "adGroupRekbisUtvikler": "a1749d9a-52e0-4116-bb9f-935c38f6c74a",
+    "adAuthorizedPartyNames": "dev-fss:toi:rekrutteringsbistand-sms",
     "ingress": [
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/swagger",
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/webjars",
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/openapi",
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no/api"
     ],
-    "dbTier": "db-f1-micro"
+    "env": {
+        "FAKEDINGS_OPENID_CONFIG_JWKS_URI": "https://fakedings.intern.dev.nav.no/fake/jwks",
+        "FAKEDINGS_OPENID_CONFIG_ISSUER": "https://fakedings.intern.dev.nav.no/fake/aad",
+        "FAKEDINGS_APP_CLIENT_ID": "dev-gcp:toi:rekrutteringsbistand-kandidatvarsel-api"
+    },
+    "dbTier": "db-f1-micro",
+    "kafkaPool": "nav-dev"
 }

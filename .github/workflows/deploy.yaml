@@ -45,16 +45,16 @@ jobs:
           VAR: image=${{ needs.build-test-deploy.outputs.image }}
           VARS: nais/dev-gcp.json
 
-  deploy-to-prod:
-    name: Deploy to prod
-    if: github.ref == 'refs/heads/main'
-    needs: [build-test-deploy, deploy-to-dev]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: prod-gcp
-          RESOURCE: nais/nais.yaml
-          VAR: image=${{ needs.build-test-deploy.outputs.image }}
-          VARS: nais/prod-gcp.json
+#  deploy-to-prod:
+#    name: Deploy to prod
+#    if: github.ref == 'refs/heads/main'
+#    needs: [build-test-deploy, deploy-to-dev]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: nais/deploy/actions/deploy@v2
+#        env:
+#          CLUSTER: prod-gcp
+#          RESOURCE: nais/nais.yaml
+#          VAR: image=${{ needs.build-test-deploy.outputs.image }}
+#          VARS: nais/prod-gcp.json
