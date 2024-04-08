@@ -1,5 +1,6 @@
 package no.nav.toi.kandidatvarsel
 
+import no.nav.toi.kandidatvarsel.minside.OPPDATERING_TOPIC
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -38,7 +39,9 @@ fun KafkaConfig.minsideOppdateringsConsumer(): KafkaConsumer<String, String> {
     val config = this.asKafkaProperties + mapOf(
         "group.id" to "rekrutteringsbistand-kandidatvarsel-0"
     )
-    return KafkaConsumer(config, StringDeserializer(), StringDeserializer())
+    return KafkaConsumer(config, StringDeserializer(), StringDeserializer()).apply {
+        subscribe(listOf(OPPDATERING_TOPIC))
+    }
 }
 
 fun KafkaConfig.minsideBestillingsProducer(): KafkaProducer<String, String> {

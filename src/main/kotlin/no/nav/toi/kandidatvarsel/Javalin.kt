@@ -31,6 +31,7 @@ fun startJavalin(
 
         val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.Javalin")!!
         it.requestLogger.http { ctx, ms ->
+            if (ctx.path().startsWith("/internal/")) return@http
             log.info("${ctx.method()} ${ctx.path()} -> ${ctx.status()} (${ms}ms)")
         }
     }
