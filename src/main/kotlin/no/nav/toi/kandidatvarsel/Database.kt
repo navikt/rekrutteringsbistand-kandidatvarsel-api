@@ -22,7 +22,7 @@ data class DatabaseConfig(
         it.jdbcUrl = "jdbc:postgresql://$hostname:$port/$database"
         it.username = username
         it.password = password
-//        it.isAutoCommit = false
+        it.maximumPoolSize = if (getenv("NAIS_CLUSTER_NAME") == "dev-gcp") 5 else 10
     }
 
     companion object {
