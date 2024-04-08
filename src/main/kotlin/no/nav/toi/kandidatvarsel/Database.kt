@@ -40,6 +40,7 @@ data class DatabaseConfig(
 fun DataSource.isReady(timeout: Int = 1): Boolean = try {
     connection.use { it.isValid(timeout) }
 } catch (e: Exception) {
+    log.warn("isReady failed", e)
     false
 }
 
