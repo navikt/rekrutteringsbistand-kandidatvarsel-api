@@ -17,8 +17,8 @@ import kotlin.time.toJavaDuration
 
 /** Dokumentasjon om minside-varsel: https://navikt.github.io/tms-dokumentasjon/varsler/produsere */
 
-const val BESTILLING_TOPIC = "aapen-brukervarsel-v1"
-const val OPPDATERING_TOPIC = "aapen-varsel-hendelse-v1"
+const val BESTILLING_TOPIC = "min-side.aapen-brukervarsel-v1"
+const val OPPDATERING_TOPIC = "min-side.aapen-varsel-hendelse-v1"
 
 fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel) {
     val varselJson = VarselActionBuilder.opprett {
