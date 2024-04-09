@@ -28,7 +28,7 @@ fun main() {
         dataSource = dataSource,
         migrateResult = migrateResult,
         nyTilgangsstyring = when (System.getenv("NAIS_CLUSTER_NAME")) {
-            "dev-gcp" -> true
+            "dev-gcp" -> false
             "prod-gcp" -> false
             else -> throw IllegalStateException("Ukjent cluster: ${System.getenv("NAIS_CLUSTER_NAME")}")
         }

@@ -212,7 +212,8 @@ fun Javalin.azureAdAuthentication(azureAdConfig: AzureAdConfig): Javalin {
         }
 
         if (!principal.mayAccess(ctx.routeRoles())) {
-            log.error("principal=${principal} tried to access ${ctx.path()}, but not authorized")
+            secureLog.error("principal=${principal} tried to access ${ctx.path()}, but is not authorized. Must have at least one of ${ctx.routeRoles()}")
+            log.error("principal tried to access ${ctx.path()}, but does not have any required role ${ctx.routeRoles()}. See secure log for principal.")
             throw ForbiddenResponse()
         }
 

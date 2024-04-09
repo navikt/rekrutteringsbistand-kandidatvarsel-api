@@ -7,8 +7,9 @@ import no.nav.common.audit_log.log.AuditLogger
 import no.nav.common.audit_log.log.AuditLoggerImpl
 import org.slf4j.LoggerFactory
 
+val secureLog = LoggerFactory.getLogger("secureLog")!!
+
 object AuditLogg {
-    private val secureLog = LoggerFactory.getLogger("secureLog")!!
     private val auditLogger: AuditLogger = AuditLoggerImpl()
 
     fun logCefMessage(navIdent: String, userid: String, msg: String) {
