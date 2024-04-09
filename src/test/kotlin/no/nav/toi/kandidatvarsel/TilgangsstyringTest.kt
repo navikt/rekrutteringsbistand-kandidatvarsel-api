@@ -148,7 +148,7 @@ class TilgangsstyringTest {
         app.post("/api/backfill")
             .token(token)
             .body("""
-                {
+                [{
                     "frontendId": "0",
                     "opprettet": "2023-01-01T01:01:01",
                     "stillingId": "1",
@@ -157,7 +157,7 @@ class TilgangsstyringTest {
                     "status": "FEIL",
                     "statusEndret": "2024-01-02T01:01:01Z",
                     "navIdent": "Z123456"
-                }
+                }]
             """)
             .response()
             .also { (_, response, _) ->

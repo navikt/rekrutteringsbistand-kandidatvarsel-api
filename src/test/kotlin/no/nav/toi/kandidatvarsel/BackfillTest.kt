@@ -20,7 +20,7 @@ class BackfillTest {
         app.post("/api/backfill")
             .token(app.maskinToken())
             .body("""
-                {
+                [{
                     "frontendId": "0",
                     "opprettet": "2023-01-01T01:01:01",
                     "stillingId": "$stillingId",
@@ -29,7 +29,7 @@ class BackfillTest {
                     "status": "UNDER_UTSENDING",
                     "statusEndret": "2024-01-01T01:01:01Z",
                     "navIdent": "Z123456"
-                }
+                }]
             """.trimIndent())
             .response()
             .also { (_, response, _) ->
@@ -52,7 +52,7 @@ class BackfillTest {
         app.post("/api/backfill")
             .token(app.maskinToken())
             .body("""
-                {
+                [{
                     "frontendId": "0",
                     "opprettet": "2023-01-01T01:01:01",
                     "stillingId": "$stillingId",
@@ -61,7 +61,7 @@ class BackfillTest {
                     "status": "SENDT",
                     "statusEndret": "2024-01-02T01:01:01Z",
                     "navIdent": "Z123456"
-                }
+                }]
             """.trimIndent())
             .response()
             .also {(_, response, _) ->
@@ -84,7 +84,7 @@ class BackfillTest {
         app.post("/api/backfill")
             .token(app.maskinToken())
             .body("""
-                {
+                [{
                     "frontendId": "0",
                     "opprettet": "2023-01-01T01:01:01",
                     "stillingId": "$stillingId",
@@ -93,7 +93,7 @@ class BackfillTest {
                     "status": "FEIL",
                     "statusEndret": "2024-01-02T01:01:01Z",
                     "navIdent": "Z123456"
-                }
+                }]
             """.trimIndent())
             .response()
             .also {(_, response, _) ->
