@@ -38,6 +38,7 @@ spec:
     inbound:
       rules:
         - application: rekrutteringsbistand
+        - application: rekrutteringsbistand-sms
   env:
     - name: AD_GROUP_MODIA_GENERELL
       value: {{adGroupModiaGenerellTilgang}}
