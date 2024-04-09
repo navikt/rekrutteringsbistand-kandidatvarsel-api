@@ -39,6 +39,8 @@ spec:
       rules:
         - application: rekrutteringsbistand
         - application: rekrutteringsbistand-sms
+          namespace: toi
+          cluster: {{{fssCluster}}}
   env:
     - name: AD_GROUP_MODIA_GENERELL
       value: {{adGroupModiaGenerellTilgang}}

@@ -10,5 +10,6 @@
     ],
     "env": {},
     "dbTier": "db-custom-1-3840",
-    "kafkaPool": "nav-prod"
+    "kafkaPool": "nav-prod",
+    "fssCluster": "prod-fss"
 }
