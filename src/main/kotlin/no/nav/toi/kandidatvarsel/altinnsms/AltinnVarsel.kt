@@ -70,7 +70,6 @@ data class AltinnVarsel(
                     melding,
                     mottaker_fnr,
                     status,
-                    status_endret,
                     avsender_navident
                 )
                 values (
@@ -80,12 +79,10 @@ data class AltinnVarsel(
                     :melding,
                     :mottaker_fnr,
                     :status,
-                    :status_endret,
                     :avsender_navident
                 )
                 on conflict (frontend_id) do update set
-                    status = excluded.status,
-                    status_endret = excluded.status_endret
+                    status = excluded.status
             """.trimIndent())
                 .param("frontend_id", backfillRequest.frontendId)
                 .param("opprettet", backfillRequest.opprettet)
@@ -94,7 +91,6 @@ data class AltinnVarsel(
                 .param("mottaker_fnr", backfillRequest.fnr)
                 .param("avsender_navident", backfillRequest.navIdent)
                 .param("status", backfillRequest.status)
-                .param("status_endret", backfillRequest.statusEndret)
                 .update()
     }
 }

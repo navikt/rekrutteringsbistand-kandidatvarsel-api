@@ -155,7 +155,6 @@ class TilgangsstyringTest {
                     "melding": "En melding",
                     "fnr": "11223388990",
                     "status": "FEIL",
-                    "statusEndret": "2024-01-02T01:01:01Z",
                     "navIdent": "Z123456"
                 }]
             """)

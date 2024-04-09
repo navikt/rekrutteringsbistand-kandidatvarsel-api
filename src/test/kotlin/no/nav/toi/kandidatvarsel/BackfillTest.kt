@@ -27,7 +27,6 @@ class BackfillTest {
                     "melding": "En melding",
                     "fnr": "11223388990",
                     "status": "UNDER_UTSENDING",
-                    "statusEndret": "2024-01-01T01:01:01Z",
                     "navIdent": "Z123456"
                 }]
             """.trimIndent())
@@ -59,7 +58,6 @@ class BackfillTest {
                     "melding": "En melding",
                     "fnr": "11223388990",
                     "status": "SENDT",
-                    "statusEndret": "2024-01-02T01:01:01Z",
                     "navIdent": "Z123456"
                 }]
             """.trimIndent())
@@ -91,7 +89,6 @@ class BackfillTest {
                     "melding": "En melding",
                     "fnr": "11223388990",
                     "status": "FEIL",
-                    "statusEndret": "2024-01-02T01:01:01Z",
                     "navIdent": "Z123456"
                 }]
             """.trimIndent())

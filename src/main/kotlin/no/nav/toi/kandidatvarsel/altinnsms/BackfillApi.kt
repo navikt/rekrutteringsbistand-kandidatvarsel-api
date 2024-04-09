@@ -15,7 +15,6 @@ data class BackfillRequest(
     val melding: String,
     val fnr: String,
     val status: String,
-    val statusEndret: LocalDate,
     val navIdent: String,
 )
 
