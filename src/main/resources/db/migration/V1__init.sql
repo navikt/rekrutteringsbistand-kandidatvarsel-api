@@ -24,7 +24,8 @@ create table altinn_varsel (
     avsender_navident text not null,
     stilling_id text not null,
     melding text not null,
-    status text not null
+    status text not null,
+    status_endret text not null
 );
 
 create index altinn_varsel_mottaker_fnr_index on altinn_varsel (mottaker_fnr);
