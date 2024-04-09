@@ -6,6 +6,7 @@
     "adGroupRekbisUtvikler": "41080368-439f-4128-858a-afbef876431e",
     "adAuthorizedPartyNames": "prod-fss:toi:rekrutteringsbistand-sms",
     "ingress": [
+        "https://rekrutteringsbistand-kandidatvarsel-api.intern.nav.no"
     ],
     "env": {},
     "dbTier": "db-custom-1-3840",
