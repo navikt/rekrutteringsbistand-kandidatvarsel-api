@@ -205,7 +205,7 @@ fun Javalin.azureAdAuthentication(azureAdConfig: AzureAdConfig): Javalin {
 
         val claims = azureAdConfig.verify(token).claims
 
-        val principal = if (claims["idtype"]?.asString() == "app") {
+        val principal = if (claims["idtyp"]?.asString() == "app") {
             MachinePrincipal.fromClaims(claims, azureAdConfig)
         } else {
             UserPrincipal.fromClaims(claims, azureAdConfig)
