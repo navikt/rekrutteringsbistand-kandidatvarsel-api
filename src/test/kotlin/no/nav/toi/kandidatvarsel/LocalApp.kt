@@ -112,7 +112,7 @@ class LocalApp(nyTilgangsstyring: Boolean = true) {
     ) = issueToken(
         issuerId = issuerId,
         audience = audience,
-        claims = mapOf("idtype" to "app", "azp_name" to azpName)
+        claims = mapOf("idtyp" to "app", "azp_name" to azpName)
     )
 
     fun userToken(

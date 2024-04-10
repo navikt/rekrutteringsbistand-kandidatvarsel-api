@@ -19,13 +19,10 @@ data class BackfillRequest(
 )
 
 fun Javalin.handleBackfill(dataSource: DataSource) {
-    val jdbcClient = JdbcClient.create(dataSource)
 
     post("/api/backfill", { ctx ->
         val backfillRequest = ctx.bodyAsClass<List<BackfillRequest>>()
-        for (req in backfillRequest) {
-            AltinnVarsel.storeBackfill(jdbcClient, req)
-        }
+        AltinnVarsel.storeBackfill(dataSource, backfillRequest)
         ctx.status(201)
     }, Rolle.MASKIN_TIL_MASKIN)
 }

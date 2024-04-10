@@ -4,6 +4,7 @@ import no.nav.toi.kandidatvarsel.*
 import org.springframework.jdbc.core.simple.JdbcClient
 import java.sql.ResultSet
 import java.time.LocalDateTime
+import javax.sql.DataSource
 
 enum class AltinnStatus {
     SENDT, UNDER_UTSENDING, IKKE_SENDT, FEIL
@@ -61,36 +62,35 @@ data class AltinnVarsel(
                 .query(RowMapper)
                 .list()
 
-        fun storeBackfill(jdbcClient: JdbcClient, backfillRequest: BackfillRequest) =
-            jdbcClient.sql("""
-                insert into altinn_varsel(
-                    frontend_id,
-                    opprettet,
-                    stilling_id,
-                    melding,
-                    mottaker_fnr,
-                    status,
-                    avsender_navident
-                )
-                values (
-                    :frontend_id,
-                    :opprettet,
-                    :stilling_id,
-                    :melding,
-                    :mottaker_fnr,
-                    :status,
-                    :avsender_navident
-                )
-                on conflict (frontend_id) do update set
-                    status = excluded.status
-            """.trimIndent())
-                .param("frontend_id", backfillRequest.frontendId)
-                .param("opprettet", backfillRequest.opprettet)
-                .param("stilling_id", backfillRequest.stillingId)
-                .param("melding", backfillRequest.melding)
-                .param("mottaker_fnr", backfillRequest.fnr)
-                .param("avsender_navident", backfillRequest.navIdent)
-                .param("status", backfillRequest.status)
-                .update()
+        fun storeBackfill(dataSource: DataSource, backfillRequests: List<BackfillRequest>) =
+            dataSource.connection.use { conn ->
+                conn.prepareStatement("""
+                    insert into altinn_varsel(
+                        frontend_id,
+                        opprettet,
+                        stilling_id,
+                        melding,
+                        mottaker_fnr,
+                        status,
+                        avsender_navident
+                    )
+                    values (?, ?, ?, ?, ?, ?, ?)
+                    on conflict (frontend_id) do update set
+                        status = excluded.status
+                        
+                """.trimIndent()).use { stmt ->
+                    for (req in backfillRequests) {
+                        stmt.setString(1, req.frontendId)
+                        stmt.setObject(2, req.opprettet)
+                        stmt.setString(3, req.stillingId)
+                        stmt.setString(4, req.melding)
+                        stmt.setString(5, req.fnr)
+                        stmt.setString(6, req.status)
+                        stmt.setString(7, req.navIdent)
+                        stmt.addBatch()
+                    }
+                    stmt.executeBatch()
+                }
+            }
     }
 }
