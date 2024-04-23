@@ -2,7 +2,7 @@ package no.nav.toi.kandidatvarsel.minside
 
 sealed interface Mal {
     val name: String
-    fun minsideTekst(stillingsTittel: String, arbeidsgiver: String): String
+    fun minsideTekst(): String
     fun smsTekst(): String
     fun epostTittel(): String
     fun epostHtmlBody(): String
@@ -17,21 +17,20 @@ sealed interface Mal {
 
         data object VurdertSomAktuell: Mal {
             override val name = "VURDERT_SOM_AKTUELL"
-            override fun minsideTekst(stillingsTittel: String, arbeidsgiver: String) =
-                "Vi har vurdert at kompetansen din kan passe til stillingen «$stillingsTittel» hos «$arbeidsgiver»"
+            override fun minsideTekst() =
+                "Vi har vurdert at kompetansen din kan passe til en stilling. Se stillingen her."
             override fun smsTekst() =
                 "Hei! Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
             override fun epostTittel() =
-//                "Stilling som kompetansen din kan passe til" // TODO 42 tegn, maks 40
-                "Stilling som du kan passe til"
+                "Stilling som kan passe for deg?"
             override fun epostHtmlBody() =
                 "Hei! Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
         }
 
         data object PassendeStilling: Mal {
             override val name = "PASSENDE_STILLING"
-            override fun minsideTekst(stillingsTittel: String, arbeidsgiver: String) =
-                "Vi har funnet stillingen «$stillingsTittel» hos «$arbeidsgiver» som kan passe deg. Interessert? Søk via lenka i annonsen."
+            override fun minsideTekst() =
+                "Vi har funnet en stilling som kan passe deg. Interessert? Søk via lenka i annonsen."
             override fun smsTekst() =
                 "Hei! Vi har funnet en stilling som kan passe deg. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
             override fun epostTittel() =
@@ -42,13 +41,12 @@ sealed interface Mal {
 
         data object PassendeJobbarrangement: Mal {
             override val name = "PASSENDE_JOBBARRANGEMENT"
-            override fun minsideTekst(stillingsTittel: String, arbeidsgiver: String) =
+            override fun minsideTekst() =
                 "Vi har et jobbarrangement som kanskje passer for deg"
             override fun smsTekst() =
                 "Hei! Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på NAV for å se arrangementet. Vennlig hilsen NAV"
             override fun epostTittel() =
-//                "Jobbarrangement som kanskje passer for deg" // TODO: 42 tegn, maks 40
-                "Jobbarrangement som kanskje passer"
+                "Jobbarrangement"
             override fun epostHtmlBody() =
                 "Hei! Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på NAV for å se arrangementet. Vennlig hilsen NAV"
         }

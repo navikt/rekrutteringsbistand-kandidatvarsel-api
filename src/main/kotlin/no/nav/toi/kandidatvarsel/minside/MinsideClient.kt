@@ -27,7 +27,7 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel) {
         ident = minsideVarsel.mottakerFnr
         tekster += Tekst(
             default = true,
-            tekst = minsideVarsel.mal.minsideTekst("Stillingsittel", "Arbeidsgiver"),
+            tekst = minsideVarsel.mal.minsideTekst(),
             spraakkode = "nb",
         )
         link = "https://www.nav.no/arbeid/stilling/${minsideVarsel.stillingId}"
