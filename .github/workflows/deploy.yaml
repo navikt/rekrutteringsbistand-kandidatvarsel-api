@@ -33,7 +33,7 @@ jobs:
 
   deploy-to-dev:
     name: Deploy to dev
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fakedings_Dev'
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stilling'
     needs: build-test-deploy
     runs-on: ubuntu-latest
     steps:

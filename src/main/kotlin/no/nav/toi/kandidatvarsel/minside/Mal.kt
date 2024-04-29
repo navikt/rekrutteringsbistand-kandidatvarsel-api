@@ -1,8 +1,10 @@
 package no.nav.toi.kandidatvarsel.minside
 
+import no.nav.toi.kandidatvarsel.Stilling
+
 sealed interface Mal {
     val name: String
-    fun minsideTekst(): String
+    fun minsideTekst(stilling: Stilling): String
     fun smsTekst(): String
     fun epostTittel(): String
     fun epostHtmlBody(): String
@@ -17,8 +19,8 @@ sealed interface Mal {
 
         data object VurdertSomAktuell: Mal {
             override val name = "VURDERT_SOM_AKTUELL"
-            override fun minsideTekst() =
-                "Vi har vurdert at kompetansen din kan passe til en stilling. Se stillingen her."
+            override fun minsideTekst(stilling: Stilling) =
+                "Vi har vurdert at kompetansen din kan passe til stillingen «${stilling.title}» hos «${stilling.businessName}». Se stillingen her."
             override fun smsTekst() =
                 "Hei! Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
             override fun epostTittel() =
@@ -29,8 +31,8 @@ sealed interface Mal {
 
         data object PassendeStilling: Mal {
             override val name = "PASSENDE_STILLING"
-            override fun minsideTekst() =
-                "Vi har funnet en stilling som kan passe deg. Interessert? Søk via lenka i annonsen."
+            override fun minsideTekst(stilling: Stilling) =
+                "Vi har funnet stillingen «${stilling.title}» hos «${stilling.businessName}» som kan passe deg. Interessert? Søk via lenka i annonsen."
             override fun smsTekst() =
                 "Hei! Vi har funnet en stilling som kan passe deg. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
             override fun epostTittel() =
@@ -41,7 +43,7 @@ sealed interface Mal {
 
         data object PassendeJobbarrangement: Mal {
             override val name = "PASSENDE_JOBBARRANGEMENT"
-            override fun minsideTekst() =
+            override fun minsideTekst(stilling: Stilling) =
                 "Vi har et jobbarrangement som kanskje passer for deg"
             override fun smsTekst() =
                 "Hei! Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på NAV for å se arrangementet. Vennlig hilsen NAV"

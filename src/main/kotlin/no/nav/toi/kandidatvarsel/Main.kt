@@ -7,17 +7,17 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.flywaydb.core.api.output.MigrateResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.lang.System.getenv
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+private val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.Main")!!
+
 fun main() {
-    val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.Main")!!
-
     val dataSource = DatabaseConfig.nais().createDataSource()
-
 
     /* Status på migrering, så ready-endepunktet kan fortelle om vi er klare for å motta api-kall. */
     val migrateResult = AtomicReference<MigrateResult>()
@@ -26,10 +26,10 @@ fun main() {
         azureAdConfig = AzureAdConfig.nais(),
         dataSource = dataSource,
         migrateResult = migrateResult,
-        nyTilgangsstyring = when (System.getenv("NAIS_CLUSTER_NAME")) {
+        nyTilgangsstyring = when (getenv("NAIS_CLUSTER_NAME")) {
             "dev-gcp" -> false
             "prod-gcp" -> false
-            else -> throw IllegalStateException("Ukjent cluster: ${System.getenv("NAIS_CLUSTER_NAME")}")
+            else -> throw IllegalStateException("Ukjent cluster: ${getenv("NAIS_CLUSTER_NAME")}")
         }
     )
 
@@ -47,35 +47,30 @@ fun main() {
     var minsideBestillingThread: Thread? = null
     var minsideOppdateringThread: Thread? = null
 
-    if (System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
+    if (getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
         minsideBestillingProducer = kafkaConfig.minsideBestillingsProducer()
         minsideOppdateringConsumer = kafkaConfig.minsideOppdateringsConsumer()
 
-        minsideBestillingThread = thread(name = "minside-utsending") {
-            while (!shutdown.get()) {
-                try {
-                    if (!bestillVarsel(dataSource, minsideBestillingProducer)) {
-                        Thread.sleep(1.seconds.inWholeMilliseconds)
-                    }
-                } catch (e: Exception) {
-                    log.error("Exception {} ved utsending av varsel", e::class.qualifiedName, e)
-                    Thread.sleep(1.seconds.inWholeMilliseconds)
-                }
+        val azureTokenClient = AzureTokenClient(
+            tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+            clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
+            clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
+            scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-stilling-api/.default"
+        )
+
+        val stillingClient = StillingClientImpl(azureTokenClient)
+
+        minsideBestillingThread = backgroundThread("minside-utsending", shutdown) {
+            if (!bestillVarsel(dataSource, stillingClient, minsideBestillingProducer)) {
+                Thread.sleep(1.seconds.inWholeMilliseconds)
             }
         }
 
-       minsideOppdateringThread = thread(name = "minside-oppdatering") {
-            while (!shutdown.get()) {
-                try {
-                    sjekkVarselOppdateringer(dataSource, minsideOppdateringConsumer)
-                } catch (e: Exception) {
-                    log.error("Exception {} ved oppdatering av varsel", e::class.qualifiedName, e)
-                    Thread.sleep(1.seconds.inWholeMilliseconds)
-                }
-            }
+        minsideOppdateringThread = backgroundThread(name = "minside-oppdatering", shutdown) {
+            sjekkVarselOppdateringer(dataSource, minsideOppdateringConsumer)
         }
-
     }
+
     Runtime.getRuntime().addShutdownHook(Thread {
         shutdown.set(true)
         minsideBestillingThread?.join()
@@ -88,8 +83,18 @@ fun main() {
     })
 }
 
+private fun backgroundThread(name: String, shutdown: AtomicBoolean, body: () -> Unit): Thread = thread(name = name) {
+    while (!shutdown.get()) {
+        try {
+            body()
+        } catch (e: Exception) {
+            log.error("Exception in background thread {}", name, e)
+            Thread.sleep(1.seconds.inWholeMilliseconds)
+        }
+    }
+}
 
 val Any.log: Logger
     get() = LoggerFactory.getLogger(this::class.java)
 
-fun getenvOrThrow(name: String): String = System.getenv(name) ?: throw IllegalStateException("Mangler miljøvariabel '$name'")
+fun getenvOrThrow(name: String): String = getenv(name) ?: throw IllegalStateException("Mangler miljøvariabel '$name'")

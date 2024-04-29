@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
+import no.nav.toi.kandidatvarsel.Stilling
 import no.nav.toi.kandidatvarsel.log
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
@@ -20,14 +21,14 @@ import kotlin.time.toJavaDuration
 const val BESTILLING_TOPIC = "min-side.aapen-brukervarsel-v1"
 const val OPPDATERING_TOPIC = "min-side.aapen-varsel-hendelse-v1"
 
-fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel) {
+fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, stilling: Stilling) {
     val varselJson = VarselActionBuilder.opprett {
         type = Varseltype.Beskjed
         varselId = minsideVarsel.varselId
         ident = minsideVarsel.mottakerFnr
         tekster += Tekst(
             default = true,
-            tekst = minsideVarsel.mal.minsideTekst(),
+            tekst = minsideVarsel.mal.minsideTekst(stilling),
             spraakkode = "nb",
         )
         link = "https://www.nav.no/arbeid/stilling/${minsideVarsel.stillingId}"

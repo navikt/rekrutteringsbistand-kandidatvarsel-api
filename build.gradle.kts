@@ -32,6 +32,8 @@ dependencies {
     implementation("no.nav.common:audit-log:3.2023.12.12_13.53-510909d4aa1a")
     implementation("org.codehaus.janino:janino:3.1.11")
     implementation("com.fasterxml.uuid:java-uuid-generator:5.0.0")
+    implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
+    implementation("com.github.kittinunf.fuel:fuel-jackson:$fuelVersion")
 
     implementation("org.apache.kafka:kafka-clients:3.7.0")
     implementation("no.nav.tms.varsel:kotlin-builder:1.0.0")
@@ -46,8 +48,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:3.23.1")
-    testImplementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
-    testImplementation("com.github.kittinunf.fuel:fuel-jackson:$fuelVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.wiremock:wiremock:3.3.1")
     testImplementation("org.skyscreamer:jsonassert:1.5.1")

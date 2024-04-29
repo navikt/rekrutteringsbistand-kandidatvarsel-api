@@ -4,6 +4,7 @@ import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class VarslerTest {
@@ -21,8 +22,12 @@ class VarslerTest {
     private val fnr2 = "2".repeat(11)
     private val fnr3 = "3".repeat(11)
     private val veileder1 = app.userToken(navIdent = "Z1")
-    private val stillingId1 = "1111"
-    private val stillingId2 = "2222"
+    private val stillingId1 = "11111111-1111-1111-1111-111111111111"
+    private val stillingId2 = "22222222-2222-2222-2222-222222222222"
+
+    object stillingClient: StillingClient {
+        override fun getStilling(stillingId: UUID) = Stilling("Snekker", "Snekkerbua AS")
+    }
 
     @Test
     fun alleStatusoverganger() {
@@ -53,9 +58,9 @@ class VarslerTest {
             }
         }
 
-        assertTrue(bestillVarsel(app.dataSource, minside.producer))
-        assertTrue(bestillVarsel(app.dataSource, minside.producer))
-        assertFalse(bestillVarsel(app.dataSource, minside.producer))
+        assertTrue(bestillVarsel(app.dataSource, stillingClient, minside.producer))
+        assertTrue(bestillVarsel(app.dataSource, stillingClient, minside.producer))
+        assertFalse(bestillVarsel(app.dataSource, stillingClient, minside.producer))
 
         val bestillinger = minside.mottatteBestillinger(2).also {
             assertEquals(2, it.size)

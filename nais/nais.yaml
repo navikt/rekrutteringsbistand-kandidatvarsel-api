@@ -41,6 +41,9 @@ spec:
         - application: rekrutteringsbistand-sms
           namespace: toi
           cluster: {{{fssCluster}}}
+    outbound:
+      rules:
+        - application: rekrutteringsbistand-stilling-api
   env:
     - name: AD_GROUP_MODIA_GENERELL
       value: {{adGroupModiaGenerellTilgang}}
