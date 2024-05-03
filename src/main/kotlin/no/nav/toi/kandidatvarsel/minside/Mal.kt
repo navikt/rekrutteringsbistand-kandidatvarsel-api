@@ -1,6 +1,7 @@
 package no.nav.toi.kandidatvarsel.minside
 
 import no.nav.toi.kandidatvarsel.Stilling
+import org.intellij.lang.annotations.Language
 
 sealed interface Mal {
     val name: String
@@ -26,7 +27,9 @@ sealed interface Mal {
             override fun epostTittel() =
                 "Stilling som kan passe for deg?"
             override fun epostHtmlBody() =
-                "Hei! Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
+                epostHtmlBodyTemplate("""
+                    Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på NAV for å se stillingen.
+                """.trimIndent())
         }
 
         data object PassendeStilling: Mal {
@@ -38,7 +41,9 @@ sealed interface Mal {
             override fun epostTittel() =
                 "Stilling som kan passe for deg?"
             override fun epostHtmlBody() =
-                "Hei! Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
+                epostHtmlBodyTemplate("""
+                    Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på NAV for å se stillingen.
+                """.trimIndent())
         }
 
         data object PassendeJobbarrangement: Mal {
@@ -50,7 +55,13 @@ sealed interface Mal {
             override fun epostTittel() =
                 "Jobbarrangement"
             override fun epostHtmlBody() =
-                "Hei! Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på NAV for å se arrangementet. Vennlig hilsen NAV"
+                epostHtmlBodyTemplate("""
+                    Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på NAV for å se arrangementet.
+                """.trimIndent())
         }
+
+        private fun epostHtmlBodyTemplate(@Language("HTML") tekst: String) = """
+            <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei!</p><p>$tekst</p><p>Vennlig hilsen</p><p>NAV</p></body></html>
+        """.trimIndent()
     }
 }
