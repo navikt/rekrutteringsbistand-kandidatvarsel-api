@@ -5,8 +5,6 @@
       <env name="AZURE_APP_WELL_KNOWN_URL" value="https://fakedings.intern.dev.nav.no/fake/" />
       <env name="AZURE_OPENID_CONFIG_ISSUER" value="https://fakedings.intern.dev.nav.no/fake" />
       <env name="AZURE_OPENID_CONFIG_JWKS_URI" value="https://fakedings.intern.dev.nav.no/fake/jwks" />
-      <env name="AD_GROUP_MODIA_GENERELL" value="67a06857-0028-4a90-bf4c-9c9a92c7d733" />
-      <env name="AD_GROUP_MODIA_OPPFOLGING" value="554a66fb-fbec-4b92-90c1-0d9c085c362c" />
       <env name="AD_GROUP_REKBIS_ARBEIDSGIVERRETTET" value="52bc2af7-38d1-468b-b68d-0f3a4de45af2" />
       <env name="AD_GROUP_REKBIS_JOBBSOKERRETTET" value="0dba8374-bf36-4d89-bbba-662447d57b94" />
       <env name="AD_GROUP_REKBIS_UTVIKLER" value="a1749d9a-52e0-4116-bb9f-935c38f6c74a" />

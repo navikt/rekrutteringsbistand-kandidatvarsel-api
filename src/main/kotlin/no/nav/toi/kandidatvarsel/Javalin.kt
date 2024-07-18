@@ -18,7 +18,6 @@ fun startJavalin(
     dataSource: HikariDataSource,
     migrateResult: AtomicReference<MigrateResult>,
     port: Int = 8080,
-    nyTilgangsstyring: Boolean,
 ): Javalin = Javalin
     .create {
         val objectMapper = jacksonObjectMapper().apply {
@@ -39,7 +38,7 @@ fun startJavalin(
         azureAdAuthentication(azureAdConfig)
         handleHealth(dataSource, migrateResult)
         handleBackfill(dataSource)
-        handleVarsler(dataSource, nyTilgangsstyring)
+        handleVarsler(dataSource)
 
         exception(ValidationException::class.java) { e, ctx ->
             log.info("Returnerer 400 Bad Request på grunn av: ${e.errors}", e)

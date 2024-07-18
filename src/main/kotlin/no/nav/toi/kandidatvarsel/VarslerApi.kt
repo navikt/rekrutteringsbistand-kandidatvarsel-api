@@ -66,7 +66,7 @@ data class VarselResponseDto(
     val eksternFeilmelding: String?,
 )
 
-fun Javalin.handleVarsler(dataSource: DataSource, nyTilgangsstyring: Boolean) {
+fun Javalin.handleVarsler(dataSource: DataSource) {
     get(
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
@@ -80,16 +80,8 @@ fun Javalin.handleVarsler(dataSource: DataSource, nyTilgangsstyring: Boolean) {
             }
             ctx.json(varsler)
         },
-        *if (nyTilgangsstyring) arrayOf(
-            REKBIS_UTVIKLER,
-            REKBIS_ARBEIDSGIVERRETTET,
-        ) else arrayOf(
-            MODIA_GENERELL,
-            MODIA_OPPFØLGING,
-            REKBIS_UTVIKLER,
-            REKBIS_JOBBSØKERRETTET,
-            REKBIS_ARBEIDSGIVERRETTET,
-        )
+        REKBIS_UTVIKLER,
+        REKBIS_ARBEIDSGIVERRETTET
     )
 
     post(
@@ -111,16 +103,9 @@ fun Javalin.handleVarsler(dataSource: DataSource, nyTilgangsstyring: Boolean) {
             }
             ctx.status(HttpStatus.CREATED)
         },
-        *if (nyTilgangsstyring) arrayOf(
-            REKBIS_UTVIKLER,
-            REKBIS_ARBEIDSGIVERRETTET,
-        ) else arrayOf(
-            MODIA_GENERELL,
-            MODIA_OPPFØLGING,
-            REKBIS_UTVIKLER,
-            REKBIS_JOBBSØKERRETTET,
-            REKBIS_ARBEIDSGIVERRETTET,
-        )
+        REKBIS_UTVIKLER,
+        REKBIS_ARBEIDSGIVERRETTET
+
     )
 
     post(
@@ -141,17 +126,9 @@ fun Javalin.handleVarsler(dataSource: DataSource, nyTilgangsstyring: Boolean) {
             }
             ctx.json(varsler)
         },
-        *if (nyTilgangsstyring) arrayOf(
-            REKBIS_UTVIKLER,
-            REKBIS_JOBBSØKERRETTET,
-            REKBIS_ARBEIDSGIVERRETTET,
-        ) else arrayOf(
-            MODIA_GENERELL,
-            MODIA_OPPFØLGING,
-            REKBIS_UTVIKLER,
-            REKBIS_JOBBSØKERRETTET,
-            REKBIS_ARBEIDSGIVERRETTET,
-        )
+        REKBIS_UTVIKLER,
+        REKBIS_JOBBSØKERRETTET,
+        REKBIS_ARBEIDSGIVERRETTET,
     )
 }
 

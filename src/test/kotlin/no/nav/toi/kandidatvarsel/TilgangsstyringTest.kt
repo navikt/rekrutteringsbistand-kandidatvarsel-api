@@ -25,28 +25,6 @@ class TilgangsstyringTest {
     }
 
     @Test
-    fun `tilganger for modia generell`() {
-        assertTilganger(
-            token = app.userToken(groups = listOf(modiaGenerell)),
-            tilgangOpprettVarsel = false,
-            tilgangListVarslerPåStilling = false,
-            tilgangListVarslerPåFnr = false,
-            tilgangBackfill = false,
-        )
-    }
-
-    @Test
-    fun `tilganger for modia oppfølging`() {
-        assertTilganger(
-            token = app.userToken(groups = listOf(modiaOppfølging)),
-            tilgangOpprettVarsel = false,
-            tilgangListVarslerPåStilling = false,
-            tilgangListVarslerPåFnr = false,
-            tilgangBackfill = false,
-        )
-    }
-
-    @Test
     fun `tilganger for rekbis utvikler`() {
         assertTilganger(
             token = app.userToken(groups = listOf(rekbisUtvikler)),
@@ -66,28 +44,12 @@ class TilgangsstyringTest {
             tilgangListVarslerPåFnr = true,
             tilgangBackfill = false,
         )
-
-        assertTilganger(
-            token = app.userToken(groups = listOf(rekbisJobbsøkerrettet, modiaGenerell)),
-            tilgangOpprettVarsel = false,
-            tilgangListVarslerPåStilling = false,
-            tilgangListVarslerPåFnr = true,
-            tilgangBackfill = false,
-        )
     }
 
     @Test
     fun `tilganger for rekbis arbeidsgiverrettet`() {
         assertTilganger(
             token = app.userToken(groups = listOf(rekbisArbeidsgiverrettet)),
-            tilgangOpprettVarsel = true,
-            tilgangListVarslerPåStilling = true,
-            tilgangListVarslerPåFnr = true,
-            tilgangBackfill = false,
-        )
-
-        assertTilganger(
-            token = app.userToken(groups = listOf(rekbisArbeidsgiverrettet, modiaGenerell)),
             tilgangOpprettVarsel = true,
             tilgangListVarslerPåStilling = true,
             tilgangListVarslerPåFnr = true,

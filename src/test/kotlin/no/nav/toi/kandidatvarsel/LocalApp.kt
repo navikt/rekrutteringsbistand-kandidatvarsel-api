@@ -18,8 +18,6 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
 
-const val modiaGenerell = "67a06857-0028-4a90-bf4c-9c9a92c7d733"
-const val modiaOppfølging = "554a66fb-fbec-4b92-90c1-0d9c085c362c"
 const val rekbisJobbsøkerrettet = "0dba8374-bf36-4d89-bbba-662447d57b94"
 const val rekbisArbeidsgiverrettet = "52bc2af7-38d1-468b-b68d-0f3a4de45af2"
 const val rekbisUtvikler = "a1749d9a-52e0-4116-bb9f-935c38f6c74a"
@@ -36,14 +34,12 @@ val azureAdConfig = AzureAdConfig(
         )
     ),
     authorizedPartyNames = listOf(authorizedPartyName),
-    modiaGenerell = UUID.fromString(modiaGenerell),
-    modiaOppfølging = UUID.fromString(modiaOppfølging),
     rekbisArbeidsgiverrettet = UUID.fromString(rekbisArbeidsgiverrettet),
     rekbisJobbsøkerrettet = UUID.fromString(rekbisJobbsøkerrettet),
     rekbisUtvikler = UUID.fromString(rekbisUtvikler),
 )
 
-class LocalApp(nyTilgangsstyring: Boolean = true) {
+class LocalApp() {
     private val authServer = MockOAuth2Server().also {
         it.start(port = authPort)
     }
@@ -75,7 +71,7 @@ class LocalApp(nyTilgangsstyring: Boolean = true) {
 
     val migrateResult = AtomicReference<MigrateResult>()
 
-    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, port = 0, nyTilgangsstyring = nyTilgangsstyring)
+    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, port = 0)
 
     fun prepare() {
         flyway.clean()

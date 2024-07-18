@@ -24,11 +24,6 @@ fun main() {
         azureAdConfig = AzureAdConfig.nais(),
         dataSource = dataSource,
         migrateResult = migrateResult,
-        nyTilgangsstyring = when (getenv("NAIS_CLUSTER_NAME")) {
-            "dev-gcp" -> false
-            "prod-gcp" -> false
-            else -> throw IllegalStateException("Ukjent cluster: ${getenv("NAIS_CLUSTER_NAME")}")
-        }
     )
 
     while (!dataSource.isReady())  {
