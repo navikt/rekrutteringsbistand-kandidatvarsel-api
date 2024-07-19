@@ -22,11 +22,7 @@ fun main() {
     /* Status på migrering, så ready-endepunktet kan fortelle om vi er klare for å motta api-kall. */
     val migrateResult = AtomicReference<MigrateResult>()
 
-    val javalin = startJavalin(
-        azureAdConfig = AzureAdConfig.nais(),
-        dataSource = dataSource,
-        migrateResult = migrateResult,
-    )
+
 
     while (!dataSource.isReady())  {
         log.info("Database not ready. Sleeping")
@@ -69,6 +65,13 @@ fun main() {
     val minsideOppdateringThread = backgroundThread(name = "minside-oppdatering", shutdown) {
         sjekkVarselOppdateringer(dataSource, minsideOppdateringConsumer)
     }
+
+    val javalin = startJavalin(
+        azureAdConfig = AzureAdConfig.nais(),
+        dataSource = dataSource,
+        migrateResult = migrateResult,
+        kandidatsokApiKlient = kandidatsokApiKlient
+    )
 
     Runtime.getRuntime().addShutdownHook(Thread {
         shutdown.set(true)
