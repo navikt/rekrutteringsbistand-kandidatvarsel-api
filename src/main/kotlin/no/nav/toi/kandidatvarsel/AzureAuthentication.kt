@@ -234,7 +234,7 @@ fun Javalin.azureAdAuthentication(azureAdConfig: AzureAdConfig): Javalin {
 /**
  * Henter token ut fra header fra en Context
  */
-private fun Context.hentToken(): String? {
+fun Context.hentToken(): String? {
     val authorizationHeader = header(HttpHeader.AUTHORIZATION.name)
         ?: return null
 

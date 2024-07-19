@@ -1,5 +1,7 @@
 package no.nav.toi.kandidatvarsel
 
+import auth.obo.KandidatsokApiKlient
+import auth.obo.OnBehalfOfTokenClient
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.github.kittinunf.fuel.Fuel
@@ -63,6 +65,16 @@ class LocalApp() {
             }
         }
 
+    val kandidatsokApiKlient = KandidatsokApiKlient(
+        // TODO: Sett opp riktig for test
+        OnBehalfOfTokenClient(
+            tokenEndpoint = "http://localhost:$authPort/default/token",
+            clientId = "client-id",
+            clientSecret = "client",
+            scope = ""
+        )
+    )
+
     private val flyway = Flyway.configure()
         .dataSource(dataSource)
         .cleanDisabled(false)
@@ -71,7 +83,7 @@ class LocalApp() {
 
     val migrateResult = AtomicReference<MigrateResult>()
 
-    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, port = 0)
+    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, port = 0)
 
     fun prepare() {
         flyway.clean()
@@ -131,10 +143,12 @@ class LocalApp() {
     ) {
         val (request, response, bodyOrError) = post("/api/varsler/stilling/$stillingId")
             .token(token)
-            .objectBody(mapOf(
-                "fnr" to fnr,
-                "mal" to mal
-            ))
+            .objectBody(
+                mapOf(
+                    "fnr" to fnr,
+                    "mal" to mal
+                )
+            )
             .response()
         bodyOrError.onError {
             throw RuntimeException("Request ${request.method} ${request.url} failed", it.exception)
@@ -167,5 +181,5 @@ class LocalApp() {
     }
 }
 
-fun Request.token(token: SignedJWT): Request  =
+fun Request.token(token: SignedJWT): Request =
     header("Authorization", "Bearer ${token.serialize()}")

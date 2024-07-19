@@ -5,6 +5,9 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.kittinunf.result.getOrElse
 import io.javalin.http.Context
+import io.javalin.http.UnauthorizedResponse
+import no.nav.toi.kandidatvarsel.AzureAdConfig
+import no.nav.toi.kandidatvarsel.hentToken
 import java.time.Instant
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -24,15 +27,15 @@ class OnBehalfOfTokenClient(private val scope: String, private val tokenEndpoint
     }
 
     fun hentTokenSomString(ctx: Context): String {
-        val validerteTokens = todo.hentValiderteTokens(ctx) // TODO
+        //TODO: Kan dette gjøres mer elegant, delvis et annet sted?
+        val token = ctx.hentToken() ?: throw UnauthorizedResponse("Mangler token")
+        val decodedToken = AzureAdConfig.nais().verify(token)
+        val issuerUrl = decodedToken.issuer
+        if (issuerUrl != issuernavn) {
+            throw RuntimeException("Token issuer does not match expected issuer: $issuerUrl")
+        }
 
-
-        // Filtrer ut riktig issuer før vi velger firstOrNull
-        val issuerUrl = validerteTokens.issuers.firstOrNull { it == issuernavn }
-            ?: throw RuntimeException("Ingen issuer funnet som matcher: $issuernavn")
-
-        return validerteTokens.getJwtToken(issuerUrl)?.tokenAsString
-            ?: throw RuntimeException("Ingen gyldig token funnet for issuer: $issuerUrl")
+        return token
     }
 
     fun oboToken(ctx: Context, navIdent: String): String {
