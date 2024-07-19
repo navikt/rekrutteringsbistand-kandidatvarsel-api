@@ -1,5 +1,6 @@
 package no.nav.toi.kandidatvarsel
 
+import auth.obo.KandidatsokApiKlient
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus
 import io.javalin.http.bodyAsClass
@@ -66,7 +67,7 @@ data class VarselResponseDto(
     val eksternFeilmelding: String?,
 )
 
-fun Javalin.handleVarsler(dataSource: DataSource) {
+fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: KandidatsokApiKlient) {
     get(
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
@@ -112,11 +113,18 @@ fun Javalin.handleVarsler(dataSource: DataSource) {
         "/api/varsler/query",
         { ctx ->
             val queryRequestDto = ctx.bodyAsClass<QueryRequestDto>()
+            val navident = ctx.authenticatedUser().navident
+            val fnr = queryRequestDto.fnr
+
+            //TODO, legg til success/fail i auditlog avhengig av tilgang eller ikke
             AuditLogg.logCefMessage(
-                navIdent = ctx.authenticatedUser().navident,
-                userid = queryRequestDto.fnr,
+                navIdent = navident,
+                userid = fnr,
                 msg = "Hentet beskjeder om rekruttering sendt til bruker",
             )
+
+            kandidatsokApiKlient.verifiserKandidatTilgang(ctx, navident, fnr)
+
             val varsler = dataSource.transaction { tx ->
                 val minsideVarsler = MinsideVarsel.hentVarslerForQuery(tx, queryRequestDto)
                     .map { it.toResponse() }

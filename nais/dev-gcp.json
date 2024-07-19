@@ -7,6 +7,7 @@
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.dev.nav.no"
     ],
     "env": {
+        "KANDIDATSOK_API_URL": "https://rekrutteringsbistand-kandidatsok-api.intern.dev.nav.no",
         "FAKEDINGS_OPENID_CONFIG_JWKS_URI": "https://fakedings.intern.dev.nav.no/fake/jwks",
         "FAKEDINGS_OPENID_CONFIG_ISSUER": "https://fakedings.intern.dev.nav.no/fake/aad",
         "FAKEDINGS_APP_CLIENT_ID": "dev-gcp:toi:rekrutteringsbistand-kandidatvarsel-api"

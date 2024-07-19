@@ -8,6 +8,8 @@
       <env name="AD_GROUP_REKBIS_ARBEIDSGIVERRETTET" value="52bc2af7-38d1-468b-b68d-0f3a4de45af2" />
       <env name="AD_GROUP_REKBIS_JOBBSOKERRETTET" value="0dba8374-bf36-4d89-bbba-662447d57b94" />
       <env name="AD_GROUP_REKBIS_UTVIKLER" value="a1749d9a-52e0-4116-bb9f-935c38f6c74a" />
+      <env name="KANDIDATSOK_API_URL" value="http://localhost:9090" /> <!-- TODO: Sett opp Wiremock i tester-->
+      <env name="NAIS_CLUSTER_NAME" value="local" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="no.nav.toi.kandidatvarsel.MainKt" />
     <module name="rekrutteringsbistand-kandidatvarsel-api.main" />

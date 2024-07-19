@@ -6,36 +6,23 @@ import com.github.kittinunf.fuel.core.Headers
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.result.Result
-import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HttpResponseException
 import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
-import utils.Miljø
-import utils.Miljø.*
-import utils.log
 
 class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenClient) {
 
     private val logger = LoggerFactory.getLogger(KandidatsokApiKlient::class.java)
+    private val kandidatsokUrl = System.getenv("KANDIDATSOK_API_URL")
 
-    private val kandidatsokUrl = when (Miljø.current) {
-        DEV_FSS -> "https://rekrutteringsbistand-kandidatsok-api.intern.dev.nav.no"
-        PROD_FSS -> "https://rekrutteringsbistand-kandidatsok-api.intern.nav.no"
-        LOKAL -> "http://localhost:9089"
-    }
 
-    private val kandidatsokScope = when (Miljø.current) {
-        PROD_FSS -> "api://prod-gcp.toi.rekrutteringsbistand-kandidatsok-api/.default"
-        DEV_FSS -> "api://dev-gcp.toi.rekrutteringsbistand-kandidatsok-api/.default"
-        LOKAL -> ""
-    }
-
-    fun verifiserKandidatTilgang(ctx: Context, navIdent: String, aktorid: String) {
+    fun verifiserKandidatTilgang(ctx: Context, navIdent: String, fnr: String) {
         val url = "$kandidatsokUrl/api/brukertilgang"
-        val body = BrukertilgangRequestDto(fodselsnummer = null, aktorid = aktorid, kandidatnr = null)
-        val token = onBehalfOfTokenClient.getOboToken(ctx, kandidatsokScope, navIdent)
+        val body = BrukertilgangRequestDto(fodselsnummer = fnr, aktorid = null, kandidatnr = null)
+        val token = onBehalfOfTokenClient.oboToken(ctx, navIdent)
 
+        // TODO: Oppdater inbound-rule i rekrutteringsbistand-kandidatsok-api for å få tilgang
         val (_, response, result) = Fuel.post(url)
             .header(Headers.CONTENT_TYPE,  "application/json")
             .authentication().bearer(token)

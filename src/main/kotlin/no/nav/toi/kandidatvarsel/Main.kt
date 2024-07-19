@@ -1,5 +1,7 @@
 package no.nav.toi.kandidatvarsel
 
+import auth.obo.KandidatsokApiKlient
+import auth.obo.OnBehalfOfTokenClient
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import org.flywaydb.core.api.output.MigrateResult
@@ -46,7 +48,17 @@ fun main() {
         scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-stilling-api/.default"
     )
 
+    val onBehalfOfTokenClient = OnBehalfOfTokenClient(
+        tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+        clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
+        clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
+        scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-stilling-api/.default"
+    )
+
+
+
     val stillingClient = StillingClientImpl(azureTokenClient)
+    val kandidatsokApiKlient = KandidatsokApiKlient(onBehalfOfTokenClient)
 
     val minsideBestillingThread = backgroundThread("minside-utsending", shutdown) {
         if (!bestillVarsel(dataSource, stillingClient, minsideBestillingProducer)) {

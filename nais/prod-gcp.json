@@ -6,7 +6,9 @@
     "ingress": [
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.nav.no"
     ],
-    "env": {},
+    "env": {
+        "KANDIDATSOK_API_URL": "https://rekrutteringsbistand-kandidatsok-api.intern.nav.no",
+    },
     "dbTier": "db-custom-1-3840",
     "kafkaPool": "nav-prod",
     "fssCluster": "prod-fss"
