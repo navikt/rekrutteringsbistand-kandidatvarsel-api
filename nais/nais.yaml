@@ -51,6 +51,8 @@ spec:
       value: {{adGroupRekbisUtvikler}}
     - name: AUTHORIZED_PARTY_NAMES
       value: {{adAuthorizedPartyNames}}
+    - name: KANDIDATSOK_API_URL
+      value: {{kandidatsokApiUrl}}
     {{#each env }}
     - name: {{ @key }}
       value: {{ this }}

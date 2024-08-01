@@ -3,12 +3,11 @@
     "adGroupRekbisArbeidsgiverrettet": "46c8e3b2-0469-4740-983f-d8cd2b6e4fee",
     "adGroupRekbisUtvikler": "41080368-439f-4128-858a-afbef876431e",
     "adAuthorizedPartyNames": "prod-fss:toi:rekrutteringsbistand-sms",
+    "kandidatsokApiUrl": "https://rekrutteringsbistand-kandidatsok-api.intern.nav.no",
     "ingress": [
         "https://rekrutteringsbistand-kandidatvarsel-api.intern.nav.no"
     ],
-    "env": {
-        "KANDIDATSOK_API_URL": "https://rekrutteringsbistand-kandidatsok-api.intern.nav.no",
-    },
+    "env": {},
     "dbTier": "db-custom-1-3840",
     "kafkaPool": "nav-prod",
     "fssCluster": "prod-fss"
