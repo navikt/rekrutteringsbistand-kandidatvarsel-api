@@ -34,14 +34,13 @@ class OnBehalfOfTokenClient(private val scope: String, private val tokenEndpoint
         return token
     }
 
-    fun oboToken(ctx: Context, navIdent: String): String {
-        val cacheKey = "$scope-$navIdent" // TODO: Imlpementer cache pr navIdent med ehcache, se forespørsel-om-deling-av-cv
-        val tokenResponse = fetchOboToken(ctx, navIdent)
+    fun oboToken(ctx: Context): String {
+        val tokenResponse = fetchOboToken(ctx)
 
         return tokenResponse.access_token
     }
 
-    private fun fetchOboToken(ctx: Context, navIdent: String): TokenResponse  {
+    private fun fetchOboToken(ctx: Context): TokenResponse  {
         val innkommendeToken = hentTokenSomString(ctx)
 
         val (_, response, responseBody) = Fuel.post(
@@ -64,19 +63,5 @@ class OnBehalfOfTokenClient(private val scope: String, private val tokenEndpoint
         return responseBody.getOrElse { fuelError ->
             throw RuntimeException("Failed to get token: ${fuelError.response.responseMessage}")
         }
-        /*
-        val cacheKey = "$scope-$navIdent"
-        val innkommendeToken = hentTokenSomString(ctx)
-
-        val formData = listOf(
-            "grant_type" to AZURE_ON_BEHALF_OF_GRANT_TYPE,
-            "client_id" to System.getenv("AZURE_APP_CLIENT_ID"),
-            "client_secret" to config.azureClientSecret,
-            "assertion" to innkommendeToken,
-            "scope" to scope,
-            "requested_token_use" to REQUESTED_TOKEN_USE
-        )
-
-        return getToken(cacheKey, formData)*/
     }
 }
