@@ -1,17 +1,42 @@
 package no.nav.toi.kandidatvarsel
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jwt.SignedJWT
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
+import uk.org.webcompere.systemstubs.jupiter.SystemStub
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
+import java.util.*
 
+private const val kandidatsokPort = 10000
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(SystemStubsExtension::class)
+@WireMockTest(httpPort = kandidatsokPort)
 class TilgangsstyringTest {
     private val app = LocalApp()
     @BeforeEach fun beforeEach() = app.prepare()
     @AfterAll fun afterAll() = app.close()
+
+    @SystemStub
+    private val variables = EnvironmentVariables(
+        "AZURE_APP_CLIENT_ID", "1",
+        "AZURE_OPENID_CONFIG_ISSUER", issuer,
+        "AZURE_OPENID_CONFIG_ISSUER", issuer,
+        "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
+        "AUTHORIZED_PARTY_NAMES", "party",
+        "KANDIDATSOK_API_URL", "http://localhost:$kandidatsokPort",
+        "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
+        "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
+        "AD_GROUP_REKBIS_JOBBSOKERRETTET", UUID.randomUUID().toString()
+    )
 
     @Test
     fun `tilganger ved ingen roller`() {
@@ -24,8 +49,10 @@ class TilgangsstyringTest {
         )
     }
 
-    @Test
-    fun `tilganger for rekbis utvikler`() {
+    @ParameterizedTest(name = "harTilgang er {0}")
+    @ValueSource(booleans = [true, false])
+    fun `tilganger for rekbis utvikler`(harBrukertilgang: Boolean, wmRuntimeInfo: WireMockRuntimeInfo) {
+        mockKandidatsokApi(harBrukertilgang, wmRuntimeInfo)
         assertTilganger(
             token = app.userToken(groups = listOf(rekbisUtvikler)),
             tilgangOpprettVarsel = true,
@@ -35,19 +62,23 @@ class TilgangsstyringTest {
         )
     }
 
-    @Test
-    fun `tilganger for rekbis jobbsøkerrettet`() {
+    @ParameterizedTest(name = "harTilgang er {0}")
+    @ValueSource(booleans = [true, false])
+    fun `tilganger for rekbis jobbsøkerrettet`(harBrukertilgang: Boolean, wmRuntimeInfo: WireMockRuntimeInfo) {
+        mockKandidatsokApi(harBrukertilgang, wmRuntimeInfo)
         assertTilganger(
             token = app.userToken(groups = listOf(rekbisJobbsøkerrettet)),
             tilgangOpprettVarsel = false,
             tilgangListVarslerPåStilling = false,
-            tilgangListVarslerPåFnr = true,
+            tilgangListVarslerPåFnr = harBrukertilgang,
             tilgangBackfill = false,
         )
     }
 
-    @Test
-    fun `tilganger for rekbis arbeidsgiverrettet`() {
+    @ParameterizedTest(name = "harTilgang er {0}")
+    @ValueSource(booleans = [true, false])
+    fun `tilganger for rekbis arbeidsgiverrettet`(harBrukertilgang: Boolean, wmRuntimeInfo: WireMockRuntimeInfo) {
+        mockKandidatsokApi(harBrukertilgang, wmRuntimeInfo)
         assertTilganger(
             token = app.userToken(groups = listOf(rekbisArbeidsgiverrettet)),
             tilgangOpprettVarsel = true,
@@ -124,5 +155,12 @@ class TilgangsstyringTest {
             .also { (_, response, _) ->
                 assertEquals(if (tilgangBackfill) 201 else 403, response.statusCode)
             }
+    }
+
+    private fun mockKandidatsokApi(harBrukertilgang: Boolean, wmRuntimeInfo: WireMockRuntimeInfo) {
+        if(harBrukertilgang)
+            wmRuntimeInfo.brukertilgangOk()
+        else
+            wmRuntimeInfo.brukertilgangForbidden()
     }
 }

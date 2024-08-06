@@ -71,6 +71,7 @@ class AzureAdConfig(
             try {
                 return verifier.verify(token)
             } catch (e: SigningKeyNotFoundException) {
+                e.toString()
                 // Token ikke utstedt for denne verifieren, prøv neste
             }
         }

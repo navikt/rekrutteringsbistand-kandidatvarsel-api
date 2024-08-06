@@ -115,24 +115,36 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
             val queryRequestDto = ctx.bodyAsClass<QueryRequestDto>()
             val navident = ctx.authenticatedUser().navident
             val fnr = queryRequestDto.fnr
+            try {
+                val roller = ctx.authenticatedUser().roller
 
-            //TODO, legg til success/fail i auditlog avhengig av tilgang eller ikke
-            AuditLogg.logCefMessage(
-                navIdent = navident,
-                userid = fnr,
-                msg = "Hentet beskjeder om rekruttering sendt til bruker",
-            )
+                if (roller.size == 1 && roller.first() == REKBIS_JOBBSØKERRETTET) {
+                    kandidatsokApiKlient.verifiserKandidatTilgang(ctx, navident, fnr)
+                }
 
-            kandidatsokApiKlient.verifiserKandidatTilgang(ctx, navident, fnr)
-
-            val varsler = dataSource.transaction { tx ->
-                val minsideVarsler = MinsideVarsel.hentVarslerForQuery(tx, queryRequestDto)
-                    .map { it.toResponse() }
-                val altinnVarsler = AltinnVarsel.hentVarslerForQuery(tx, queryRequestDto)
-                    .map { it.toResponse() }
-                minsideVarsler + altinnVarsler
+                val varsler = dataSource.transaction { tx ->
+                    val minsideVarsler = MinsideVarsel.hentVarslerForQuery(tx, queryRequestDto)
+                        .map { it.toResponse() }
+                    val altinnVarsler = AltinnVarsel.hentVarslerForQuery(tx, queryRequestDto)
+                        .map { it.toResponse() }
+                    minsideVarsler + altinnVarsler
+                }
+                AuditLogg.logCefMessage(
+                    navIdent = navident,
+                    userid = fnr,
+                    msg = "Hentet beskjeder om rekruttering sendt til bruker",
+                    tilgang = true
+                )
+                ctx.json(varsler)
+            } catch (e: Exception) {
+                AuditLogg.logCefMessage(
+                    navIdent = navident,
+                    userid = fnr,
+                    msg = "Hentet beskjeder om rekruttering sendt til bruker",
+                    tilgang = true
+                )
+                throw e
             }
-            ctx.json(varsler)
         },
         REKBIS_UTVIKLER,
         REKBIS_JOBBSØKERRETTET,

@@ -8,7 +8,6 @@ import io.javalin.http.Context
 import io.javalin.http.UnauthorizedResponse
 import no.nav.toi.kandidatvarsel.AzureAdConfig
 import no.nav.toi.kandidatvarsel.hentToken
-import java.time.Instant
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 private data class TokenResponse(
@@ -16,10 +15,7 @@ private data class TokenResponse(
     @Suppress("PropertyName") val expires_in: Long,
 )
 
-class OnBehalfOfTokenClient(private val scope: String, private val tokenEndpoint: String, private val clientId: String, private val clientSecret: String) {
-
-    // Midlertidig kommentar: I dev er denne satt i MainKt.run.xml, og hentes fra fakedings
-    private val issuernavn = System.getenv("AZURE_OPENID_CONFIG_ISSUER")
+class OnBehalfOfTokenClient(private val scope: String, private val tokenEndpoint: String, private val clientId: String, private val clientSecret: String, private val issuernavn: String) {
 
     companion object {
         const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"

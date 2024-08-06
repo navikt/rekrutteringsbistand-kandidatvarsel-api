@@ -10,6 +10,8 @@ import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.kittinunf.result.getOrNull
 import com.github.kittinunf.result.onError
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.flywaydb.core.Flyway
@@ -26,13 +28,16 @@ const val rekbisUtvikler = "a1749d9a-52e0-4116-bb9f-935c38f6c74a"
 const val authorizedPartyName = "local:toi:rekrutteringsbistand-kandidatvarsel-api"
 
 private const val authPort = 18306
+const val issuer = "http://localhost:$authPort/default"
+const val tokenEndpoint = "$issuer/token"
+const val jwksUri = "$issuer/jwks"
 
-val azureAdConfig = AzureAdConfig(
+private val azureAdConfig = AzureAdConfig(
     issuers = listOf(
         Issuer(
             audience = "1",
-            issuer = "http://localhost:$authPort/default",
-            jwksUri = "http://localhost:$authPort/default/jwks",
+            issuer = issuer,
+            jwksUri = jwksUri,
         )
     ),
     authorizedPartyNames = listOf(authorizedPartyName),
@@ -66,13 +71,14 @@ class LocalApp() {
         }
 
     val kandidatsokApiKlient = KandidatsokApiKlient(
-        // TODO: Sett opp riktig for test
         OnBehalfOfTokenClient(
-            tokenEndpoint = "http://localhost:$authPort/default/token",
+            tokenEndpoint = tokenEndpoint,
             clientId = "client-id",
             clientSecret = "client",
-            scope = ""
-        )
+            scope = "",
+            issuernavn = issuer
+        ),
+        kandidatsokUrl = "http://localhost:10000"
     )
 
     private val flyway = Flyway.configure()
@@ -183,3 +189,21 @@ class LocalApp() {
 
 fun Request.token(token: SignedJWT): Request =
     header("Authorization", "Bearer ${token.serialize()}")
+
+fun WireMockRuntimeInfo.brukertilgangOk() {
+    wireMock.register(
+        WireMock.post("/api/brukertilgang")
+            .willReturn(
+                WireMock.ok()
+            )
+    )
+}
+
+fun WireMockRuntimeInfo.brukertilgangForbidden() {
+    wireMock.register(
+        WireMock.post("/api/brukertilgang")
+            .willReturn(
+                WireMock.forbidden()
+            )
+    )
+}

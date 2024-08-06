@@ -11,10 +11,9 @@ import io.javalin.http.HttpResponseException
 import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 
-class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenClient) {
+class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenClient, private val kandidatsokUrl: String) {
 
     private val logger = LoggerFactory.getLogger(KandidatsokApiKlient::class.java)
-    private val kandidatsokUrl = System.getenv("KANDIDATSOK_API_URL")
 
 
     fun verifiserKandidatTilgang(ctx: Context, navIdent: String, fnr: String) {
