@@ -52,7 +52,7 @@ spec:
     - name: AUTHORIZED_PARTY_NAMES
       value: {{adAuthorizedPartyNames}}
     - name: KANDIDATSOK_API_URL
-      value: {{kandidatsokApiUrl}}
+      value: http://rekrutteringsbistand-kandidatsok-api
     {{#each env }}
     - name: {{ @key }}
       value: {{ this }}
