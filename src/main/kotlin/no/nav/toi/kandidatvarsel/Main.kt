@@ -48,7 +48,7 @@ fun main() {
         tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
         clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
         clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
-        scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-stilling-api/.default",
+        scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-kandidatsok-api/.default",
         issuernavn = getenvOrThrow("AZURE_OPENID_CONFIG_ISSUER")
     )
 
