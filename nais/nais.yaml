@@ -42,6 +42,7 @@ spec:
     outbound:
       rules:
         - application: rekrutteringsbistand-stilling-api
+        - application: rekrutteringsbistand-kandidatsok-api
   env:
     - name: AD_GROUP_REKBIS_ARBEIDSGIVERRETTET
       value: {{adGroupRekbisArbeidsgiverrettet}}
