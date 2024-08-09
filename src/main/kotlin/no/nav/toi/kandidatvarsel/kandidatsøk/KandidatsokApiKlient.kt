@@ -20,7 +20,6 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
         val body = BrukertilgangRequestDto(fodselsnummer = fnr, aktorid = null, kandidatnr = null)
         val token = onBehalfOfTokenClient.oboToken(ctx)
 
-        // TODO: Oppdater inbound-rule i rekrutteringsbistand-kandidatsok-api for å få tilgang
         val (_, response, result) = Fuel.post(url)
             .header(Headers.CONTENT_TYPE,  "application/json")
             .authentication().bearer(token)
