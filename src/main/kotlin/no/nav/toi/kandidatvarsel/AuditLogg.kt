@@ -12,13 +12,13 @@ val secureLog = LoggerFactory.getLogger("secureLog")!!
 object AuditLogg {
     private val auditLogger: AuditLogger = AuditLoggerImpl()
 
-    fun logCefMessage(navIdent: String, userid: String, msg: String) {
+    fun logCefMessage(navIdent: String, userid: String, msg: String, tilgang: Boolean) {
         val message = CefMessage.builder()
             .applicationName("Rekrutteringsbistand")
             .loggerName("rekrutteringsbistand-kandidatvarsel-api")
             .event(CefMessageEvent.ACCESS)
             .name("Sporingslogg")
-            .authorizationDecision(AuthorizationDecision.PERMIT)
+            .authorizationDecision(if(tilgang) AuthorizationDecision.PERMIT else AuthorizationDecision.DENY)
             .sourceUserId(navIdent)
             .destinationUserId(userid)
             .timeEnded(System.currentTimeMillis())

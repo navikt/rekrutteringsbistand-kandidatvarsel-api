@@ -29,8 +29,6 @@ spec:
         extra:
           - NAVident
         groups:
-          - id: {{adGroupModiaGenerellTilgang}}
-          - id: {{adGroupModiaOppfolging}}
           - id: {{adGroupRekbisArbeidsgiverrettet}}
           - id: {{adGroupRekbisJobbsokerrettet}}
           - id: {{adGroupRekbisUtvikler}}
@@ -44,11 +42,8 @@ spec:
     outbound:
       rules:
         - application: rekrutteringsbistand-stilling-api
+        - application: rekrutteringsbistand-kandidatsok-api
   env:
-    - name: AD_GROUP_MODIA_GENERELL
-      value: {{adGroupModiaGenerellTilgang}}
-    - name: AD_GROUP_MODIA_OPPFOLGING
-      value: {{adGroupModiaOppfolging}}
     - name: AD_GROUP_REKBIS_ARBEIDSGIVERRETTET
       value: {{adGroupRekbisArbeidsgiverrettet}}
     - name: AD_GROUP_REKBIS_JOBBSOKERRETTET
@@ -57,6 +52,8 @@ spec:
       value: {{adGroupRekbisUtvikler}}
     - name: AUTHORIZED_PARTY_NAMES
       value: {{adAuthorizedPartyNames}}
+    - name: KANDIDATSOK_API_URL
+      value: http://rekrutteringsbistand-kandidatsok-api
     {{#each env }}
     - name: {{ @key }}
       value: {{ this }}

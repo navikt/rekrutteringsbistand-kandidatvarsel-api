@@ -1,5 +1,7 @@
 package no.nav.toi.kandidatvarsel
 
+import auth.obo.KandidatsokApiKlient
+import auth.obo.OnBehalfOfTokenClient
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.github.kittinunf.fuel.Fuel
@@ -8,6 +10,8 @@ import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.kittinunf.result.getOrNull
 import com.github.kittinunf.result.onError
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.flywaydb.core.Flyway
@@ -18,32 +22,31 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
 
-const val modiaGenerell = "67a06857-0028-4a90-bf4c-9c9a92c7d733"
-const val modiaOppfølging = "554a66fb-fbec-4b92-90c1-0d9c085c362c"
 const val rekbisJobbsøkerrettet = "0dba8374-bf36-4d89-bbba-662447d57b94"
 const val rekbisArbeidsgiverrettet = "52bc2af7-38d1-468b-b68d-0f3a4de45af2"
 const val rekbisUtvikler = "a1749d9a-52e0-4116-bb9f-935c38f6c74a"
 const val authorizedPartyName = "local:toi:rekrutteringsbistand-kandidatvarsel-api"
 
 private const val authPort = 18306
+const val issuer = "http://localhost:$authPort/default"
+const val tokenEndpoint = "$issuer/token"
+const val jwksUri = "$issuer/jwks"
 
-val azureAdConfig = AzureAdConfig(
+private val azureAdConfig = AzureAdConfig(
     issuers = listOf(
         Issuer(
             audience = "1",
-            issuer = "http://localhost:$authPort/default",
-            jwksUri = "http://localhost:$authPort/default/jwks",
+            issuer = issuer,
+            jwksUri = jwksUri,
         )
     ),
     authorizedPartyNames = listOf(authorizedPartyName),
-    modiaGenerell = UUID.fromString(modiaGenerell),
-    modiaOppfølging = UUID.fromString(modiaOppfølging),
     rekbisArbeidsgiverrettet = UUID.fromString(rekbisArbeidsgiverrettet),
     rekbisJobbsøkerrettet = UUID.fromString(rekbisJobbsøkerrettet),
     rekbisUtvikler = UUID.fromString(rekbisUtvikler),
 )
 
-class LocalApp(nyTilgangsstyring: Boolean = true) {
+class LocalApp() {
     private val authServer = MockOAuth2Server().also {
         it.start(port = authPort)
     }
@@ -67,6 +70,17 @@ class LocalApp(nyTilgangsstyring: Boolean = true) {
             }
         }
 
+    val kandidatsokApiKlient = KandidatsokApiKlient(
+        OnBehalfOfTokenClient(
+            tokenEndpoint = tokenEndpoint,
+            clientId = "client-id",
+            clientSecret = "client",
+            scope = "",
+            issuernavn = issuer
+        ),
+        kandidatsokUrl = "http://localhost:10000"
+    )
+
     private val flyway = Flyway.configure()
         .dataSource(dataSource)
         .cleanDisabled(false)
@@ -75,7 +89,7 @@ class LocalApp(nyTilgangsstyring: Boolean = true) {
 
     val migrateResult = AtomicReference<MigrateResult>()
 
-    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, port = 0, nyTilgangsstyring = nyTilgangsstyring)
+    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, port = 0)
 
     fun prepare() {
         flyway.clean()
@@ -135,10 +149,12 @@ class LocalApp(nyTilgangsstyring: Boolean = true) {
     ) {
         val (request, response, bodyOrError) = post("/api/varsler/stilling/$stillingId")
             .token(token)
-            .objectBody(mapOf(
-                "fnr" to fnr,
-                "mal" to mal
-            ))
+            .objectBody(
+                mapOf(
+                    "fnr" to fnr,
+                    "mal" to mal
+                )
+            )
             .response()
         bodyOrError.onError {
             throw RuntimeException("Request ${request.method} ${request.url} failed", it.exception)
@@ -171,5 +187,23 @@ class LocalApp(nyTilgangsstyring: Boolean = true) {
     }
 }
 
-fun Request.token(token: SignedJWT): Request  =
+fun Request.token(token: SignedJWT): Request =
     header("Authorization", "Bearer ${token.serialize()}")
+
+fun WireMockRuntimeInfo.brukertilgangOk() {
+    wireMock.register(
+        WireMock.post("/api/brukertilgang")
+            .willReturn(
+                WireMock.ok()
+            )
+    )
+}
+
+fun WireMockRuntimeInfo.brukertilgangForbidden() {
+    wireMock.register(
+        WireMock.post("/api/brukertilgang")
+            .willReturn(
+                WireMock.forbidden()
+            )
+    )
+}

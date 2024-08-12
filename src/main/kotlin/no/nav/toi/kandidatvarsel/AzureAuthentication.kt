@@ -24,8 +24,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 enum class Rolle: RouteRole {
-    MODIA_GENERELL,
-    MODIA_OPPFØLGING,
     REKBIS_ARBEIDSGIVERRETTET,
     REKBIS_JOBBSØKERRETTET,
     REKBIS_UTVIKLER,
@@ -62,8 +60,6 @@ class AzureAdConfig(
     private val issuers: List<Issuer>,
     val authorizedPartyNames: List<String>,
 
-    private val modiaGenerell: UUID,
-    private val modiaOppfølging: UUID,
     private val rekbisUtvikler: UUID,
     private val rekbisArbeidsgiverrettet: UUID,
     private val rekbisJobbsøkerrettet: UUID,
@@ -83,8 +79,6 @@ class AzureAdConfig(
 
     private fun rolleForUuid(uuid: UUID): Rolle? {
         return when (uuid) {
-            modiaGenerell -> Rolle.MODIA_GENERELL
-            modiaOppfølging -> Rolle.MODIA_OPPFØLGING
             rekbisUtvikler -> Rolle.REKBIS_UTVIKLER
             rekbisArbeidsgiverrettet -> Rolle.REKBIS_ARBEIDSGIVERRETTET
             rekbisJobbsøkerrettet -> Rolle.REKBIS_JOBBSØKERRETTET
@@ -112,8 +106,6 @@ class AzureAdConfig(
                 else null
             ),
             authorizedPartyNames = getenvOrThrow("AUTHORIZED_PARTY_NAMES").split(","),
-            modiaGenerell = getUuid("AD_GROUP_MODIA_GENERELL"),
-            modiaOppfølging = getUuid("AD_GROUP_MODIA_OPPFOLGING"),
             rekbisUtvikler = getUuid("AD_GROUP_REKBIS_UTVIKLER"),
             rekbisArbeidsgiverrettet = getUuid("AD_GROUP_REKBIS_ARBEIDSGIVERRETTET"),
             rekbisJobbsøkerrettet = getUuid("AD_GROUP_REKBIS_JOBBSOKERRETTET"),
@@ -242,7 +234,7 @@ fun Javalin.azureAdAuthentication(azureAdConfig: AzureAdConfig): Javalin {
 /**
  * Henter token ut fra header fra en Context
  */
-private fun Context.hentToken(): String? {
+fun Context.hentToken(): String? {
     val authorizationHeader = header(HttpHeader.AUTHORIZATION.name)
         ?: return null
 

@@ -1,5 +1,6 @@
 package no.nav.toi.kandidatvarsel
 
+import auth.obo.KandidatsokApiKlient
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus
 import io.javalin.http.bodyAsClass
@@ -66,7 +67,7 @@ data class VarselResponseDto(
     val eksternFeilmelding: String?,
 )
 
-fun Javalin.handleVarsler(dataSource: DataSource, nyTilgangsstyring: Boolean) {
+fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: KandidatsokApiKlient) {
     get(
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
@@ -80,16 +81,8 @@ fun Javalin.handleVarsler(dataSource: DataSource, nyTilgangsstyring: Boolean) {
             }
             ctx.json(varsler)
         },
-        *if (nyTilgangsstyring) arrayOf(
-            REKBIS_UTVIKLER,
-            REKBIS_ARBEIDSGIVERRETTET,
-        ) else arrayOf(
-            MODIA_GENERELL,
-            MODIA_OPPFØLGING,
-            REKBIS_UTVIKLER,
-            REKBIS_JOBBSØKERRETTET,
-            REKBIS_ARBEIDSGIVERRETTET,
-        )
+        REKBIS_UTVIKLER,
+        REKBIS_ARBEIDSGIVERRETTET
     )
 
     post(
@@ -111,47 +104,46 @@ fun Javalin.handleVarsler(dataSource: DataSource, nyTilgangsstyring: Boolean) {
             }
             ctx.status(HttpStatus.CREATED)
         },
-        *if (nyTilgangsstyring) arrayOf(
-            REKBIS_UTVIKLER,
-            REKBIS_ARBEIDSGIVERRETTET,
-        ) else arrayOf(
-            MODIA_GENERELL,
-            MODIA_OPPFØLGING,
-            REKBIS_UTVIKLER,
-            REKBIS_JOBBSØKERRETTET,
-            REKBIS_ARBEIDSGIVERRETTET,
-        )
+        REKBIS_UTVIKLER,
+        REKBIS_ARBEIDSGIVERRETTET
+
     )
 
     post(
         "/api/varsler/query",
         { ctx ->
             val queryRequestDto = ctx.bodyAsClass<QueryRequestDto>()
-            AuditLogg.logCefMessage(
-                navIdent = ctx.authenticatedUser().navident,
-                userid = queryRequestDto.fnr,
-                msg = "Hentet beskjeder om rekruttering sendt til bruker",
-            )
-            val varsler = dataSource.transaction { tx ->
-                val minsideVarsler = MinsideVarsel.hentVarslerForQuery(tx, queryRequestDto)
-                    .map { it.toResponse() }
-                val altinnVarsler = AltinnVarsel.hentVarslerForQuery(tx, queryRequestDto)
-                    .map { it.toResponse() }
-                minsideVarsler + altinnVarsler
+            val navident = ctx.authenticatedUser().navident
+            val fnr = queryRequestDto.fnr
+            var fikkTilgang = false
+            try {
+                val roller = ctx.authenticatedUser().roller
+
+                if (roller.size == 1 && roller.first() == REKBIS_JOBBSØKERRETTET) {
+                    kandidatsokApiKlient.verifiserKandidatTilgang(ctx, navident, fnr)
+                }
+
+                val varsler = dataSource.transaction { tx ->
+                    val minsideVarsler = MinsideVarsel.hentVarslerForQuery(tx, queryRequestDto)
+                        .map { it.toResponse() }
+                    val altinnVarsler = AltinnVarsel.hentVarslerForQuery(tx, queryRequestDto)
+                        .map { it.toResponse() }
+                    minsideVarsler + altinnVarsler
+                }
+                fikkTilgang = true
+                ctx.json(varsler)
+            } finally {
+                AuditLogg.logCefMessage(
+                    navIdent = navident,
+                    userid = fnr,
+                    msg = "Hentet beskjeder om rekruttering sendt til bruker",
+                    tilgang = fikkTilgang
+                )
             }
-            ctx.json(varsler)
         },
-        *if (nyTilgangsstyring) arrayOf(
-            REKBIS_UTVIKLER,
-            REKBIS_JOBBSØKERRETTET,
-            REKBIS_ARBEIDSGIVERRETTET,
-        ) else arrayOf(
-            MODIA_GENERELL,
-            MODIA_OPPFØLGING,
-            REKBIS_UTVIKLER,
-            REKBIS_JOBBSØKERRETTET,
-            REKBIS_ARBEIDSGIVERRETTET,
-        )
+        REKBIS_UTVIKLER,
+        REKBIS_JOBBSØKERRETTET,
+        REKBIS_ARBEIDSGIVERRETTET,
     )
 }
 

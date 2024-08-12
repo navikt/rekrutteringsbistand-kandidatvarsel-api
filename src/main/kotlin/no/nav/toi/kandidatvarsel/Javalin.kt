@@ -1,5 +1,6 @@
 package no.nav.toi.kandidatvarsel
 
+import auth.obo.KandidatsokApiKlient
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -17,8 +18,8 @@ fun startJavalin(
     azureAdConfig: AzureAdConfig,
     dataSource: HikariDataSource,
     migrateResult: AtomicReference<MigrateResult>,
+    kandidatsokApiKlient: KandidatsokApiKlient,
     port: Int = 8080,
-    nyTilgangsstyring: Boolean,
 ): Javalin = Javalin
     .create {
         val objectMapper = jacksonObjectMapper().apply {
@@ -39,7 +40,7 @@ fun startJavalin(
         azureAdAuthentication(azureAdConfig)
         handleHealth(dataSource, migrateResult)
         handleBackfill(dataSource)
-        handleVarsler(dataSource, nyTilgangsstyring)
+        handleVarsler(dataSource, kandidatsokApiKlient)
 
         exception(ValidationException::class.java) { e, ctx ->
             log.info("Returnerer 400 Bad Request på grunn av: ${e.errors}", e)

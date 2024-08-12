@@ -1,5 +1,7 @@
 package no.nav.toi.kandidatvarsel
 
+import auth.obo.KandidatsokApiKlient
+import auth.obo.OnBehalfOfTokenClient
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import org.flywaydb.core.api.output.MigrateResult
@@ -20,16 +22,7 @@ fun main() {
     /* Status på migrering, så ready-endepunktet kan fortelle om vi er klare for å motta api-kall. */
     val migrateResult = AtomicReference<MigrateResult>()
 
-    val javalin = startJavalin(
-        azureAdConfig = AzureAdConfig.nais(),
-        dataSource = dataSource,
-        migrateResult = migrateResult,
-        nyTilgangsstyring = when (getenv("NAIS_CLUSTER_NAME")) {
-            "dev-gcp" -> false
-            "prod-gcp" -> false
-            else -> throw IllegalStateException("Ukjent cluster: ${getenv("NAIS_CLUSTER_NAME")}")
-        }
-    )
+
 
     while (!dataSource.isReady())  {
         log.info("Database not ready. Sleeping")
@@ -51,7 +44,18 @@ fun main() {
         scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-stilling-api/.default"
     )
 
+    val onBehalfOfTokenClient = OnBehalfOfTokenClient(
+        tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+        clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
+        clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
+        scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-kandidatsok-api/.default",
+        issuernavn = getenvOrThrow("AZURE_OPENID_CONFIG_ISSUER")
+    )
+
+
+
     val stillingClient = StillingClientImpl(azureTokenClient)
+    val kandidatsokApiKlient = KandidatsokApiKlient(onBehalfOfTokenClient, getenvOrThrow("KANDIDATSOK_API_URL"))
 
     val minsideBestillingThread = backgroundThread("minside-utsending", shutdown) {
         if (!bestillVarsel(dataSource, stillingClient, minsideBestillingProducer)) {
@@ -62,6 +66,13 @@ fun main() {
     val minsideOppdateringThread = backgroundThread(name = "minside-oppdatering", shutdown) {
         sjekkVarselOppdateringer(dataSource, minsideOppdateringConsumer)
     }
+
+    val javalin = startJavalin(
+        azureAdConfig = AzureAdConfig.nais(),
+        dataSource = dataSource,
+        migrateResult = migrateResult,
+        kandidatsokApiKlient = kandidatsokApiKlient
+    )
 
     Runtime.getRuntime().addShutdownHook(Thread {
         shutdown.set(true)

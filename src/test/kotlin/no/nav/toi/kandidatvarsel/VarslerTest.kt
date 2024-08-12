@@ -1,12 +1,23 @@
 package no.nav.toi.kandidatvarsel
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.extension.ExtendWith
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
+import uk.org.webcompere.systemstubs.jupiter.SystemStub
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
 import java.util.*
 
+
+private const val kandidatsokPort = 10000
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(SystemStubsExtension::class)
+@WireMockTest(httpPort = kandidatsokPort)
 class VarslerTest {
     private lateinit var minside: FakeMinside
     private val app = LocalApp()
@@ -15,6 +26,19 @@ class VarslerTest {
         minside = FakeMinside()
         app.prepare()
     }
+
+    @SystemStub
+    private val variables = EnvironmentVariables(
+        "AZURE_APP_CLIENT_ID", "1",
+        "AZURE_OPENID_CONFIG_ISSUER", issuer,
+        "AZURE_OPENID_CONFIG_ISSUER", issuer,
+        "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
+        "AUTHORIZED_PARTY_NAMES", "party",
+        "KANDIDATSOK_API_URL", "http://localhost:$kandidatsokPort",
+        "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
+        "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
+        "AD_GROUP_REKBIS_JOBBSOKERRETTET", UUID.randomUUID().toString()
+    )
 
     @AfterAll fun afterAll() = app.close()
 
@@ -273,7 +297,8 @@ class VarslerTest {
     }
 
     @Test
-    fun henterVarslerForFnr() {
+    fun henterVarslerForFnr(wmRuntimeInfo: WireMockRuntimeInfo) {
+        wmRuntimeInfo.brukertilgangOk()
         app.postVarselStilling(
             stillingId = stillingId1,
             fnr = listOf(fnr1, fnr2),
