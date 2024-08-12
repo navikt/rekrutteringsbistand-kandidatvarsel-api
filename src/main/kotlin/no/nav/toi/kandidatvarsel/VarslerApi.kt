@@ -115,6 +115,7 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
             val queryRequestDto = ctx.bodyAsClass<QueryRequestDto>()
             val navident = ctx.authenticatedUser().navident
             val fnr = queryRequestDto.fnr
+            var fikkTilgang = false
             try {
                 val roller = ctx.authenticatedUser().roller
 
@@ -129,21 +130,15 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
                         .map { it.toResponse() }
                     minsideVarsler + altinnVarsler
                 }
-                AuditLogg.logCefMessage(
-                    navIdent = navident,
-                    userid = fnr,
-                    msg = "Hentet beskjeder om rekruttering sendt til bruker",
-                    tilgang = true
-                )
+                fikkTilgang = true
                 ctx.json(varsler)
-            } catch (e: Exception) {
+            } finally {
                 AuditLogg.logCefMessage(
                     navIdent = navident,
                     userid = fnr,
                     msg = "Hentet beskjeder om rekruttering sendt til bruker",
-                    tilgang = true
+                    tilgang = fikkTilgang
                 )
-                throw e
             }
         },
         REKBIS_UTVIKLER,
