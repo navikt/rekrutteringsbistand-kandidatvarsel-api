@@ -22,8 +22,7 @@ class OnBehalfOfTokenClient(private val scope: String, private val tokenEndpoint
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
     }
 
-    fun hentTokenSomString(ctx: Context): String {
-        //TODO: Kan dette gjøres mer elegant, delvis et annet sted?
+    private fun hentTokenSomString(ctx: Context): String {
         val token = ctx.hentToken() ?: throw UnauthorizedResponse("Mangler token")
         val decodedToken = AzureAdConfig.nais().verify(token)
         val issuerUrl = decodedToken.issuer
