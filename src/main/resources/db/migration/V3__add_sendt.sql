@@ -1,0 +1,1 @@
+ALTER TABLE altinn_varsel ADD COLUMN sendt TIMESTAMP;

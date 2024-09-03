@@ -16,6 +16,7 @@ data class BackfillRequest(
     val fnr: String,
     val status: String,
     val navIdent: String,
+    val sendt: LocalDateTime?
 )
 
 fun Javalin.handleBackfill(dataSource: DataSource) {

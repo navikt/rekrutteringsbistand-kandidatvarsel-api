@@ -72,9 +72,10 @@ data class AltinnVarsel(
                         melding,
                         mottaker_fnr,
                         status,
-                        avsender_navident
+                        avsender_navident,
+                        sendt
                     )
-                    values (?, ?, ?, ?, ?, ?, ?)
+                    values (?, ?, ?, ?, ?, ?, ?, ?)
                     on conflict (frontend_id) do update set
                         status = excluded.status
                         
@@ -87,6 +88,7 @@ data class AltinnVarsel(
                         stmt.setString(5, req.fnr)
                         stmt.setString(6, req.status)
                         stmt.setString(7, req.navIdent)
+                        stmt.setObject(8, req.sendt)
                         stmt.addBatch()
                     }
                     stmt.executeBatch()
