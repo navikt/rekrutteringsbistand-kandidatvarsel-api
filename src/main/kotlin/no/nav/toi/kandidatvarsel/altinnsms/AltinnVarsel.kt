@@ -77,7 +77,8 @@ data class AltinnVarsel(
                     )
                     values (?, ?, ?, ?, ?, ?, ?, ?)
                     on conflict (frontend_id) do update set
-                        status = excluded.status
+                        status = excluded.status,
+                        sendt = excluded.sendt
                         
                 """.trimIndent()).use { stmt ->
                     for (req in backfillRequests) {
