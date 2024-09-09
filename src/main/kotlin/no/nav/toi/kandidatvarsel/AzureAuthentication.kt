@@ -143,42 +143,12 @@ data class UserPrincipal(
     }
 }
 
-/** Representerer en autensiert maskin */
-data class MachinePrincipal(
-    val authorizedPartyName: String,
-): Principal {
-    override fun mayAccess(routeRoles: Set<RouteRole>) =
-        UNPROTECTED in routeRoles || MASKIN_TIL_MASKIN in routeRoles
-
-    companion object {
-        fun fromClaims(claims: Map<String, Claim>, azureAdConfig: AzureAdConfig): MachinePrincipal {
-            val partyName = claims["azp_name"]?.asString() ?:
-                throw MissingClaimException("azp_name")
-
-            if (partyName !in azureAdConfig.authorizedPartyNames) {
-                log.error("Unauthorized azp_name: '$partyName'")
-                throw UnauthorizedResponse("azp_name")
-            }
-
-            return MachinePrincipal(
-                authorizedPartyName = partyName
-            )
-        }
-    }
-}
-
 /**
  * Henter ut en autensiert bruker fra en kontekst. Kaster InternalServerErrorResponse om det ikke finnes en autensiert bruker
  */
 fun Context.authenticatedUser() = attribute<UserPrincipal>("principal")
     ?: run {
         log.error("No authenticated user found!")
-        throw InternalServerErrorResponse()
-    }
-
-fun Context.authenticatedMachine() = attribute<MachinePrincipal>("principal")
-    ?: run {
-        log.error("No authenticated machine found!")
         throw InternalServerErrorResponse()
     }
 
@@ -197,11 +167,7 @@ fun Javalin.azureAdAuthentication(azureAdConfig: AzureAdConfig): Javalin {
 
         val claims = azureAdConfig.verify(token).claims
 
-        val principal = if (claims["idtyp"]?.asString() == "app") {
-            MachinePrincipal.fromClaims(claims, azureAdConfig)
-        } else {
-            UserPrincipal.fromClaims(claims, azureAdConfig)
-        }
+        val principal = UserPrincipal.fromClaims(claims, azureAdConfig)
 
         if (!principal.mayAccess(ctx.routeRoles())) {
             secureLog.error("principal=${principal} tried to access ${ctx.path()}, but is not authorized. Must have at least one of ${ctx.routeRoles()}")

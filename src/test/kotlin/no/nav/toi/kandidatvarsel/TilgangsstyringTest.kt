@@ -48,7 +48,6 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = false,
             tilgangListVarslerPåStilling = false,
             tilgangListVarslerPåFnr = false,
-            tilgangBackfill = false,
         )
     }
 
@@ -61,7 +60,6 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = true,
             tilgangListVarslerPåStilling = true,
             tilgangListVarslerPåFnr = true,
-            tilgangBackfill = false,
         )
     }
 
@@ -74,7 +72,6 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = false,
             tilgangListVarslerPåStilling = false,
             tilgangListVarslerPåFnr = harBrukertilgang,
-            tilgangBackfill = false,
         )
     }
 
@@ -87,7 +84,6 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = true,
             tilgangListVarslerPåStilling = true,
             tilgangListVarslerPåFnr = true,
-            tilgangBackfill = false,
         )
 
         assertTilganger(
@@ -95,28 +91,14 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = true,
             tilgangListVarslerPåStilling = true,
             tilgangListVarslerPåFnr = true,
-            tilgangBackfill = false,
         )
     }
-
-    @Test
-    fun `tilganger for maskintoken`() {
-        assertTilganger(
-            token = app.maskinToken(),
-            tilgangOpprettVarsel = false,
-            tilgangListVarslerPåStilling = false,
-            tilgangListVarslerPåFnr = false,
-            tilgangBackfill = true,
-        )
-    }
-
 
     private fun assertTilganger(
         token: SignedJWT,
         tilgangOpprettVarsel: Boolean,
         tilgangListVarslerPåStilling: Boolean,
         tilgangListVarslerPåFnr: Boolean,
-        tilgangBackfill: Boolean,
     ) {
         app.post("/api/varsler/stilling/1")
             .token(token)
