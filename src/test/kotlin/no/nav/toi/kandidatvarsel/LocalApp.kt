@@ -119,16 +119,6 @@ class LocalApp() {
             claims = claims,
         )
 
-    fun maskinToken(
-        issuerId: String = "http://localhost:$authPort/default",
-        audience: String = "1",
-        azpName: String = authorizedPartyName,
-    ) = issueToken(
-        issuerId = issuerId,
-        audience = audience,
-        claims = mapOf("idtyp" to "app", "azp_name" to azpName)
-    )
-
     fun userToken(
         issuerId: String = "http://localhost:$authPort/default",
         audience: String = "1",
