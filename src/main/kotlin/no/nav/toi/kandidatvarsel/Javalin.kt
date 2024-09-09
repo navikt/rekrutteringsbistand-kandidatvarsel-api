@@ -9,7 +9,6 @@ import io.javalin.Javalin
 import io.javalin.http.HttpStatus
 import io.javalin.json.JavalinJackson
 import io.javalin.validation.ValidationException
-import no.nav.toi.kandidatvarsel.altinnsms.handleBackfill
 import org.flywaydb.core.api.output.MigrateResult
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
@@ -39,7 +38,6 @@ fun startJavalin(
     .apply {
         azureAdAuthentication(azureAdConfig)
         handleHealth(dataSource, migrateResult)
-        handleBackfill(dataSource)
         handleVarsler(dataSource, kandidatsokApiKlient)
 
         exception(ValidationException::class.java) { e, ctx ->

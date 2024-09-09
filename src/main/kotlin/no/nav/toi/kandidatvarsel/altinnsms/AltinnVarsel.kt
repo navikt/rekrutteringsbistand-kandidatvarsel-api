@@ -61,39 +61,5 @@ data class AltinnVarsel(
                 .param("mottaker_fnr", queryRequestDto.fnr)
                 .query(RowMapper)
                 .list()
-
-        fun storeBackfill(dataSource: DataSource, backfillRequests: List<BackfillRequest>) =
-            dataSource.connection.use { conn ->
-                conn.prepareStatement("""
-                    insert into altinn_varsel(
-                        frontend_id,
-                        opprettet,
-                        stilling_id,
-                        melding,
-                        mottaker_fnr,
-                        status,
-                        avsender_navident,
-                        sendt
-                    )
-                    values (?, ?, ?, ?, ?, ?, ?, ?)
-                    on conflict (frontend_id) do update set
-                        status = excluded.status,
-                        sendt = excluded.sendt
-                        
-                """.trimIndent()).use { stmt ->
-                    for (req in backfillRequests) {
-                        stmt.setString(1, req.frontendId)
-                        stmt.setObject(2, req.opprettet)
-                        stmt.setString(3, req.stillingId)
-                        stmt.setString(4, req.melding)
-                        stmt.setString(5, req.fnr)
-                        stmt.setString(6, req.status)
-                        stmt.setString(7, req.navIdent)
-                        stmt.setObject(8, req.sendt)
-                        stmt.addBatch()
-                    }
-                    stmt.executeBatch()
-                }
-            }
     }
 }

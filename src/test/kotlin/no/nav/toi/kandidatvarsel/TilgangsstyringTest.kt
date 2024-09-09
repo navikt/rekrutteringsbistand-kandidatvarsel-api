@@ -17,13 +17,16 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
 import java.util.*
 
 private const val kandidatsokPort = 10000
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SystemStubsExtension::class)
 @WireMockTest(httpPort = kandidatsokPort)
 class TilgangsstyringTest {
     private val app = LocalApp()
-    @BeforeEach fun beforeEach() = app.prepare()
-    @AfterAll fun afterAll() = app.close()
+    @BeforeEach
+    fun beforeEach() = app.prepare()
+    @AfterAll
+    fun afterAll() = app.close()
 
     @SystemStub
     private val variables = EnvironmentVariables(
@@ -137,28 +140,10 @@ class TilgangsstyringTest {
             .also { (_, response, _) ->
                 assertEquals(if (tilgangListVarslerPåFnr) 200 else 403, response.statusCode)
             }
-
-        app.post("/api/backfill")
-            .token(token)
-            .body("""
-                [{
-                    "frontendId": "0",
-                    "opprettet": "2023-01-01T01:01:01",
-                    "stillingId": "1",
-                    "melding": "En melding",
-                    "fnr": "11223388990",
-                    "status": "FEIL",
-                    "navIdent": "Z123456"
-                }]
-            """)
-            .response()
-            .also { (_, response, _) ->
-                assertEquals(if (tilgangBackfill) 201 else 403, response.statusCode)
-            }
     }
 
     private fun mockKandidatsokApi(harBrukertilgang: Boolean, wmRuntimeInfo: WireMockRuntimeInfo) {
-        if(harBrukertilgang)
+        if (harBrukertilgang)
             wmRuntimeInfo.brukertilgangOk()
         else
             wmRuntimeInfo.brukertilgangForbidden()
