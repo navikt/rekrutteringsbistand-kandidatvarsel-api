@@ -14,7 +14,6 @@ import com.auth0.jwt.interfaces.RSAKeyProvider
 import io.javalin.Javalin
 import io.javalin.http.*
 import io.javalin.security.RouteRole
-import no.nav.toi.kandidatvarsel.Rolle.MASKIN_TIL_MASKIN
 import no.nav.toi.kandidatvarsel.Rolle.UNPROTECTED
 import org.eclipse.jetty.http.HttpHeader
 import java.lang.System.getenv
@@ -27,7 +26,6 @@ enum class Rolle: RouteRole {
     REKBIS_ARBEIDSGIVERRETTET,
     REKBIS_JOBBSØKERRETTET,
     REKBIS_UTVIKLER,
-    MASKIN_TIL_MASKIN,
     UNPROTECTED,
 }
 
