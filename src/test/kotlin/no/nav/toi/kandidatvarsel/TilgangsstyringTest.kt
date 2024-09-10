@@ -31,7 +31,6 @@ class TilgangsstyringTest {
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
-        "AUTHORIZED_PARTY_NAMES", "party",
         "KANDIDATSOK_API_URL", "http://localhost:$kandidatsokPort",
         "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
         "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
@@ -45,7 +44,6 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = false,
             tilgangListVarslerPåStilling = false,
             tilgangListVarslerPåFnr = false,
-            tilgangBackfill = false,
         )
     }
 
@@ -58,7 +56,6 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = true,
             tilgangListVarslerPåStilling = true,
             tilgangListVarslerPåFnr = true,
-            tilgangBackfill = false,
         )
     }
 
@@ -71,7 +68,6 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = false,
             tilgangListVarslerPåStilling = false,
             tilgangListVarslerPåFnr = harBrukertilgang,
-            tilgangBackfill = false,
         )
     }
 
@@ -84,7 +80,6 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = true,
             tilgangListVarslerPåStilling = true,
             tilgangListVarslerPåFnr = true,
-            tilgangBackfill = false,
         )
 
         assertTilganger(
@@ -92,28 +87,14 @@ class TilgangsstyringTest {
             tilgangOpprettVarsel = true,
             tilgangListVarslerPåStilling = true,
             tilgangListVarslerPåFnr = true,
-            tilgangBackfill = false,
         )
     }
-
-    @Test
-    fun `tilganger for maskintoken`() {
-        assertTilganger(
-            token = app.maskinToken(),
-            tilgangOpprettVarsel = false,
-            tilgangListVarslerPåStilling = false,
-            tilgangListVarslerPåFnr = false,
-            tilgangBackfill = true,
-        )
-    }
-
 
     private fun assertTilganger(
         token: SignedJWT,
         tilgangOpprettVarsel: Boolean,
         tilgangListVarslerPåStilling: Boolean,
         tilgangListVarslerPåFnr: Boolean,
-        tilgangBackfill: Boolean,
     ) {
         app.post("/api/varsler/stilling/1")
             .token(token)
@@ -137,28 +118,10 @@ class TilgangsstyringTest {
             .also { (_, response, _) ->
                 assertEquals(if (tilgangListVarslerPåFnr) 200 else 403, response.statusCode)
             }
-
-        app.post("/api/backfill")
-            .token(token)
-            .body("""
-                [{
-                    "frontendId": "0",
-                    "opprettet": "2023-01-01T01:01:01",
-                    "stillingId": "1",
-                    "melding": "En melding",
-                    "fnr": "11223388990",
-                    "status": "FEIL",
-                    "navIdent": "Z123456"
-                }]
-            """)
-            .response()
-            .also { (_, response, _) ->
-                assertEquals(if (tilgangBackfill) 201 else 403, response.statusCode)
-            }
     }
 
     private fun mockKandidatsokApi(harBrukertilgang: Boolean, wmRuntimeInfo: WireMockRuntimeInfo) {
-        if(harBrukertilgang)
+        if (harBrukertilgang)
             wmRuntimeInfo.brukertilgangOk()
         else
             wmRuntimeInfo.brukertilgangForbidden()

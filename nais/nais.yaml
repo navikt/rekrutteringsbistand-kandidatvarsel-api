@@ -36,9 +36,6 @@ spec:
     inbound:
       rules:
         - application: rekrutteringsbistand
-        - application: rekrutteringsbistand-sms
-          namespace: toi
-          cluster: {{{fssCluster}}}
     outbound:
       rules:
         - application: rekrutteringsbistand-stilling-api
@@ -50,8 +47,6 @@ spec:
       value: {{adGroupRekbisJobbsokerrettet}}
     - name: AD_GROUP_REKBIS_UTVIKLER
       value: {{adGroupRekbisUtvikler}}
-    - name: AUTHORIZED_PARTY_NAMES
-      value: {{adAuthorizedPartyNames}}
     - name: KANDIDATSOK_API_URL
       value: http://rekrutteringsbistand-kandidatsok-api
     {{#each env }}

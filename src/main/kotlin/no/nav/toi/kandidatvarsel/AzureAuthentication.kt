@@ -14,7 +14,6 @@ import com.auth0.jwt.interfaces.RSAKeyProvider
 import io.javalin.Javalin
 import io.javalin.http.*
 import io.javalin.security.RouteRole
-import no.nav.toi.kandidatvarsel.Rolle.MASKIN_TIL_MASKIN
 import no.nav.toi.kandidatvarsel.Rolle.UNPROTECTED
 import org.eclipse.jetty.http.HttpHeader
 import java.lang.System.getenv
@@ -27,7 +26,6 @@ enum class Rolle: RouteRole {
     REKBIS_ARBEIDSGIVERRETTET,
     REKBIS_JOBBSØKERRETTET,
     REKBIS_UTVIKLER,
-    MASKIN_TIL_MASKIN,
     UNPROTECTED,
 }
 
@@ -58,8 +56,6 @@ data class Issuer(
 
 class AzureAdConfig(
     private val issuers: List<Issuer>,
-    val authorizedPartyNames: List<String>,
-
     private val rekbisUtvikler: UUID,
     private val rekbisArbeidsgiverrettet: UUID,
     private val rekbisJobbsøkerrettet: UUID,
@@ -105,7 +101,6 @@ class AzureAdConfig(
                     )
                 else null
             ),
-            authorizedPartyNames = getenvOrThrow("AUTHORIZED_PARTY_NAMES").split(","),
             rekbisUtvikler = getUuid("AD_GROUP_REKBIS_UTVIKLER"),
             rekbisArbeidsgiverrettet = getUuid("AD_GROUP_REKBIS_ARBEIDSGIVERRETTET"),
             rekbisJobbsøkerrettet = getUuid("AD_GROUP_REKBIS_JOBBSOKERRETTET"),
@@ -143,42 +138,12 @@ data class UserPrincipal(
     }
 }
 
-/** Representerer en autensiert maskin */
-data class MachinePrincipal(
-    val authorizedPartyName: String,
-): Principal {
-    override fun mayAccess(routeRoles: Set<RouteRole>) =
-        UNPROTECTED in routeRoles || MASKIN_TIL_MASKIN in routeRoles
-
-    companion object {
-        fun fromClaims(claims: Map<String, Claim>, azureAdConfig: AzureAdConfig): MachinePrincipal {
-            val partyName = claims["azp_name"]?.asString() ?:
-                throw MissingClaimException("azp_name")
-
-            if (partyName !in azureAdConfig.authorizedPartyNames) {
-                log.error("Unauthorized azp_name: '$partyName'")
-                throw UnauthorizedResponse("azp_name")
-            }
-
-            return MachinePrincipal(
-                authorizedPartyName = partyName
-            )
-        }
-    }
-}
-
 /**
  * Henter ut en autensiert bruker fra en kontekst. Kaster InternalServerErrorResponse om det ikke finnes en autensiert bruker
  */
 fun Context.authenticatedUser() = attribute<UserPrincipal>("principal")
     ?: run {
         log.error("No authenticated user found!")
-        throw InternalServerErrorResponse()
-    }
-
-fun Context.authenticatedMachine() = attribute<MachinePrincipal>("principal")
-    ?: run {
-        log.error("No authenticated machine found!")
         throw InternalServerErrorResponse()
     }
 
@@ -197,11 +162,7 @@ fun Javalin.azureAdAuthentication(azureAdConfig: AzureAdConfig): Javalin {
 
         val claims = azureAdConfig.verify(token).claims
 
-        val principal = if (claims["idtyp"]?.asString() == "app") {
-            MachinePrincipal.fromClaims(claims, azureAdConfig)
-        } else {
-            UserPrincipal.fromClaims(claims, azureAdConfig)
-        }
+        val principal = UserPrincipal.fromClaims(claims, azureAdConfig)
 
         if (!principal.mayAccess(ctx.routeRoles())) {
             secureLog.error("principal=${principal} tried to access ${ctx.path()}, but is not authorized. Must have at least one of ${ctx.routeRoles()}")

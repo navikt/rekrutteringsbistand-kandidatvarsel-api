@@ -32,7 +32,6 @@ class VarslerTest {
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
-        "AUTHORIZED_PARTY_NAMES", "party",
         "KANDIDATSOK_API_URL", "http://localhost:$kandidatsokPort",
         "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
         "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
