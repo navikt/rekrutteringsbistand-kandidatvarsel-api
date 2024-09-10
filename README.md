@@ -22,7 +22,7 @@ curl --data 'client_id=someclientid&aud=dev-gcp:toi:rekrutteringsbistand-kandida
 ```
 og så legge på svaret som
 ``` 
-Authorization: Bearer <token>
+Authorization: Bearer <token> 
 ```
 
 
