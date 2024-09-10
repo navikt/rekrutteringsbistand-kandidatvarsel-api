@@ -1,6 +1,5 @@
 package no.nav.toi.kandidatvarsel
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel

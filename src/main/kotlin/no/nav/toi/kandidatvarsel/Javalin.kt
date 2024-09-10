@@ -41,6 +41,7 @@ fun startJavalin(
         handleHealth(dataSource, migrateResult)
         handleBackfill(dataSource)
         handleVarsler(dataSource, kandidatsokApiKlient)
+        handleMeldingsmal()
 
         exception(ValidationException::class.java) { e, ctx ->
             log.info("Returnerer 400 Bad Request på grunn av: ${e.errors}", e)
