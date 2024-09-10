@@ -39,6 +39,7 @@ fun startJavalin(
         azureAdAuthentication(azureAdConfig)
         handleHealth(dataSource, migrateResult)
         handleVarsler(dataSource, kandidatsokApiKlient)
+        handleMeldingsmal()
 
         exception(ValidationException::class.java) { e, ctx ->
             log.info("Returnerer 400 Bad Request på grunn av: ${e.errors}", e)

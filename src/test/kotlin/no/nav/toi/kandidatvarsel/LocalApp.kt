@@ -173,6 +173,15 @@ class LocalApp() {
         val arrayNode = body.getOrNull() as ArrayNode
         return arrayNode.toList().associateBy { it["stillingId"].asText() }
     }
+
+    fun getMeldingsmal(token: SignedJWT): Meldingsmal {
+        val (_, response, body) = get("/api/meldingsmal")
+            .token(token)
+            .responseObject<Meldingsmal>()
+
+        assertEquals(200, response.statusCode)
+        return body.getOrNull() as Meldingsmal
+    }
 }
 
 fun Request.token(token: SignedJWT): Request =
