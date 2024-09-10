@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicReference
 const val rekbisJobbsøkerrettet = "0dba8374-bf36-4d89-bbba-662447d57b94"
 const val rekbisArbeidsgiverrettet = "52bc2af7-38d1-468b-b68d-0f3a4de45af2"
 const val rekbisUtvikler = "a1749d9a-52e0-4116-bb9f-935c38f6c74a"
-const val authorizedPartyName = "local:toi:rekrutteringsbistand-kandidatvarsel-api"
 
 private const val authPort = 18306
 const val issuer = "http://localhost:$authPort/default"
@@ -40,7 +39,6 @@ private val azureAdConfig = AzureAdConfig(
             jwksUri = jwksUri,
         )
     ),
-    authorizedPartyNames = listOf(authorizedPartyName),
     rekbisArbeidsgiverrettet = UUID.fromString(rekbisArbeidsgiverrettet),
     rekbisJobbsøkerrettet = UUID.fromString(rekbisJobbsøkerrettet),
     rekbisUtvikler = UUID.fromString(rekbisUtvikler),

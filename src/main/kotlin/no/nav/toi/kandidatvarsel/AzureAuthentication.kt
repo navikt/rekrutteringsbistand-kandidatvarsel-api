@@ -56,8 +56,6 @@ data class Issuer(
 
 class AzureAdConfig(
     private val issuers: List<Issuer>,
-    val authorizedPartyNames: List<String>,
-
     private val rekbisUtvikler: UUID,
     private val rekbisArbeidsgiverrettet: UUID,
     private val rekbisJobbsøkerrettet: UUID,
@@ -103,7 +101,6 @@ class AzureAdConfig(
                     )
                 else null
             ),
-            authorizedPartyNames = getenvOrThrow("AUTHORIZED_PARTY_NAMES").split(","),
             rekbisUtvikler = getUuid("AD_GROUP_REKBIS_UTVIKLER"),
             rekbisArbeidsgiverrettet = getUuid("AD_GROUP_REKBIS_ARBEIDSGIVERRETTET"),
             rekbisJobbsøkerrettet = getUuid("AD_GROUP_REKBIS_JOBBSOKERRETTET"),

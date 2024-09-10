@@ -17,16 +17,13 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
 import java.util.*
 
 private const val kandidatsokPort = 10000
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SystemStubsExtension::class)
 @WireMockTest(httpPort = kandidatsokPort)
 class TilgangsstyringTest {
     private val app = LocalApp()
-    @BeforeEach
-    fun beforeEach() = app.prepare()
-    @AfterAll
-    fun afterAll() = app.close()
+    @BeforeEach fun beforeEach() = app.prepare()
+    @AfterAll fun afterAll() = app.close()
 
     @SystemStub
     private val variables = EnvironmentVariables(
@@ -34,7 +31,6 @@ class TilgangsstyringTest {
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
-        "AUTHORIZED_PARTY_NAMES", "party",
         "KANDIDATSOK_API_URL", "http://localhost:$kandidatsokPort",
         "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
         "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
