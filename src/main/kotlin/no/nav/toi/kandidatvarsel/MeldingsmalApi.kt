@@ -2,16 +2,28 @@ package no.nav.toi.kandidatvarsel
 import io.javalin.Javalin
 import no.nav.toi.kandidatvarsel.minside.Mal
 
+data class VurdertSomAktuell(
+    val smsTekst: String,
+    val epostTittel: String,
+    val epostHtmlBody: String
+)
+
+data class PassendeStilling(
+    val smsTekst: String,
+    val epostTittel: String,
+    val epostHtmlBody: String
+)
+
+data class PassendeJobbarrangement(
+    val smsTekst: String,
+    val epostTittel: String,
+    val epostHtmlBody: String
+)
+
 data class Meldingsmal(
-    val vurdertSomAktuellSmsTekst: String,
-    val vurdertSomAktuellEpostTittel: String,
-    val vurdertSomAktuellEpostHtmlBody: String,
-    val passendeStillingSmsTekst: String,
-    val passendeStillingEpostTittel: String,
-    val passendeStillingEpostHtmlBody: String,
-    val passendeJobbarrangementSmsTekst: String,
-    val passendeJobbarrangementEpostTittel: String,
-    val passendeJobbarrangementEpostHtmlBody: String
+    val vurdertSomAktuell: VurdertSomAktuell,
+    val passendeStilling: PassendeStilling,
+    val passendeJobbarrangement: PassendeJobbarrangement
  )
 
 fun hentMeldingsmal(): Meldingsmal {
@@ -19,15 +31,21 @@ fun hentMeldingsmal(): Meldingsmal {
     val passendeStilling = Mal.Companion.PassendeStilling
     val passendeJobbarrangement = Mal.Companion.PassendeJobbarrangement
     return Meldingsmal(
-        vurdertSomAktuellSmsTekst = vurdertSomAktuell.smsTekst(),
-        vurdertSomAktuellEpostTittel = vurdertSomAktuell.epostTittel(),
-        vurdertSomAktuellEpostHtmlBody = vurdertSomAktuell.epostHtmlBody(),
-        passendeStillingSmsTekst = passendeStilling.smsTekst(),
-        passendeStillingEpostTittel = passendeStilling.epostTittel(),
-        passendeStillingEpostHtmlBody = passendeStilling.epostHtmlBody(),
-        passendeJobbarrangementSmsTekst = passendeJobbarrangement.smsTekst(),
-        passendeJobbarrangementEpostTittel = passendeJobbarrangement.epostTittel(),
-        passendeJobbarrangementEpostHtmlBody = passendeJobbarrangement.epostHtmlBody()
+        vurdertSomAktuell = VurdertSomAktuell(
+            smsTekst = vurdertSomAktuell.smsTekst(),
+            epostTittel = vurdertSomAktuell.epostTittel(),
+            epostHtmlBody = vurdertSomAktuell.epostHtmlBody()
+        ),
+        passendeStilling = PassendeStilling(
+            smsTekst = passendeStilling.smsTekst(),
+            epostTittel = passendeStilling.epostTittel(),
+            epostHtmlBody = passendeStilling.epostHtmlBody()
+        ),
+        passendeJobbarrangement = PassendeJobbarrangement(
+            smsTekst = passendeJobbarrangement.smsTekst(),
+            epostTittel = passendeJobbarrangement.epostTittel(),
+            epostHtmlBody = passendeJobbarrangement.epostHtmlBody()
+        )
     )
 }
 
