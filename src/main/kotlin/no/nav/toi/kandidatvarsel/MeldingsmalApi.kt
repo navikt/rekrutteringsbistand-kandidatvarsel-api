@@ -10,7 +10,7 @@ data class Meldingsmal(
     val passendeStillingEpostTittel: String,
     val passendeStillingEpostHtmlBody: String,
     val passendeJobbarrangementSmsTekst: String,
-    val passendeJobbarangementEpostTittel: String,
+    val passendeJobbarrangementEpostTittel: String,
     val passendeJobbarrangementEpostHtmlBody: String
  )
 
@@ -26,7 +26,7 @@ fun hentMeldingsmal(): Meldingsmal {
         passendeStillingEpostTittel = passendeStilling.epostTittel(),
         passendeStillingEpostHtmlBody = passendeStilling.epostHtmlBody(),
         passendeJobbarrangementSmsTekst = passendeJobbarrangement.smsTekst(),
-        passendeJobbarangementEpostTittel = passendeJobbarrangement.epostTittel(),
+        passendeJobbarrangementEpostTittel = passendeJobbarrangement.epostTittel(),
         passendeJobbarrangementEpostHtmlBody = passendeJobbarrangement.epostHtmlBody()
     )
 }

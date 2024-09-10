@@ -60,7 +60,7 @@ sealed interface Mal {
                 """.trimIndent())
         }
 
-        private fun epostHtmlBodyTemplate(@Language("HTML") tekst: String) = """
+        fun epostHtmlBodyTemplate(@Language("HTML") tekst: String) = """
             <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei!</p><p>$tekst</p><p>Vennlig hilsen</p><p>NAV</p></body></html>
         """.trimIndent()
     }
