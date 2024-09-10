@@ -33,7 +33,7 @@ jobs:
 
   deploy-to-dev:
     name: Deploy to dev
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/bytte-til-ny-tilgangsstyring'
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/sync-sms'
     needs: build-test-deploy
     runs-on: ubuntu-latest
     steps:
