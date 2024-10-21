@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rekrutteringsbistand-kandidatvarsel-api
+  namespace: toi
+  labels:
+    team: toi
+spec:
+  groups:
+    - name: rekrutteringsbistand-kandidatvarsel-api
+      rules:
+        - alert: rekrutteringsbistand-kandidatvarsel-api
+          expr: kube_deployment_status_replicas_available{deployment="rekrutteringsbistand-kandidatvarsel-api"} == 0
+          for: 1s
+          annotations:
+            summary: Applikasjonen er nede
+            action: "https://logs.adeo.no/app/r/s/GIvY5"
+          labels:
+            namespace: toi
+            severity: critical
+
+        - alert: rekrutteringsbistand-kandidatvarsel-api
+          expr: sum(increase(log_messages_errors{app="rekrutteringsbistand-kandidatvarsel-api", level="Error"}[10m])) > 0
+          for: 1s
+          annotations:
+            summary: Applikasjonen har logget en error
+            action: "https://logs.adeo.no/app/r/s/GIvY5"
+          labels:
+            namespace: toi
+            severity: critical
+
+        - alert: rekrutteringsbistand-kandidatvarsel-api
+          expr: sum(increase(log_messages_errors{app="rekrutteringsbistand-kandidatvarsel-api", level="Warning"}[10m])) > 3
+          for: 1s
+          annotations:
+            summary: Økning i warnings
+            action: "https://logs.adeo.no/app/r/s/GIvY5"
+          labels:
+            namespace: toi
+            severity: warning
