@@ -23,12 +23,12 @@ sealed interface Mal {
             override fun minsideTekst(stilling: Stilling) =
                 "Vi har vurdert at kompetansen din kan passe til stillingen «${stilling.title}» hos «${stilling.businessName}». Se stillingen her."
             override fun smsTekst() =
-                "Hei! Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
+                "Hei! Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på Nav for å se stillingen. Vennlig hilsen Nav"
             override fun epostTittel() =
                 "Stilling som kan passe for deg?"
             override fun epostHtmlBody() =
                 epostHtmlBodyTemplate("""
-                    Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på NAV for å se stillingen.
+                    Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på Nav for å se stillingen.
                 """.trimIndent())
         }
 
@@ -37,12 +37,12 @@ sealed interface Mal {
             override fun minsideTekst(stilling: Stilling) =
                 "Vi har funnet stillingen «${stilling.title}» hos «${stilling.businessName}» som kan passe deg. Interessert? Søk via lenka i annonsen."
             override fun smsTekst() =
-                "Hei! Vi har funnet en stilling som kan passe deg. Logg inn på NAV for å se stillingen. Vennlig hilsen NAV"
+                "Hei! Vi har funnet en stilling som kan passe deg. Logg inn på Nav for å se stillingen. Vennlig hilsen Nav"
             override fun epostTittel() =
                 "Stilling som kan passe for deg?"
             override fun epostHtmlBody() =
                 epostHtmlBodyTemplate("""
-                    Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på NAV for å se stillingen.
+                    Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på Nav for å se stillingen.
                 """.trimIndent())
         }
 
@@ -51,17 +51,17 @@ sealed interface Mal {
             override fun minsideTekst(stilling: Stilling) =
                 "Vi har et jobbarrangement som kanskje passer for deg"
             override fun smsTekst() =
-                "Hei! Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på NAV for å se arrangementet. Vennlig hilsen NAV"
+                "Hei! Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på Nav for å se arrangementet. Vennlig hilsen Nav"
             override fun epostTittel() =
                 "Jobbarrangement"
             override fun epostHtmlBody() =
                 epostHtmlBodyTemplate("""
-                    Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på NAV for å se arrangementet.
+                    Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på Nav for å se arrangementet.
                 """.trimIndent())
         }
 
         fun epostHtmlBodyTemplate(@Language("HTML") tekst: String) = """
-            <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei!</p><p>$tekst</p><p>Vennlig hilsen</p><p>NAV</p></body></html>
+            <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei!</p><p>$tekst</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
     }
 }
