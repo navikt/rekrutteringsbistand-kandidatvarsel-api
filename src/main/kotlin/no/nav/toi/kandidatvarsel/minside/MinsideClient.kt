@@ -8,6 +8,7 @@ import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
 import no.nav.toi.kandidatvarsel.Stilling
 import no.nav.toi.kandidatvarsel.log
+import no.nav.toi.kandidatvarsel.secureLog
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -122,7 +123,10 @@ private data class VarselOppdateringDto(
             "feilet" -> EksternVarselFeilet(varselId, feilmelding!!)
             "venter" ->  EksternVarselVenter(varselId)
             "kansellert" ->  EksternVarselKansellert(varselId)
-            else -> throw IllegalStateException("Ukjent status i eksternStatusOppdatert")
+            else -> {
+                secureLog.error("Ukjent status: $status i eksternStatusOppdatert for varselId: $varselId")
+                throw IllegalStateException("Ukjent status: $status i eksternStatusOppdatert")
+            }
         }
         else -> throw IllegalStateException("Ukjent @event_type '$eventName'")
     }
