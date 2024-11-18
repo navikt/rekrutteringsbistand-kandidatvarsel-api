@@ -12,11 +12,11 @@ import java.time.ZoneId
 import kotlin.jvm.optionals.getOrNull
 
 enum class MinsideStatus {
-    OPPRETTET, INAKTIVERT, SLETTET, VENTER, KANSELLERT
+    OPPRETTET, INAKTIVERT, SLETTET
 }
 
 enum class EksternStatus {
-    BESTILLT, SENDT, FEILET,
+    BESTILLT, SENDT, FEILET, VENTER, KANSELLERT
 }
 
 enum class Kanal {
@@ -42,6 +42,8 @@ data class MinsideVarsel(
         is EksternVarselBestilt -> copy(eksternStatus = EksternStatus.BESTILLT)
         is EksternVarselFeilet -> copy(eksternStatus = EksternStatus.FEILET, eksternFeilmelding = oppdatering.feilmelding)
         is EksternVarselSendt -> copy(eksternStatus = EksternStatus.SENDT, eksternKanal = oppdatering.kanal)
+        is EksternVarselVenter -> copy(eksternStatus = EksternStatus.VENTER)
+        is EksternVarselKansellert -> copy(eksternStatus = EksternStatus.KANSELLERT)
         is StatusOppdatering -> copy(minsideStatus = oppdatering.status)
     }
 
@@ -59,13 +61,13 @@ data class MinsideVarsel(
             null -> MinsideStatusDto.UNDER_UTSENDING
             MinsideStatus.OPPRETTET -> MinsideStatusDto.OPPRETTET
             MinsideStatus.INAKTIVERT -> MinsideStatusDto.OPPRETTET
-            MinsideStatus.KANSELLERT -> MinsideStatusDto.OPPRETTET
             MinsideStatus.SLETTET -> MinsideStatusDto.SLETTET
-            MinsideStatus.VENTER -> MinsideStatusDto.UNDER_UTSENDING
         },
         eksternStatus = when (eksternStatus) {
             null -> EksternStatusDto.UNDER_UTSENDING
             EksternStatus.BESTILLT -> EksternStatusDto.UNDER_UTSENDING
+            EksternStatus.VENTER -> EksternStatusDto.UNDER_UTSENDING
+            EksternStatus.KANSELLERT -> EksternStatusDto.UNDER_UTSENDING
             EksternStatus.SENDT -> when (eksternKanal) {
                 Kanal.SMS -> EksternStatusDto.VELLYKKET_SMS
                 Kanal.EPOST -> EksternStatusDto.VELLYKKET_EPOST

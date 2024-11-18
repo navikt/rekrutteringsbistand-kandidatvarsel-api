@@ -70,6 +70,14 @@ data class EksternVarselBestilt(
     override val varselId: String,
 ): VarselOppdatering
 
+data class EksternVarselVenter(
+    override val varselId: String,
+): VarselOppdatering
+
+data class EksternVarselKansellert(
+    override val varselId: String,
+): VarselOppdatering
+
 data class EksternVarselSendt(
     override val varselId: String,
     val kanal: Kanal,
@@ -108,12 +116,12 @@ private data class VarselOppdateringDto(
         "opprettet" -> StatusOppdatering(varselId, MinsideStatus.OPPRETTET)
         "inaktivert" -> StatusOppdatering(varselId, MinsideStatus.INAKTIVERT)
         "slettet" -> StatusOppdatering(varselId, MinsideStatus.SLETTET)
-        "venter" -> StatusOppdatering(varselId, MinsideStatus.VENTER)
-        "kansellert" -> StatusOppdatering(varselId, MinsideStatus.KANSELLERT)
         "eksternStatusOppdatert" -> when (status) {
             "bestilt" -> EksternVarselBestilt(varselId)
             "sendt" -> EksternVarselSendt(varselId, Kanal.valueOf(kanal!!))
             "feilet" -> EksternVarselFeilet(varselId, feilmelding!!)
+            "venter" ->  EksternVarselVenter(varselId)
+            "kansellert" ->  EksternVarselKansellert(varselId)
             else -> throw IllegalStateException("Ukjent status i eksternStatusOppdatert")
         }
         else -> throw IllegalStateException("Ukjent @event_type '$eventName'")
