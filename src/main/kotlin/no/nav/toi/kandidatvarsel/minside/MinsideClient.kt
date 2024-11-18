@@ -108,6 +108,8 @@ private data class VarselOppdateringDto(
         "opprettet" -> StatusOppdatering(varselId, MinsideStatus.OPPRETTET)
         "inaktivert" -> StatusOppdatering(varselId, MinsideStatus.INAKTIVERT)
         "slettet" -> StatusOppdatering(varselId, MinsideStatus.SLETTET)
+        "venter" -> StatusOppdatering(varselId, MinsideStatus.VENTER)
+        "kansellert" -> StatusOppdatering(varselId, MinsideStatus.KANSELLERT)
         "eksternStatusOppdatert" -> when (status) {
             "bestilt" -> EksternVarselBestilt(varselId)
             "sendt" -> EksternVarselSendt(varselId, Kanal.valueOf(kanal!!))
