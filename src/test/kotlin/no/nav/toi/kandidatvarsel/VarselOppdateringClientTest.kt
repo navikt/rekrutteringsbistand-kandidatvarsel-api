@@ -132,6 +132,28 @@ private object Eksempel {
         }
     """
 
+    const val VENTER = """
+        {
+          "@event_name": "eksternStatusOppdatert",
+          "status": "venter",
+          "varseltype": "oppgave",
+          "varselId": "11223344-aaaa-bbbb-cccc-112233445566",
+          "namespace": "team-test",
+          "appnavn": "demo-app"
+        }
+    """
+
+    const val KANSELLERT = """
+        {
+          "@event_name": "eksternStatusOppdatert",
+          "status": "kansellert",
+          "varseltype": "oppgave",
+          "varselId": "11223344-aaaa-bbbb-cccc-112233445566",
+          "namespace": "team-test",
+          "appnavn": "demo-app"
+        }
+    """
+
     const val SMS_SENDT = """
         {
           "@event_name": "eksternStatusOppdatert",
@@ -162,6 +184,8 @@ private object Eksempel {
         INAKTIVERT,
         SLETTET,
         BESTILT,
+        VENTER,
+        KANSELLERT,
         SMS_SENDT,
         FEILET,
     )
