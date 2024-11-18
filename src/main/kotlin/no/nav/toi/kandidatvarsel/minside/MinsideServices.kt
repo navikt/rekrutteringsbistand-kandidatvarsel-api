@@ -31,11 +31,6 @@ fun sjekkVarselOppdateringer(
     kafkaConsumer.pollOppdateringer { oppdateringer ->
         dataSource.transaction { tx ->
             for (oppdatering in oppdateringer) {
-                try {
-                    secureLog.info("Oppdaterer varsel fra minside: $oppdatering, ")
-                } catch (e: Exception) {
-                    secureLog.error("Feil ved oppdatering av varsel fra minside ${oppdatering}", e)
-                }
                 val varsel = MinsideVarsel.finnFraVarselId(tx, oppdatering.varselId) ?: continue
                 varsel.oppdaterFra(oppdatering).save(tx)
             }
