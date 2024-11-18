@@ -115,7 +115,7 @@ private data class VarselOppdateringDto(
             "feilet" -> EksternVarselFeilet(varselId, feilmelding!!)
             else -> {
                 secureLog.error("Ukjent status: $status i eksternStatusOppdatert for varselId: $varselId")
-                throw IllegalStateException("Ukjent status: $status i eksternStatusOppdatert (se Securelog for varselId)")
+                throw IllegalStateException("Ukjent status: $status i eksternStatusOppdatert")
             }
         }
         else -> throw IllegalStateException("Ukjent @event_type '$eventName'")
