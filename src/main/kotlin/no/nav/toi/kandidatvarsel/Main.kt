@@ -91,7 +91,7 @@ private fun backgroundThread(name: String, shutdown: AtomicBoolean, body: () -> 
         try {
             body()
         } catch (e: Exception) {
-            log.error("Exception in background thread {}", name, e)
+            log.error("Exception in background thread $name", e)
             Thread.sleep(1.seconds.inWholeMilliseconds)
         }
     }
