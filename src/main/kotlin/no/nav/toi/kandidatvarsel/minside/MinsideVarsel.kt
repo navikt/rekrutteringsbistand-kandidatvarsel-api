@@ -12,7 +12,7 @@ import java.time.ZoneId
 import kotlin.jvm.optionals.getOrNull
 
 enum class MinsideStatus {
-    OPPRETTET, INAKTIVERT, SLETTET
+    OPPRETTET, INAKTIVERT, SLETTET, VENTER, KANSELLERT
 }
 
 enum class EksternStatus {
@@ -59,7 +59,9 @@ data class MinsideVarsel(
             null -> MinsideStatusDto.UNDER_UTSENDING
             MinsideStatus.OPPRETTET -> MinsideStatusDto.OPPRETTET
             MinsideStatus.INAKTIVERT -> MinsideStatusDto.OPPRETTET
+            MinsideStatus.KANSELLERT -> MinsideStatusDto.OPPRETTET
             MinsideStatus.SLETTET -> MinsideStatusDto.SLETTET
+            MinsideStatus.VENTER -> MinsideStatusDto.UNDER_UTSENDING
         },
         eksternStatus = when (eksternStatus) {
             null -> EksternStatusDto.UNDER_UTSENDING
