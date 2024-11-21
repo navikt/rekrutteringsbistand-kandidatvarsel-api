@@ -24,7 +24,8 @@ object AuditLogg {
             .timeEnded(System.currentTimeMillis())
             .extension("msg", msg)
             .build()
-        auditLogger.log(message)
-        secureLog.info("auditlogger: {}", message)
+        val ekstraSpaceSidenAuditloggerInnimellomKutterSisteTegn = " "
+        auditLogger.log("$message" + ekstraSpaceSidenAuditloggerInnimellomKutterSisteTegn)
+        secureLog.info("auditlogger: {}", "$message" + ekstraSpaceSidenAuditloggerInnimellomKutterSisteTegn)
     }
 }
