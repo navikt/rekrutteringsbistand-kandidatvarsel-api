@@ -21,6 +21,9 @@ enum class EksternStatusDto {
     /** Vi har fått bekreftet at en e-post er sendt. */
     VELLYKKET_EPOST,
 
+    /** Varsling er ferdigstilt*/
+    FERDIGSTILT,
+
     /** Det skjedde en feil, og vi vil ikke prøve å sende varselet igjen. */
     FEIL,
 }

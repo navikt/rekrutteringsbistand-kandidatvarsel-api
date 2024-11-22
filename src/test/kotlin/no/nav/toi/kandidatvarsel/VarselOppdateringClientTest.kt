@@ -167,6 +167,20 @@ private object Eksempel {
         }
     """
 
+
+    const val SMS_FERDIGSTILT = """
+        {
+          "@event_name": "eksternStatusOppdatert",
+          "status": "ferdigstilt",
+          "varseltype": "oppgave",
+          "varselId": "11223344-aaaa-bbbb-cccc-112233445566",
+          "kanal": "SMS",
+          "renotifikasjon": false,
+          "namespace": "team-test",
+          "appnavn": "demo-app"
+        }
+    """
+
     const val FEILET = """
         {
           "@event_name": "eksternStatusOppdatert",
@@ -187,6 +201,7 @@ private object Eksempel {
         VENTER,
         KANSELLERT,
         SMS_SENDT,
+        SMS_FERDIGSTILT,
         FEILET,
     )
 }
