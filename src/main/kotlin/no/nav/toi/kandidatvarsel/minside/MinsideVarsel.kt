@@ -36,7 +36,7 @@ data class MinsideVarsel(
     val minsideStatus: MinsideStatus?,
     val eksternStatus: EksternStatus?,
     val eksternKanal: Kanal?,
-    val eksternFeilmelding: String?
+    val eksternFeilmelding: String?,
 ) {
     fun oppdaterFra(oppdatering: VarselOppdatering): MinsideVarsel = when (oppdatering) {
         is EksternVarselBestilt -> copy(eksternStatus = EksternStatus.BESTILLT)
@@ -44,7 +44,7 @@ data class MinsideVarsel(
         is EksternVarselSendt -> copy(eksternStatus = EksternStatus.SENDT, eksternKanal = oppdatering.kanal)
         is EksternVarselVenter -> copy(eksternStatus = EksternStatus.VENTER)
         is EksternVarselKansellert -> copy(eksternStatus = EksternStatus.KANSELLERT)
-        is EksternVarselFerdigstilt -> copy(eksternStatus = EksternStatus.FERDIGSTILT, eksternKanal = oppdatering.kanal)
+        is EksternVarselFerdigstilt -> copy(eksternStatus = EksternStatus.FERDIGSTILT)
         is StatusOppdatering -> copy(minsideStatus = oppdatering.status)
     }
 
@@ -69,7 +69,8 @@ data class MinsideVarsel(
             EksternStatus.BESTILLT -> EksternStatusDto.UNDER_UTSENDING
             EksternStatus.VENTER -> EksternStatusDto.UNDER_UTSENDING
             EksternStatus.KANSELLERT -> EksternStatusDto.UNDER_UTSENDING
-            EksternStatus.SENDT, EksternStatus.FERDIGSTILT -> when (eksternKanal) {
+            EksternStatus.FERDIGSTILT -> EksternStatusDto.FERDIGSTILT
+            EksternStatus.SENDT -> when (eksternKanal) {
                 Kanal.SMS -> EksternStatusDto.VELLYKKET_SMS
                 Kanal.EPOST -> EksternStatusDto.VELLYKKET_EPOST
                 null -> throw IllegalStateException("EksternStatus.SENDT krever at eksternKanal er satt")
