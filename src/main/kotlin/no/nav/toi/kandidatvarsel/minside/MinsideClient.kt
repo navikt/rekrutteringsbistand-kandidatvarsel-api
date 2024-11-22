@@ -79,6 +79,11 @@ data class EksternVarselKansellert(
     override val varselId: String,
 ): VarselOppdatering
 
+data class EksternVarselFerdigstilt(
+    override val varselId: String,
+    val kanal: Kanal,
+): VarselOppdatering
+
 data class EksternVarselSendt(
     override val varselId: String,
     val kanal: Kanal,
@@ -123,6 +128,7 @@ private data class VarselOppdateringDto(
             "feilet" -> EksternVarselFeilet(varselId, feilmelding!!)
             "venter" ->  EksternVarselVenter(varselId)
             "kansellert" ->  EksternVarselKansellert(varselId)
+            "ferdigstilt" -> EksternVarselFerdigstilt(varselId, Kanal.valueOf(kanal!!))
             else -> {
                 secureLog.error("Ukjent status: $status i eksternStatusOppdatert for varselId: $varselId")
                 throw IllegalStateException("Ukjent status: $status i eksternStatusOppdatert")

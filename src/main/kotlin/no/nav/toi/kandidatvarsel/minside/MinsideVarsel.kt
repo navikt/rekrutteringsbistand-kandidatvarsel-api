@@ -16,7 +16,7 @@ enum class MinsideStatus {
 }
 
 enum class EksternStatus {
-    BESTILLT, SENDT, FEILET, VENTER, KANSELLERT
+    BESTILLT, SENDT, FEILET, VENTER, KANSELLERT, FERDIGSTILT
 }
 
 enum class Kanal {
@@ -44,6 +44,7 @@ data class MinsideVarsel(
         is EksternVarselSendt -> copy(eksternStatus = EksternStatus.SENDT, eksternKanal = oppdatering.kanal)
         is EksternVarselVenter -> copy(eksternStatus = EksternStatus.VENTER)
         is EksternVarselKansellert -> copy(eksternStatus = EksternStatus.KANSELLERT)
+        is EksternVarselFerdigstilt -> copy(eksternStatus = EksternStatus.FERDIGSTILT, eksternKanal = oppdatering.kanal)
         is StatusOppdatering -> copy(minsideStatus = oppdatering.status)
     }
 
@@ -68,7 +69,7 @@ data class MinsideVarsel(
             EksternStatus.BESTILLT -> EksternStatusDto.UNDER_UTSENDING
             EksternStatus.VENTER -> EksternStatusDto.UNDER_UTSENDING
             EksternStatus.KANSELLERT -> EksternStatusDto.UNDER_UTSENDING
-            EksternStatus.SENDT -> when (eksternKanal) {
+            EksternStatus.SENDT, EksternStatus.FERDIGSTILT -> when (eksternKanal) {
                 Kanal.SMS -> EksternStatusDto.VELLYKKET_SMS
                 Kanal.EPOST -> EksternStatusDto.VELLYKKET_EPOST
                 null -> throw IllegalStateException("EksternStatus.SENDT krever at eksternKanal er satt")
