@@ -77,7 +77,8 @@ data class MinsideVarsel(
             }
             EksternStatus.FEILET -> EksternStatusDto.FEIL
         },
-        eksternFeilmelding = eksternFeilmelding
+        eksternFeilmelding = eksternFeilmelding,
+        eksternKanal = eksternKanal
     )
 
     fun save(jdbcClient: JdbcClient) {
