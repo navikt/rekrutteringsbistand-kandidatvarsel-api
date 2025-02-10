@@ -6,6 +6,7 @@ import io.javalin.http.HttpStatus
 import io.javalin.http.bodyAsClass
 import no.nav.toi.kandidatvarsel.Rolle.*
 import no.nav.toi.kandidatvarsel.altinnsms.AltinnVarsel
+import no.nav.toi.kandidatvarsel.minside.Kanal
 import no.nav.toi.kandidatvarsel.minside.Mal
 import no.nav.toi.kandidatvarsel.minside.MinsideVarsel
 import java.time.LocalDateTime
@@ -68,6 +69,7 @@ data class VarselResponseDto(
     val minsideStatus: MinsideStatusDto,
     val eksternStatus: EksternStatusDto,
     val eksternFeilmelding: String?,
+    val eksternKanal: Kanal?,
 )
 
 fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: KandidatsokApiKlient) {

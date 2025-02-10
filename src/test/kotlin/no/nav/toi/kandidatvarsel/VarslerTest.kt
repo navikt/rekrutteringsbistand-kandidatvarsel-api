@@ -107,6 +107,7 @@ class VarslerTest {
                 assertEquals("OPPRETTET", it["minsideStatus"].asText())
                 assertEquals("UNDER_UTSENDING", it["eksternStatus"].asText())
                 assertTrue(it["eksternFeilmelding"].isNull)
+                assertTrue(it["eksternKanal"].isNull)
             }
 
             varsler[fnr2]!!.let {
@@ -115,6 +116,7 @@ class VarslerTest {
                 assertEquals("UNDER_UTSENDING", it["minsideStatus"].asText())
                 assertEquals("UNDER_UTSENDING", it["eksternStatus"].asText())
                 assertTrue(it["eksternFeilmelding"].isNull)
+                assertTrue(it["eksternKanal"].isNull)
             }
         }
 
@@ -154,6 +156,7 @@ class VarslerTest {
                 assertEquals("OPPRETTET", it["minsideStatus"].asText())
                 assertEquals("VELLYKKET_SMS", it["eksternStatus"].asText())
                 assertTrue(it["eksternFeilmelding"].isNull)
+                assertTrue(it["eksternKanal"].asText().contains("SMS"))
             }
 
             varsler[fnr2]!!.let {
@@ -177,6 +180,7 @@ class VarslerTest {
                 assertEquals("OPPRETTET", it["minsideStatus"].asText())
                 assertEquals("VELLYKKET_EPOST", it["eksternStatus"].asText())
                 assertTrue(it["eksternFeilmelding"].isNull)
+                assertTrue(it["eksternKanal"].asText().contains("EPOST"))
             }
 
             varsler[fnr2]!!.let {

@@ -4,7 +4,6 @@ import no.nav.toi.kandidatvarsel.*
 import org.springframework.jdbc.core.simple.JdbcClient
 import java.sql.ResultSet
 import java.time.LocalDateTime
-import javax.sql.DataSource
 
 enum class AltinnStatus {
     SENDT, UNDER_UTSENDING, IKKE_SENDT, FEIL
@@ -35,6 +34,7 @@ data class AltinnVarsel(
             AltinnStatus.FEIL -> EksternStatusDto.FEIL
         },
         eksternFeilmelding = null,
+        eksternKanal = null,
     )
 
 
