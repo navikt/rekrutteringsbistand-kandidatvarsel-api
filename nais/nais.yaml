@@ -63,3 +63,9 @@ spec:
         databases:
           - name: kandidatvarsler
             envVarPrefix: DB
+  observability:
+    logging:
+      destinations:
+        - id: loki
+        - id: elastic
+      enabled: true
