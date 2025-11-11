@@ -1,6 +1,6 @@
 plugins {
     application
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "2.2.21"
 }
 
 group = "no.nav"
@@ -42,6 +42,8 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.flywaydb:flyway-core:10.10.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.10.0")
+    implementation("com.github.navikt:rapids-and-rivers:2025110410541762250064.d7e58c3fad81")
+
 
     testImplementation(platform("org.junit:junit-bom:5.10.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -53,6 +55,8 @@ dependencies {
     testImplementation("org.skyscreamer:jsonassert:1.5.1")
     testImplementation("org.testcontainers:postgresql:1.19.7")
 }
+
+
 
 tasks.test {
     useJUnitPlatform()

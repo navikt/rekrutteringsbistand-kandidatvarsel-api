@@ -13,7 +13,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 
 class FakeMinside {
     val consumer = MockConsumer<String, String>(OffsetResetStrategy.EARLIEST)
-    val producer = MockProducer(true, StringSerializer(), StringSerializer())
+    val producer = MockProducer<String, String>()
     private val objectMapper = jacksonObjectMapper()
     private var producerHistoryOffset = 0
     private var consumerOffset = 0L
@@ -26,7 +26,11 @@ class FakeMinside {
 
     fun mottatteBestillinger(n: Int = 1): Map<String, JsonNode> {
         val records = producer.history().subList(producerHistoryOffset, producerHistoryOffset + n)
-        return records.map { objectMapper.readValue<JsonNode>(it.value()) }.associateBy { it["ident"].asText() }
+        producerHistoryOffset += n
+        return records.associate { record ->
+            val json = objectMapper.readValue<JsonNode>(record.value())
+            json["ident"].asText() to json
+        }
     }
 
     fun varselOpprettet(varselId: String) = addRecord(varselId, "opprettet")
