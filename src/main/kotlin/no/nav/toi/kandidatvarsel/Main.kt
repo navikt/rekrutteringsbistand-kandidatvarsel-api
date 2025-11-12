@@ -2,6 +2,7 @@ package no.nav.toi.kandidatvarsel
 
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
+import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
@@ -24,12 +25,12 @@ fun main() {
     log.info("Starter applikasjon")
     
     try {
-        lateinit var rapidIsAlive: () -> Boolean
+        lateinit var kafkaRapid: KafkaRapid
         val rapidsConnection = RapidApplication.create(
             System.getenv(),
             builder = { withHttpPort(9000) },
-            configure = { _, kafkaRapid ->
-                rapidIsAlive = kafkaRapid::isRunning
+            configure = { _, rapid ->
+                kafkaRapid = rapid
             }
         )
         
@@ -38,7 +39,7 @@ fun main() {
         startApp(
             rapidsConnection = rapidsConnection,
             dataSource = dataSource,
-            rapidIsAlive = rapidIsAlive
+            kafkaRapid = kafkaRapid
         )
     } catch (e: Exception) {
         secureLog.error("Uhåndtert exception, stanser applikasjonen", e)
@@ -50,7 +51,7 @@ fun main() {
 fun startApp(
     rapidsConnection: com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection,
     dataSource: com.zaxxer.hikari.HikariDataSource,
-    rapidIsAlive: () -> Boolean
+    kafkaRapid: KafkaRapid
 ) {
     /* Status på migrering, så ready-endepunktet kan fortelle om vi er klare for å motta api-kall. */
     val migrateResult = AtomicReference<MigrateResult>()
@@ -101,7 +102,7 @@ fun startApp(
         dataSource = dataSource,
         migrateResult = migrateResult,
         kandidatsokApiKlient = kandidatsokApiKlient,
-        rapidIsAlive = rapidIsAlive
+        kafkaRapid = kafkaRapid
     )
 
     // Registrer lyttere for Kafka-hendelser

@@ -1,5 +1,6 @@
 package no.nav.toi.kandidatvarsel
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
 import io.javalin.Javalin
 import io.javalin.http.Handler
 import io.javalin.http.HttpStatus
@@ -11,7 +12,7 @@ import javax.sql.DataSource
 fun Javalin.handleHealth(
     dataSource: DataSource,
     migrationResult: AtomicReference<MigrateResult>,
-    rapidIsAlive: (() -> Boolean)? = null
+    kafkaRapid: KafkaRapid
 ) {
     fun checks(checks: Map<String, () -> Boolean>) = Handler { ctx ->
         val checkOutcomes = checks.mapValues { it.value() }
@@ -22,12 +23,12 @@ fun Javalin.handleHealth(
     val isReadyChecks = buildMap {
         put("database") { dataSource.isReady() }
         put("migration") { migrationResult.get()?.success == true }
-        rapidIsAlive?.let { put("rapid") { it() } }
+        put("rapid") { kafkaRapid.isRunning() }
     }
 
     val isAliveChecks = buildMap {
         put("migration") { migrationResult.get()?.success != false }
-        rapidIsAlive?.let { put("rapid") { it() } }
+        put("rapid") { kafkaRapid.isRunning() }
     }
 
     get("/internal/ready", checks(isReadyChecks), UNPROTECTED)

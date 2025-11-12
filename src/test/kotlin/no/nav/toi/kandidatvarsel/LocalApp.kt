@@ -10,9 +10,12 @@ import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.kittinunf.result.getOrNull
 import com.github.kittinunf.result.onError
+import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.nimbusds.jwt.SignedJWT
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
@@ -87,7 +90,11 @@ class LocalApp() {
 
     val migrateResult = AtomicReference<MigrateResult>()
 
-    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, port = 0)
+    private val mockKafkaRapid = mockk<KafkaRapid>().also {
+        every { it.isRunning() } returns true
+    }
+
+    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, mockKafkaRapid, port = 0)
 
     fun prepare() {
         flyway.clean()

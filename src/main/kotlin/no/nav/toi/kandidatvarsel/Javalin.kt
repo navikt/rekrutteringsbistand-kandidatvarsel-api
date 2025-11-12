@@ -4,6 +4,7 @@ import auth.obo.KandidatsokApiKlient
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
 import com.zaxxer.hikari.HikariDataSource
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus
@@ -18,7 +19,7 @@ fun startJavalin(
     dataSource: HikariDataSource,
     migrateResult: AtomicReference<MigrateResult>,
     kandidatsokApiKlient: KandidatsokApiKlient,
-    rapidIsAlive: (() -> Boolean)? = null,
+    kafkaRapid: KafkaRapid,
     port: Int = 8080,
 ): Javalin = Javalin
     .create {
@@ -38,7 +39,7 @@ fun startJavalin(
     }
     .apply {
         azureAdAuthentication(azureAdConfig)
-        handleHealth(dataSource, migrateResult, rapidIsAlive)
+        handleHealth(dataSource, migrateResult, kafkaRapid)
         handleVarsler(dataSource, kandidatsokApiKlient)
         handleMeldingsmal()
 
