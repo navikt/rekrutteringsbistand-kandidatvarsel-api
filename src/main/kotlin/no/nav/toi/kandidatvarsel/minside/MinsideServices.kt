@@ -16,8 +16,13 @@ fun bestillVarsel(
 ): Boolean = dataSource.transaction { tx ->
     val minsideVarsel = MinsideVarsel.finnOgLåsUsendtVarsel(tx) ?:
         return@transaction false
-    val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.stillingId)) ?: return@transaction false
-    kafkaProducer.sendBestilling(minsideVarsel, stilling)
+    
+    // TODO: Burde vi hente ut dette også for rekrutteringstreff? Krever kall mot rekrutteringstreff, eller at vi lagrer tittel og eventuelt arbeidsgivere i databasen.
+    val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.stillingId))
+    val tittel = stilling?.title
+    val arbeidsgiver = stilling?.businessName
+    
+    kafkaProducer.sendBestilling(minsideVarsel, tittel, arbeidsgiver)
     val oppdatertVarsel = minsideVarsel.markerBestilt()
     oppdatertVarsel.save(tx)
     return@transaction true

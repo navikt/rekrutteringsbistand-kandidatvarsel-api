@@ -13,7 +13,7 @@ object VarselService {
         varselId: String,
         fnrList: List<String>,
         mal: Mal,
-        avsenderNavident: String = "SYSTEM"
+        avsenderNavident: String,
     ) {
         log.info("Oppretter ${fnrList.size} varsler for varselId=$varselId med mal=${mal.name}")
         

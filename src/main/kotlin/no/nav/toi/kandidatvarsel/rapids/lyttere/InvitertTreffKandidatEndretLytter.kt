@@ -26,8 +26,7 @@ class InvitertTreffKandidatEndretLytter(
                 it.requireValue("@event_name", "invitert.kandidat.endret")
             }
             validate {
-                it.requireKey("varselId", "fnr")
-                it.interestedIn("avsenderNavident")
+                it.requireKey("varselId", "fnr", "avsenderNavident")
             }
         }.register(this)
     }
@@ -39,30 +38,24 @@ class InvitertTreffKandidatEndretLytter(
         meterRegistry: MeterRegistry
     ) {
         val varselId = packet["varselId"].asText()
-        val fnrNode = packet["fnr"]
-        val avsenderNavident = packet["avsenderNavident"].takeIf { !it.isMissingNode }?.asText() ?: "SYSTEM"
-        
-        val fnrList = if (fnrNode.isArray) {
-            fnrNode.map { it.asText() }
-        } else {
-            listOf(fnrNode.asText())
-        }
+        val fnr = packet["fnr"].asText()
+        val avsenderNavident = packet["avsenderNavident"].asText()
 
-        log.info("Mottok invitert.kandidat.endret-hendelse for varselId=$varselId med ${fnrList.size} kandidater")
-        secureLog.info("Mottok invitert.kandidat.endret-hendelse for varselId=$varselId, fnr=$fnrList, avsenderNavident=$avsenderNavident")
+        log.info("Mottok invitert.kandidat.endret-hendelse for varselId=$varselId")
+        secureLog.info("Mottok invitert.kandidat.endret-hendelse for varselId=$varselId, fnr=$fnr, avsenderNavident=$avsenderNavident")
 
         try {
             VarselService.opprettVarsler(
                 dataSource = dataSource,
                 varselId = varselId,
-                fnrList = fnrList,
+                fnrList = listOf(fnr),
                 mal = Mal.Companion.InvitertTreffKandidatEndret,
                 avsenderNavident = avsenderNavident
             )
             log.info("Behandlet invitert.kandidat.endret-hendelse for varselId=$varselId")
         } catch (e: Exception) {
             log.error("Feil ved behandling av invitert.kandidat.endret-hendelse for varselId=$varselId", e)
-            secureLog.error("Feil ved behandling av invitert.kandidat.endret-hendelse for varselId=$varselId, fnr=$fnrList", e)
+            secureLog.error("Feil ved behandling av invitert.kandidat.endret-hendelse for varselId=$varselId, fnr=$fnr", e)
             throw e
         }
     }

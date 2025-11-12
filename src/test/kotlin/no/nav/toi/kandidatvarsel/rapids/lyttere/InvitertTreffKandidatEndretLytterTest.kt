@@ -51,14 +51,13 @@ class InvitertTreffKandidatEndretLytterTest {
     @Test
     fun `skal opprette varsel når invitert kandidat endret melding mottas`() {
         val varselId = "12345678-1234-1234-1234-123456789012"
-        val fnr1 = "12345678901"
-        val fnr2 = "12345678902"
+        val fnr = "12345678901"
 
         testRapid.sendTestMessage("""
             {
                 "@event_name": "invitert.kandidat.endret",
                 "varselId": "$varselId",
-                "fnr": ["$fnr1", "$fnr2"],
+                "fnr": "$fnr",
                 "avsenderNavident": "Z123456"
             }
         """.trimIndent())
@@ -67,55 +66,67 @@ class InvitertTreffKandidatEndretLytterTest {
             MinsideVarsel.hentVarslerForStilling(tx, varselId)
         }
 
-        assertEquals(2, varsler.size)
-        
-        varsler.forEach { varsel ->
-            assertEquals(Mal.Companion.InvitertTreffKandidatEndret.name, varsel.mal.name)
-            assertEquals(varselId, varsel.stillingId)
-            assertEquals("Z123456", varsel.avsenderNavIdent)
-            assertTrue(listOf(fnr1, fnr2).contains(varsel.mottakerFnr))
-        }
-    }
-
-    @Test
-    fun `skal bruke SYSTEM som default avsender når avsenderNavident mangler`() {
-        val varselId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
-
-        testRapid.sendTestMessage("""
-            {
-                "@event_name": "invitert.kandidat.endret",
-                "varselId": "$varselId",
-                "fnr": ["$fnr"]
-            }
-        """.trimIndent())
-
-        val varsler = dataSource.transaction { tx ->
-            MinsideVarsel.hentVarslerForStilling(tx, varselId)
-        }
-
         assertEquals(1, varsler.size)
-        assertEquals("SYSTEM", varsler[0].avsenderNavIdent)
-    }
-
-    @Test
-    fun `skal håndtere enkelt fnr som ikke er array`() {
-        val varselId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
-
-        testRapid.sendTestMessage("""
-            {
-                "@event_name": "invitert.kandidat.endret",
-                "varselId": "$varselId",
-                "fnr": "$fnr"
-            }
-        """.trimIndent())
-
-        val varsler = dataSource.transaction { tx ->
-            MinsideVarsel.hentVarslerForStilling(tx, varselId)
-        }
-
-        assertEquals(1, varsler.size)
+        assertEquals(Mal.Companion.InvitertTreffKandidatEndret.name, varsler[0].mal.name)
+        assertEquals(varselId, varsler[0].stillingId)
+        assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
+    }
+    
+    @Test
+    fun `skal ikke opprette varsel når varselId mangler`() {
+        val varselId = "12345678-1234-1234-1234-123456789012"
+        
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "invitert.kandidat.endret",
+                "fnr": "12345678901",
+                "avsenderNavident": "Z123456"
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForStilling(tx, varselId)
+        }
+        
+        assertEquals(0, varsler.size)
+    }
+    
+    @Test
+    fun `skal ikke opprette varsel når fnr mangler`() {
+        val varselId = "12345678-1234-1234-1234-123456789012"
+        
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "invitert.kandidat.endret",
+                "varselId": "$varselId",
+                "avsenderNavident": "Z123456"
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForStilling(tx, varselId)
+        }
+        
+        assertEquals(0, varsler.size)
+    }
+    
+    @Test
+    fun `skal ikke opprette varsel når avsenderNavident mangler`() {
+        val varselId = "12345678-1234-1234-1234-123456789012"
+        
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "invitert.kandidat.endret",
+                "varselId": "$varselId",
+                "fnr": "12345678901"
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForStilling(tx, varselId)
+        }
+        
+        assertEquals(0, varsler.size)
     }
 }

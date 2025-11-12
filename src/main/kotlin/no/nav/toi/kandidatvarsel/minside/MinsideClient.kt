@@ -22,14 +22,14 @@ import kotlin.time.toJavaDuration
 const val BESTILLING_TOPIC = "min-side.aapen-brukervarsel-v1"
 const val OPPDATERING_TOPIC = "min-side.aapen-varsel-hendelse-v1"
 
-fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, stilling: Stilling) {
+fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, tittel: String?, arbeidsgiver: String?) {
     val varselJson = VarselActionBuilder.opprett {
         type = Varseltype.Beskjed
         varselId = minsideVarsel.varselId
         ident = minsideVarsel.mottakerFnr
         tekster += Tekst(
             default = true,
-            tekst = minsideVarsel.mal.minsideTekst(stilling),
+            tekst = minsideVarsel.mal.minsideTekst(tittel, arbeidsgiver),
             spraakkode = "nb",
         )
         link = "https://www.nav.no/arbeid/stilling/${minsideVarsel.stillingId}"
