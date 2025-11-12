@@ -15,6 +15,8 @@ sealed interface Mal {
             VurdertSomAktuell.name -> VurdertSomAktuell
             PassendeStilling.name -> PassendeStilling
             PassendeJobbarrangement.name -> PassendeJobbarrangement
+            KandidatInvitertTreff.name -> KandidatInvitertTreff
+            InvitertTreffKandidatEndret.name -> InvitertTreffKandidatEndret
             else -> throw IllegalArgumentException("Ukjent Mal: $name")
         }
 
@@ -57,6 +59,34 @@ sealed interface Mal {
             override fun epostHtmlBody() =
                 epostHtmlBodyTemplate("""
                     Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på Nav for å se arrangementet.
+                """.trimIndent())
+        }
+
+        data object KandidatInvitertTreff: Mal {
+            override val name = "KANDIDAT_INVITERT_TREFF"
+            override fun minsideTekst(stilling: Stilling) =
+                "Du er invitert til et treff med arbeidsgivere for stillingen «${stilling.title}» hos «${stilling.businessName}». Du kan melde deg på inne på minside hos Nav."
+            override fun smsTekst() =
+                "Hei! Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav"
+            override fun epostTittel() =
+                "Du er invitert til et treff"
+            override fun epostHtmlBody() =
+                epostHtmlBodyTemplate("""
+                    Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på.
+                """.trimIndent())
+        }
+
+        data object InvitertTreffKandidatEndret: Mal {
+            override val name = "INVITERT_TREFF_KANDIDAT_ENDRET"
+            override fun minsideTekst(stilling: Stilling) =
+                "Det har skjedd endringer knyttet til treffet med arbeidsgivere «${stilling.title}» som du er invitert til. Se mer her."
+            override fun smsTekst() =
+                "Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
+            override fun epostTittel() =
+                "Endringer på treff du er invitert til"
+            override fun epostHtmlBody() =
+                epostHtmlBodyTemplate("""
+                    Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon.
                 """.trimIndent())
         }
 

@@ -18,6 +18,7 @@ fun startJavalin(
     dataSource: HikariDataSource,
     migrateResult: AtomicReference<MigrateResult>,
     kandidatsokApiKlient: KandidatsokApiKlient,
+    rapidIsAlive: (() -> Boolean)? = null,
     port: Int = 8080,
 ): Javalin = Javalin
     .create {
@@ -37,7 +38,7 @@ fun startJavalin(
     }
     .apply {
         azureAdAuthentication(azureAdConfig)
-        handleHealth(dataSource, migrateResult)
+        handleHealth(dataSource, migrateResult, rapidIsAlive)
         handleVarsler(dataSource, kandidatsokApiKlient)
         handleMeldingsmal()
 

@@ -13,7 +13,12 @@ import org.apache.kafka.common.serialization.StringSerializer
 
 class FakeMinside {
     val consumer = MockConsumer<String, String>(OffsetResetStrategy.EARLIEST)
-    val producer = MockProducer<String, String>()
+    val producer = MockProducer<String, String>(
+        true,  // autoComplete = true
+        null,
+        StringSerializer(),
+        StringSerializer()
+    )
     private val objectMapper = jacksonObjectMapper()
     private var producerHistoryOffset = 0
     private var consumerOffset = 0L

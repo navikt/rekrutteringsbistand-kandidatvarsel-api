@@ -2,8 +2,11 @@ package no.nav.toi.kandidatvarsel
 
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
+import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
+import no.nav.toi.kandidatvarsel.rapids.lyttere.InvitertTreffKandidatEndretLytter
+import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertLytter
 import org.flywaydb.core.api.output.MigrateResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -11,18 +14,46 @@ import java.lang.System.getenv
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
+import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.Main")!!
 
 fun main() {
-    val dataSource = DatabaseConfig.nais().createDataSource()
+    log.info("Starter applikasjon")
+    
+    try {
+        lateinit var rapidIsAlive: () -> Boolean
+        val rapidsConnection = RapidApplication.create(
+            System.getenv(),
+            builder = { withHttpPort(9000) },
+            configure = { _, kafkaRapid ->
+                rapidIsAlive = kafkaRapid::isRunning
+            }
+        )
+        
+        val dataSource = DatabaseConfig.nais().createDataSource()
+        
+        startApp(
+            rapidsConnection = rapidsConnection,
+            dataSource = dataSource,
+            rapidIsAlive = rapidIsAlive
+        )
+    } catch (e: Exception) {
+        secureLog.error("Uhåndtert exception, stanser applikasjonen", e)
+        log.error("Uhåndtert exception, stanser applikasjonen (se securelog)")
+        exitProcess(1)
+    }
+}
 
+fun startApp(
+    rapidsConnection: com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection,
+    dataSource: com.zaxxer.hikari.HikariDataSource,
+    rapidIsAlive: () -> Boolean
+) {
     /* Status på migrering, så ready-endepunktet kan fortelle om vi er klare for å motta api-kall. */
     val migrateResult = AtomicReference<MigrateResult>()
-
-
 
     while (!dataSource.isReady())  {
         log.info("Database not ready. Sleeping")
@@ -52,8 +83,6 @@ fun main() {
         issuernavn = getenvOrThrow("AZURE_OPENID_CONFIG_ISSUER")
     )
 
-
-
     val stillingClient = StillingClientImpl(azureTokenClient)
     val kandidatsokApiKlient = KandidatsokApiKlient(onBehalfOfTokenClient, getenvOrThrow("KANDIDATSOK_API_URL"))
 
@@ -71,11 +100,27 @@ fun main() {
         azureAdConfig = AzureAdConfig.nais(),
         dataSource = dataSource,
         migrateResult = migrateResult,
-        kandidatsokApiKlient = kandidatsokApiKlient
+        kandidatsokApiKlient = kandidatsokApiKlient,
+        rapidIsAlive = rapidIsAlive
     )
 
+    // Registrer lyttere for Kafka-hendelser
+    try {
+        KandidatInvitertLytter(rapidsConnection, dataSource)
+        InvitertTreffKandidatEndretLytter(rapidsConnection, dataSource)
+        
+        rapidsConnection.start()
+        log.info("RapidApplication startet")
+    } catch (e: Exception) {
+        log.error("Feil ved oppstart av RapidApplication (se securelog)")
+        secureLog.error("Feil ved oppstart av RapidApplication", e)
+        throw e
+    }
+
     Runtime.getRuntime().addShutdownHook(Thread {
+        log.info("Shutdownhook kjører")
         shutdown.set(true)
+        rapidsConnection.stop()
         minsideBestillingThread.join()
         minsideBestillingProducer.close()
         minsideOppdateringThread.join()

@@ -49,6 +49,8 @@ enum class MalDto(val mal: Mal) {
     VURDERT_SOM_AKTUELL(Mal.Companion.VurdertSomAktuell),
     PASSENDE_STILLING(Mal.Companion.PassendeStilling),
     PASSENDE_JOBBARRANGEMENT(Mal.Companion.PassendeJobbarrangement),
+    KANDIDAT_INVITERT_TREFF(Mal.Companion.KandidatInvitertTreff),
+    INVITERT_TREFF_KANDIDAT_ENDRET(Mal.Companion.InvitertTreffKandidatEndret),
 }
 
 data class QueryRequestDto(
