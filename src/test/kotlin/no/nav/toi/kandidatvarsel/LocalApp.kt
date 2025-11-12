@@ -4,12 +4,8 @@ import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.core.Request
-import com.github.kittinunf.fuel.jackson.objectBody
-import com.github.kittinunf.fuel.jackson.responseObject
-import com.github.kittinunf.result.getOrNull
-import com.github.kittinunf.result.onError
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
@@ -21,6 +17,10 @@ import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.testcontainers.containers.PostgreSQLContainer
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
@@ -95,6 +95,8 @@ class LocalApp() {
     }
 
     private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, mockKafkaRapid, port = 0)
+    private val httpClient = HttpClient.newBuilder().build()
+    private val objectMapper = jacksonObjectMapper()
 
     fun prepare() {
         flyway.clean()
@@ -109,10 +111,6 @@ class LocalApp() {
     }
 
     fun javalinPort() = javalin.port()
-
-    fun post(path: String) = Fuel.post("http://localhost:${javalin.port()}$path")
-
-    fun get(path: String) = Fuel.get("http://localhost:${javalin.port()}$path")
 
     private fun issueToken(
         issuerId: String,
@@ -144,31 +142,36 @@ class LocalApp() {
         mal: String,
         token: SignedJWT,
     ) {
-        val (request, response, bodyOrError) = post("/api/varsler/stilling/$stillingId")
-            .token(token)
-            .objectBody(
-                mapOf(
-                    "fnr" to fnr,
-                    "mal" to mal
-                )
+        val body = objectMapper.writeValueAsString(
+            mapOf(
+                "fnr" to fnr,
+                "mal" to mal
             )
-            .response()
-        bodyOrError.onError {
-            throw RuntimeException("Request ${request.method} ${request.url} failed", it.exception)
-        }
-        assertEquals(201, response.statusCode)
+        )
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:${javalin.port()}/api/varsler/stilling/$stillingId"))
+            .header("Authorization", "Bearer ${token.serialize()}")
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .build()
+        
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(201, response.statusCode())
     }
 
     fun getVarselStilling(
         stillingId: String,
         token: SignedJWT,
     ): Map<String, JsonNode> {
-        val (_, response, body) = get("/api/varsler/stilling/$stillingId")
-            .token(token)
-            .responseObject<JsonNode>()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:${javalin.port()}/api/varsler/stilling/$stillingId"))
+            .header("Authorization", "Bearer ${token.serialize()}")
+            .GET()
+            .build()
 
-        assertEquals(200, response.statusCode)
-        val arrayNode = body.getOrNull() as ArrayNode
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, response.statusCode())
+        val arrayNode = objectMapper.readValue<ArrayNode>(response.body())
         return arrayNode.toList().associateBy { it["mottakerFnr"].asText() }
     }
 
@@ -176,38 +179,95 @@ class LocalApp() {
         rekrutteringstreffId: String,
         token: SignedJWT,
     ): Map<String, JsonNode> {
-        val (_, response, body) = get("/api/varsler/rekrutteringstreff/$rekrutteringstreffId")
-            .token(token)
-            .responseObject<JsonNode>()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:${javalin.port()}/api/varsler/rekrutteringstreff/$rekrutteringstreffId"))
+            .header("Authorization", "Bearer ${token.serialize()}")
+            .GET()
+            .build()
 
-        assertEquals(200, response.statusCode)
-        val arrayNode = body.getOrNull() as ArrayNode
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, response.statusCode())
+        val arrayNode = objectMapper.readValue<ArrayNode>(response.body())
         return arrayNode.toList().associateBy { it["mottakerFnr"].asText() }
     }
 
     fun getVarselFnr(fnr: String, token: SignedJWT): Map<String, JsonNode> {
-        val (_, response, body) = post("/api/varsler/query")
-            .token(token)
-            .body("""{"fnr":"$fnr"}""")
-            .responseObject<JsonNode>()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:${javalin.port()}/api/varsler/query"))
+            .header("Authorization", "Bearer ${token.serialize()}")
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString("""{"fnr":"$fnr"}"""))
+            .build()
 
-        assertEquals(200, response.statusCode)
-        val arrayNode = body.getOrNull() as ArrayNode
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, response.statusCode())
+        val arrayNode = objectMapper.readValue<ArrayNode>(response.body())
         return arrayNode.toList().associateBy { it["stillingId"].asText() }
     }
 
     fun getMeldingsmal(token: SignedJWT): Meldingsmal {
-        val (_, response, body) = get("/api/meldingsmal")
-            .token(token)
-            .responseObject<Meldingsmal>()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:${javalin.port()}/api/meldingsmal"))
+            .header("Authorization", "Bearer ${token.serialize()}")
+            .GET()
+            .build()
 
-        assertEquals(200, response.statusCode)
-        return body.getOrNull() as Meldingsmal
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, response.statusCode())
+        return objectMapper.readValue<Meldingsmal>(response.body())
     }
+
+    // Helper methods for tests that need more control over HTTP calls
+    fun post(path: String) = HttpRequestBuilder(
+        method = "POST",
+        uri = URI.create("http://localhost:${javalin.port()}$path"),
+        httpClient = httpClient
+    )
+
+    fun get(path: String) = HttpRequestBuilder(
+        method = "GET",
+        uri = URI.create("http://localhost:${javalin.port()}$path"),
+        httpClient = httpClient
+    )
 }
 
-fun Request.token(token: SignedJWT): Request =
-    header("Authorization", "Bearer ${token.serialize()}")
+class HttpRequestBuilder(
+    private val method: String,
+    private val uri: URI,
+    private val httpClient: HttpClient
+) {
+    private var authToken: String? = null
+    private var bodyContent: String? = null
+
+    fun token(token: SignedJWT): HttpRequestBuilder {
+        authToken = "Bearer ${token.serialize()}"
+        return this
+    }
+
+    fun body(body: String): HttpRequestBuilder {
+        bodyContent = body
+        return this
+    }
+
+    fun response(): Triple<HttpRequest, HttpResponse<String>, Unit> {
+        val requestBuilder = HttpRequest.newBuilder()
+            .uri(uri)
+        
+        authToken?.let { requestBuilder.header("Authorization", it) }
+        
+        when (method) {
+            "POST" -> {
+                requestBuilder.header("Content-Type", "application/json")
+                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(bodyContent ?: ""))
+            }
+            "GET" -> requestBuilder.GET()
+        }
+        
+        val request = requestBuilder.build()
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        return Triple(request, response, Unit)
+    }
+}
 
 fun WireMockRuntimeInfo.brukertilgangOk() {
     wireMock.register(

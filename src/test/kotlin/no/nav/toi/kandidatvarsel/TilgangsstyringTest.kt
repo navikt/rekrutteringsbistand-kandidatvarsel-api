@@ -101,21 +101,21 @@ class TilgangsstyringTest {
             .body("""{"fnr": ["1"],"mal": "VURDERT_SOM_AKTUELL"}""")
             .response()
             .also { (_, response, _) ->
-                assertEquals(if (tilgangOpprettVarsel) 201 else 403, response.statusCode)
+                assertEquals(if (tilgangOpprettVarsel) 201 else 403, response.statusCode())
             }
 
         app.get("/api/varsler/stilling/1")
             .token(token)
             .response()
             .also { (_, response, _) ->
-                assertEquals(if (tilgangListVarslerPåStilling) 200 else 403, response.statusCode)
+                assertEquals(if (tilgangListVarslerPåStilling) 200 else 403, response.statusCode())
             }
 
         app.get("/api/varsler/rekrutteringstreff/1")
             .token(token)
             .response()
             .also { (_, response, _) ->
-                assertEquals(if (tilgangListVarslerPåStilling) 200 else 403, response.statusCode)
+                assertEquals(if (tilgangListVarslerPåStilling) 200 else 403, response.statusCode())
             }
 
         app.post("/api/varsler/query")
@@ -123,7 +123,7 @@ class TilgangsstyringTest {
             .body("""{"fnr": "1"}""")
             .response()
             .also { (_, response, _) ->
-                assertEquals(if (tilgangListVarslerPåFnr) 200 else 403, response.statusCode)
+                assertEquals(if (tilgangListVarslerPåFnr) 200 else 403, response.statusCode())
             }
     }
 
