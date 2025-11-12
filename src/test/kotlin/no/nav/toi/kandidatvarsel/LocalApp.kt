@@ -204,7 +204,7 @@ class LocalApp() {
         val arrayNode = objectMapper.readValue<ArrayNode>(response.body())
         return arrayNode.toList().associateBy { it["stillingId"].asText() }
     }
-
+    // TODO: Kan fjernes når vi hhar tatt i bruk stillingsmeldingsmal
     fun getMeldingsmal(token: SignedJWT): Meldingsmal {
         val request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:${javalin.port()}/api/meldingsmal"))
@@ -215,6 +215,30 @@ class LocalApp() {
         val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
         assertEquals(200, response.statusCode())
         return objectMapper.readValue<Meldingsmal>(response.body())
+    }
+
+    fun getStillingMeldingsmal(token: SignedJWT): StillingMeldingsmal {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:${javalin.port()}/api/meldingsmal/stilling"))
+            .header("Authorization", "Bearer ${token.serialize()}")
+            .GET()
+            .build()
+
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, response.statusCode())
+        return objectMapper.readValue<StillingMeldingsmal>(response.body())
+    }
+
+    fun getRekrutteringstreffMeldingsmal(token: SignedJWT): RekrutteringstreffMeldingsmal {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:${javalin.port()}/api/meldingsmal/rekrutteringstreff"))
+            .header("Authorization", "Bearer ${token.serialize()}")
+            .GET()
+            .build()
+
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, response.statusCode())
+        return objectMapper.readValue<RekrutteringstreffMeldingsmal>(response.body())
     }
 
     // Helper methods for tests that need more control over HTTP calls
