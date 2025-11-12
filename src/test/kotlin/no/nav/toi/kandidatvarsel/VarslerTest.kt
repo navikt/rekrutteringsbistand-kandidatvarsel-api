@@ -342,4 +342,44 @@ class VarslerTest {
             )
         }
     }
+
+    @Test
+    fun `stilling endpoint filtrerer kun stilling-maler`() {
+        val stillingId = "99999999-9999-9999-9999-999999999999"
+        val rekrutteringstreffId = "88888888-8888-8888-8888-888888888888"
+
+        // Opprett varsler direkte i databasen
+        app.dataSource.transaction { tx ->
+            // Stilling-mal
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.VurdertSomAktuell,
+                avsenderReferanseId = stillingId,
+                mottakerFnr = fnr1,
+                avsenderNavident = "Z1"
+            ).insert(tx)
+
+            // Rekrutteringstreff-mal med samme id (for å teste filtrering)
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.KandidatInvitertTreff,
+                avsenderReferanseId = stillingId,
+                mottakerFnr = fnr2,
+                avsenderNavident = "Z1"
+            ).insert(tx)
+
+            // Rekrutteringstreff-mal med annen id
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.InvitertTreffKandidatEndret,
+                avsenderReferanseId = rekrutteringstreffId,
+                mottakerFnr = fnr3,
+                avsenderNavident = "Z1"
+            ).insert(tx)
+        }
+
+        // Hent varsler for stillingId - skal kun returnere stilling-maler
+        app.getVarselStilling(stillingId, veileder1).also { varsler ->
+            assertEquals(1, varsler.size)
+            assertEquals(fnr1, varsler[fnr1]!!["mottakerFnr"].asText())
+            assertEquals(stillingId, varsler[fnr1]!!["stillingId"].asText())
+        }
+    }
 }

@@ -191,11 +191,31 @@ data class MinsideVarsel(
                 .optional()
                 .getOrNull()
 
-        fun hentVarslerForStilling(jdbcClient: JdbcClient, stillingId: String): List<MinsideVarsel> =
-            jdbcClient.sql(""" select * from minside_varsel where stilling_id = :stilling_id""")
+        fun hentVarslerForStilling(jdbcClient: JdbcClient, stillingId: String): List<MinsideVarsel> {
+            val stillingMaler = Mal.malerForVarselType(VarselType.STILLING)
+            return jdbcClient.sql("""
+                select * from minside_varsel 
+                where stilling_id = :stilling_id 
+                and mal = any(:maler)
+            """.trimIndent())
                 .param("stilling_id", stillingId)
+                .param("maler", stillingMaler.toTypedArray())
                 .query(RowMapper)
                 .list()
+        }
+
+        fun hentVarslerForRekrutteringstreff(jdbcClient: JdbcClient, rekrutteringstreffId: String): List<MinsideVarsel> {
+            val rekrutteringstreffMaler = Mal.malerForVarselType(VarselType.REKRUTTERINGSTREFF)
+            return jdbcClient.sql("""
+                select * from minside_varsel 
+                where stilling_id = :avsender_referanse_id 
+                and mal = any(:maler)
+            """.trimIndent())
+                .param("avsender_referanse_id", rekrutteringstreffId)
+                .param("maler", rekrutteringstreffMaler.toTypedArray())
+                .query(RowMapper)
+                .list()
+        }
 
         fun hentVarslerForQuery(jdbcClient: JdbcClient, queryRequestDto: QueryRequestDto): List<MinsideVarsel> =
             jdbcClient.sql(""" select * from minside_varsel where mottaker_fnr = :mottaker_fnr """)

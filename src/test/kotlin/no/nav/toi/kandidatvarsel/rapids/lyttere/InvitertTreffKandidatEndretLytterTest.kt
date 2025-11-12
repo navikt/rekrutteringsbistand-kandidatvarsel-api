@@ -63,7 +63,7 @@ class InvitertTreffKandidatEndretLytterTest {
         """.trimIndent())
 
         val varsler = dataSource.transaction { tx ->
-            MinsideVarsel.hentVarslerForStilling(tx, varselId)
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, varselId)
         }
 
         assertEquals(1, varsler.size)
@@ -86,7 +86,7 @@ class InvitertTreffKandidatEndretLytterTest {
         """.trimIndent())
 
         val varsler = dataSource.transaction { tx ->
-            MinsideVarsel.hentVarslerForStilling(tx, varselId)
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, varselId)
         }
         
         assertEquals(0, varsler.size)
@@ -105,7 +105,7 @@ class InvitertTreffKandidatEndretLytterTest {
         """.trimIndent())
 
         val varsler = dataSource.transaction { tx ->
-            MinsideVarsel.hentVarslerForStilling(tx, varselId)
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, varselId)
         }
         
         assertEquals(0, varsler.size)
@@ -124,7 +124,7 @@ class InvitertTreffKandidatEndretLytterTest {
         """.trimIndent())
 
         val varsler = dataSource.transaction { tx ->
-            MinsideVarsel.hentVarslerForStilling(tx, varselId)
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, varselId)
         }
         
         assertEquals(0, varsler.size)

@@ -39,6 +39,18 @@ sealed interface Mal {
             else -> throw IllegalArgumentException("Ukjent Mal: $name")
         }
 
+        fun malerForVarselType(varselType: VarselType): List<String> = when (varselType) {
+            VarselType.STILLING -> listOf(
+                VurdertSomAktuell.name,
+                PassendeStilling.name,
+                PassendeJobbarrangement.name
+            )
+            VarselType.REKRUTTERINGSTREFF -> listOf(
+                KandidatInvitertTreff.name,
+                InvitertTreffKandidatEndret.name
+            )
+        }
+
         data object VurdertSomAktuell: Mal {
             override val name = "VURDERT_SOM_AKTUELL"
             override val varselType = VarselType.STILLING

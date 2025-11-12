@@ -108,6 +108,8 @@ class LocalApp() {
         authServer.shutdown()
     }
 
+    fun javalinPort() = javalin.port()
+
     fun post(path: String) = Fuel.post("http://localhost:${javalin.port()}$path")
 
     fun get(path: String) = Fuel.get("http://localhost:${javalin.port()}$path")
@@ -162,6 +164,19 @@ class LocalApp() {
         token: SignedJWT,
     ): Map<String, JsonNode> {
         val (_, response, body) = get("/api/varsler/stilling/$stillingId")
+            .token(token)
+            .responseObject<JsonNode>()
+
+        assertEquals(200, response.statusCode)
+        val arrayNode = body.getOrNull() as ArrayNode
+        return arrayNode.toList().associateBy { it["mottakerFnr"].asText() }
+    }
+
+    fun getVarselRekrutteringstreff(
+        rekrutteringstreffId: String,
+        token: SignedJWT,
+    ): Map<String, JsonNode> {
+        val (_, response, body) = get("/api/varsler/rekrutteringstreff/$rekrutteringstreffId")
             .token(token)
             .responseObject<JsonNode>()
 
