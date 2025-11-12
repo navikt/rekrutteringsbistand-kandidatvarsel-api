@@ -1,14 +1,33 @@
 package no.nav.toi.kandidatvarsel.minside
 
-import no.nav.toi.kandidatvarsel.Stilling
 import org.intellij.lang.annotations.Language
+
+enum class VarselType {
+    STILLING,
+    REKRUTTERINGSTREFF
+}
 
 sealed interface Mal {
     val name: String
+    val varselType: VarselType
+    
     fun minsideTekst(tittel: String?, arbeidsgiver: String?): String
     fun smsTekst(): String
     fun epostTittel(): String
     fun epostHtmlBody(): String
+    
+    fun lenkeurl(avsenderReferanseId: String, isProd: Boolean): String {
+        return when (varselType) {
+            VarselType.STILLING -> "https://www.nav.no/arbeid/stilling/$avsenderReferanseId"
+            VarselType.REKRUTTERINGSTREFF -> {
+                val domain = if (isProd) 
+                    "rekrutteringstreff-minside-api.nav.no" 
+                else 
+                    "rekrutteringstreff-minside-api.ekstern.dev.nav.no"
+                "https://$domain/api/rekrutteringstreff/$avsenderReferanseId"
+            }
+        }
+    }
 
     companion object {
         fun valueOf(name: String) = when (name) {
@@ -22,6 +41,8 @@ sealed interface Mal {
 
         data object VurdertSomAktuell: Mal {
             override val name = "VURDERT_SOM_AKTUELL"
+            override val varselType = VarselType.STILLING
+            
             override fun minsideTekst(tittel: String?, arbeidsgiver: String?) =
                 "Vi har vurdert at kompetansen din kan passe til stillingen «${tittel}» hos «${arbeidsgiver}». Se stillingen her."
             override fun smsTekst() =
@@ -36,6 +57,8 @@ sealed interface Mal {
 
         data object PassendeStilling: Mal {
             override val name = "PASSENDE_STILLING"
+            override val varselType = VarselType.STILLING
+            
             override fun minsideTekst(tittel: String?, arbeidsgiver: String?) =
                 "Vi har funnet stillingen «${tittel}» hos «${arbeidsgiver}» som kan passe deg. Interessert? Søk via lenka i annonsen."
             override fun smsTekst() =
@@ -50,6 +73,8 @@ sealed interface Mal {
 
         data object PassendeJobbarrangement: Mal {
             override val name = "PASSENDE_JOBBARRANGEMENT"
+            override val varselType = VarselType.STILLING
+            
             override fun minsideTekst(tittel: String?, arbeidsgiver: String?) =
                 "Vi har et jobbarrangement som kanskje passer for deg"
             override fun smsTekst() =
@@ -64,6 +89,8 @@ sealed interface Mal {
 
         data object KandidatInvitertTreff: Mal {
             override val name = "KANDIDAT_INVITERT_TREFF"
+            override val varselType = VarselType.REKRUTTERINGSTREFF
+            
             override fun minsideTekst(tittel: String?, arbeidsgiver: String?) =
                 "Du er invitert til et treff med arbeidsgivere. Du kan melde deg på inne på minside hos Nav."
             override fun smsTekst() =
@@ -78,6 +105,8 @@ sealed interface Mal {
 
         data object InvitertTreffKandidatEndret: Mal {
             override val name = "INVITERT_TREFF_KANDIDAT_ENDRET"
+            override val varselType = VarselType.REKRUTTERINGSTREFF
+            
             override fun minsideTekst(tittel: String?, arbeidsgiver: String?) =
                 if (tittel != null) "Det har skjedd endringer knyttet til treffet med arbeidsgivere: «${tittel}». Se mer her."
                 else "Det har skjedd endringer knyttet til et treff med arbeidsgivere som du er invitert til. Se mer her."

@@ -28,7 +28,7 @@ data class MinsideVarsel(
     private val dbid: Long?,
     val mal: Mal,
     val varselId: String,
-    val stillingId: String,
+    val avsenderReferanseId: String,
     val opprettet: LocalDateTime,
     val mottakerFnr: String,
     val avsenderNavIdent: String,
@@ -55,7 +55,7 @@ data class MinsideVarsel(
          * Prefixer med "A" for å starte et nytt "namespace". */
         id = "A$dbid",
         opprettet = opprettet,
-        stillingId = stillingId,
+        stillingId = avsenderReferanseId,
         mottakerFnr = mottakerFnr,
         avsenderNavident = avsenderNavIdent,
         minsideStatus = when (minsideStatus) {
@@ -135,7 +135,9 @@ data class MinsideVarsel(
             .param("avsender_navident", avsenderNavIdent)
             .param("varsel_id", varselId)
             .param("mal", mal.name)
-            .param("stilling_id", stillingId)
+
+            // TODO: Bytte feltnavn i databasen til avsender_referanseid, avventer databaseendring for å ikke forkludre tilbakerullingsmuligheter
+            .param("stilling_id", avsenderReferanseId)
             .param("bestilt", bestilt)
             .param("minside_status", minsideStatus?.name)
             .param("ekstern_status", eksternStatus?.name)
@@ -149,14 +151,14 @@ data class MinsideVarsel(
 
         fun create(
             mal: Mal,
-            stillingId: String,
+            avsenderReferanseId: String,
             mottakerFnr: String,
             avsenderNavident: String,
         ) = MinsideVarsel(
             dbid = null,
             mal = mal,
             varselId = uuidGenerator.generate().toString(),
-            stillingId = stillingId,
+            avsenderReferanseId = avsenderReferanseId,
             opprettet = LocalDateTime.now(ZoneId.of("Europe/Oslo")),
             mottakerFnr = mottakerFnr,
             avsenderNavIdent = avsenderNavident,
@@ -209,7 +211,7 @@ data class MinsideVarsel(
                 avsenderNavIdent = rs.getString("avsender_navident"),
                 varselId = rs.getString("varsel_id"),
                 mal = Mal.valueOf(rs.getString("mal")),
-                stillingId = rs.getString("stilling_id"),
+                avsenderReferanseId = rs.getString("stilling_id"),
                 bestilt = rs.getBoolean("bestilt"),
                 minsideStatus = rs.getString("minside_status")?.let { MinsideStatus.valueOf(it) },
                 eksternStatus = rs.getString("ekstern_status")?.let { EksternStatus.valueOf(it) },

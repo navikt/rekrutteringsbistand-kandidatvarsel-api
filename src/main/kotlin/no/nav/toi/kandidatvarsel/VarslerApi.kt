@@ -101,7 +101,7 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
                 for (fnr in nyeVarslerRequestDto.fnr) {
                     MinsideVarsel.create(
                         mal = nyeVarslerRequestDto.mal.mal,
-                        stillingId = stillingId,
+                        avsenderReferanseId = stillingId,
                         mottakerFnr = fnr,
                         avsenderNavident = ctx.authenticatedUser().navident,
                     )

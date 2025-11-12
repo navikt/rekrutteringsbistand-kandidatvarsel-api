@@ -68,7 +68,7 @@ class KandidatInvitertLytterTest {
 
         assertEquals(1, varsler.size)
         assertEquals(Mal.Companion.KandidatInvitertTreff.name, varsler[0].mal.name)
-        assertEquals(varselId, varsler[0].stillingId)
+        assertEquals(varselId, varsler[0].avsenderReferanseId)
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
     }

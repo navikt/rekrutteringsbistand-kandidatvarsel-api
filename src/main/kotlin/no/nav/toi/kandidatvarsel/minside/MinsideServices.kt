@@ -18,7 +18,7 @@ fun bestillVarsel(
         return@transaction false
     
     // TODO: Burde vi hente ut dette også for rekrutteringstreff? Krever kall mot rekrutteringstreff, eller at vi lagrer tittel og eventuelt arbeidsgivere i databasen.
-    val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.stillingId))
+    val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.avsenderReferanseId))
     val tittel = stilling?.title
     val arbeidsgiver = stilling?.businessName
     

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
-import no.nav.toi.kandidatvarsel.Stilling
 import no.nav.toi.kandidatvarsel.log
 import no.nav.toi.kandidatvarsel.secureLog
 import org.apache.kafka.clients.consumer.Consumer
@@ -23,6 +22,9 @@ const val BESTILLING_TOPIC = "min-side.aapen-brukervarsel-v1"
 const val OPPDATERING_TOPIC = "min-side.aapen-varsel-hendelse-v1"
 
 fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, tittel: String?, arbeidsgiver: String?) {
+    val clusterName = System.getenv("NAIS_CLUSTER_NAME") ?: "local"
+    val isProd = clusterName == "prod-gcp"
+    
     val varselJson = VarselActionBuilder.opprett {
         type = Varseltype.Beskjed
         varselId = minsideVarsel.varselId
@@ -32,7 +34,7 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, tittel
             tekst = minsideVarsel.mal.minsideTekst(tittel, arbeidsgiver),
             spraakkode = "nb",
         )
-        link = "https://www.nav.no/arbeid/stilling/${minsideVarsel.stillingId}"
+        link = minsideVarsel.mal.lenkeurl(minsideVarsel.avsenderReferanseId, isProd)
         eksternVarsling = EksternVarslingBestilling(
             prefererteKanaler = listOf(EksternKanal.SMS),
             epostVarslingstittel = minsideVarsel.mal.epostTittel(),
@@ -43,7 +45,7 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, tittel
         sensitivitet = Sensitivitet.Substantial
         produsent = Produsent(
             appnavn = System.getenv("NAIS_APP_NAME") ?: "kandidatvarsel-api",
-            cluster = System.getenv("NAIS_CLUSTER_NAME") ?: "local",
+            cluster = clusterName,
             namespace = System.getenv("NAIS_NAMESPACE") ?: "toi",
         )
     }

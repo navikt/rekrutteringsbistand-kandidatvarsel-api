@@ -21,7 +21,7 @@ object VarselService {
             for (fnr in fnrList) {
                 MinsideVarsel.create(
                     mal = mal,
-                    stillingId = varselId,
+                    avsenderReferanseId = varselId,
                     mottakerFnr = fnr,
                     avsenderNavident = avsenderNavident,
                 ).insert(tx)
