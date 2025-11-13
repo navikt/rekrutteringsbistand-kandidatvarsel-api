@@ -17,10 +17,17 @@ fun bestillVarsel(
     val minsideVarsel = MinsideVarsel.finnOgLåsUsendtVarsel(tx) ?:
         return@transaction false
     
-    // TODO: Burde vi hente ut dette også for rekrutteringstreff? Krever kall mot rekrutteringstreff, eller at vi lagrer tittel og eventuelt arbeidsgivere i databasen.
-    val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.avsenderReferanseId))
-    val tittel = stilling?.title
-    val arbeidsgiver = stilling?.businessName
+    val (tittel, arbeidsgiver) = when (minsideVarsel.mal.varselType) {
+        VarselType.STILLING -> {
+            val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.avsenderReferanseId))
+                ?: throw IllegalStateException("Kunne ikke hente stilling med id ${minsideVarsel.avsenderReferanseId}")
+            Pair(stilling.title, stilling.businessName)
+        }
+        VarselType.REKRUTTERINGSTREFF -> {
+            // Rekrutteringstreff-varslene trenger ikke tittel og arbeidsgiver
+            Pair(null, null)
+        }
+    }
     
     kafkaProducer.sendBestilling(minsideVarsel, tittel, arbeidsgiver)
     val oppdatertVarsel = minsideVarsel.markerBestilt()

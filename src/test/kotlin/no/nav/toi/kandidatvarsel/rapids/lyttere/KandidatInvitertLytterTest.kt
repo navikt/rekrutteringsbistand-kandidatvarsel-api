@@ -80,7 +80,7 @@ class KandidatInvitertLytterTest {
         testRapid.sendTestMessage("""
             {
                 "@event_name": "kandidat.invitert",
-                "fnr": ["12345678901"],
+                "fnr": "12345678901",
                 "avsenderNavident": "Z123456"
             }
         """.trimIndent())
@@ -119,7 +119,7 @@ class KandidatInvitertLytterTest {
             {
                 "@event_name": "kandidat.invitert",
                 "varselId": "$varselId",
-                "fnr": ["12345678901"]
+                "fnr": "12345678901"
             }
         """.trimIndent())
 

@@ -136,7 +136,7 @@ data class MinsideVarsel(
             .param("varsel_id", varselId)
             .param("mal", mal.name)
 
-            // TODO: Bytte feltnavn i databasen til avsender_referanseid, avventer databaseendring for å ikke forkludre tilbakerullingsmuligheter
+            // TODO: Bytte feltnavn i databasen til avsender_referanse_id, avventer databaseendring for å ikke forkludre tilbakerullingsmuligheter
             .param("stilling_id", avsenderReferanseId)
             .param("bestilt", bestilt)
             .param("minside_status", minsideStatus?.name)

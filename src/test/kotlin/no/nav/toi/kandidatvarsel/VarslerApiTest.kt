@@ -584,6 +584,63 @@ class VarslerApiTest {
     }
 
     @Test
+    fun `bestillVarsel kaster IllegalStateException når stilling ikke finnes`() {
+        val stillingId = "99999999-9999-9999-9999-999999999999"
+        
+        // Opprett varsel med stilling-mal
+        app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.VurdertSomAktuell,
+                avsenderReferanseId = stillingId,
+                mottakerFnr = fnr1,
+                avsenderNavident = navident
+            ).insert(tx)
+        }
+
+        // Mock StillingClient som returnerer null
+        val stillingClientSomReturnererNull = object : StillingClient {
+            override fun getStilling(stillingId: UUID): Stilling? = null
+        }
+
+        // Verifiser at vi kaster IllegalStateException
+        val exception = org.junit.jupiter.api.assertThrows<IllegalStateException> {
+            bestillVarsel(app.dataSource, stillingClientSomReturnererNull, minside.producer)
+        }
+        
+        assertEquals("Kunne ikke hente stilling med id $stillingId", exception.message)
+    }
+
+    @Test
+    fun `bestillVarsel fungerer for rekrutteringstreff uten å hente stilling`() {
+        val rekrutteringstreffId = "88888888-8888-8888-8888-888888888888"
+        
+        // Opprett varsel med rekrutteringstreff-mal
+        app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.KandidatInvitertTreff,
+                avsenderReferanseId = rekrutteringstreffId,
+                mottakerFnr = fnr1,
+                avsenderNavident = navident
+            ).insert(tx)
+        }
+
+        // Mock StillingClient som aldri skal kalles
+        val stillingClientSomAldriBurdeKalles = object : StillingClient {
+            override fun getStilling(stillingId: UUID): Stilling? {
+                throw AssertionError("StillingClient skal ikke kalles for rekrutteringstreff")
+            }
+        }
+
+        // Verifiser at bestilling fungerer uten å kalle StillingClient
+        assertTrue(bestillVarsel(app.dataSource, stillingClientSomAldriBurdeKalles, minside.producer))
+        
+        // Verifiser at varsel ble bestilt
+        val bestillinger = minside.mottatteBestillinger(1)
+        assertEquals(1, bestillinger.size)
+        assertTrue(bestillinger.containsKey(fnr1))
+    }
+
+    @Test
     fun `stilling endpoint filtrerer kun stilling-maler`() {
         val stillingId = "99999999-9999-9999-9999-999999999999"
         val rekrutteringstreffId = "88888888-8888-8888-8888-888888888888"
