@@ -204,7 +204,7 @@ class LocalApp() {
         val arrayNode = objectMapper.readValue<ArrayNode>(response.body())
         return arrayNode.toList().associateBy { it["stillingId"].asText() }
     }
-    // TODO: Kan fjernes når vi hhar tatt i bruk stillingsmeldingsmal
+    // TODO: Deprecated,kan fjernes når vi har tatt i bruk stillingsmeldingsmal
     fun getMeldingsmal(token: SignedJWT): Meldingsmal {
         val request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:${javalin.port()}/api/meldingsmal"))
@@ -241,7 +241,6 @@ class LocalApp() {
         return objectMapper.readValue<RekrutteringstreffMeldingsmal>(response.body())
     }
 
-    // Helper methods for tests that need more control over HTTP calls
     fun post(path: String) = HttpRequestBuilder(
         method = "POST",
         uri = URI.create("http://localhost:${javalin.port()}$path"),
