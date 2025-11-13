@@ -3,6 +3,8 @@ package no.nav.toi.kandidatvarsel
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
 import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
@@ -36,7 +38,7 @@ fun main() {
         
         val dataSource = DatabaseConfig.nais().createDataSource()
         
-        startApp(
+        startOppApplikasjon(
             rapidsConnection = rapidsConnection,
             dataSource = dataSource,
             kafkaRapid = kafkaRapid
@@ -48,79 +50,106 @@ fun main() {
     }
 }
 
-fun startApp(
-    rapidsConnection: com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection,
-    dataSource: com.zaxxer.hikari.HikariDataSource,
+fun startOppApplikasjon(
+    rapidsConnection: RapidsConnection,
+    dataSource: HikariDataSource,
     kafkaRapid: KafkaRapid
 ) {
-    /* Status på migrering, så ready-endepunktet kan fortelle om vi er klare for å motta api-kall. */
-    val migrateResult = AtomicReference<MigrateResult>()
+    val migreringsResultat = AtomicReference<MigrateResult>()
+    val avsluttSignal = AtomicBoolean(false)
 
-    while (!dataSource.isReady())  {
-        log.info("Database not ready. Sleeping")
-        Thread.sleep(100.milliseconds.inWholeMilliseconds)
-    }
-    migrateResult.set(dataSource.migrate())
-
-    val shutdown = AtomicBoolean(false)
+    ventPåDatabase(dataSource)
+    migreringsResultat.set(dataSource.migrate())
 
     val kafkaConfig = KafkaConfig.nais()
-
     val minsideBestillingProducer = kafkaConfig.minsideBestillingsProducer()
     val minsideOppdateringConsumer = kafkaConfig.minsideOppdateringsConsumer()
 
-    val azureTokenClient = AzureTokenClient(
-        tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
-        clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
-        clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
-        scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-stilling-api/.default"
-    )
-
-    val onBehalfOfTokenClient = OnBehalfOfTokenClient(
-        tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
-        clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
-        clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
-        scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-kandidatsok-api/.default",
-        issuernavn = getenvOrThrow("AZURE_OPENID_CONFIG_ISSUER")
-    )
-
+    val azureTokenClient = opprettAzureTokenClient()
+    val onBehalfOfTokenClient = opprettOnBehalfOfTokenClient()
     val stillingClient = StillingClientImpl(azureTokenClient)
     val kandidatsokApiKlient = KandidatsokApiKlient(onBehalfOfTokenClient, getenvOrThrow("KANDIDATSOK_API_URL"))
 
-    val minsideBestillingThread = backgroundThread("minside-utsending", shutdown) {
+    val minsideBestillingThread = backgroundThread("minside-utsending", avsluttSignal) {
         if (!bestillVarsel(dataSource, stillingClient, minsideBestillingProducer)) {
             Thread.sleep(1.seconds.inWholeMilliseconds)
         }
     }
 
-    val minsideOppdateringThread = backgroundThread(name = "minside-oppdatering", shutdown) {
+    val minsideOppdateringThread = backgroundThread("minside-oppdatering", avsluttSignal) {
         sjekkVarselOppdateringer(dataSource, minsideOppdateringConsumer)
     }
 
     val javalin = startJavalin(
         azureAdConfig = AzureAdConfig.nais(),
         dataSource = dataSource,
-        migrateResult = migrateResult,
+        migrateResult = migreringsResultat,
         kandidatsokApiKlient = kandidatsokApiKlient,
         kafkaRapid = kafkaRapid
     )
 
-    // Registrer lyttere for Kafka-hendelser
+    registrerRapidsLyttere(rapidsConnection, dataSource)
+    rapidsConnection.start()
+    log.info("RapidApplication startet")
+
+    registrerShutdownHook(
+        avsluttSignal = avsluttSignal,
+        rapidsConnection = rapidsConnection,
+        minsideBestillingThread = minsideBestillingThread,
+        minsideBestillingProducer = minsideBestillingProducer,
+        minsideOppdateringThread = minsideOppdateringThread,
+        minsideOppdateringConsumer = minsideOppdateringConsumer,
+        javalin = javalin,
+        dataSource = dataSource
+    )
+}
+
+private fun ventPåDatabase(dataSource: HikariDataSource) {
+    while (!dataSource.isReady()) {
+        log.info("Database er ikke klar. Venter...")
+        Thread.sleep(100.milliseconds.inWholeMilliseconds)
+    }
+}
+
+private fun opprettAzureTokenClient() = AzureTokenClient(
+    tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+    clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
+    clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
+    scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-stilling-api/.default"
+)
+
+private fun opprettOnBehalfOfTokenClient() = OnBehalfOfTokenClient(
+    tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+    clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
+    clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
+    scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-kandidatsok-api/.default",
+    issuernavn = getenvOrThrow("AZURE_OPENID_CONFIG_ISSUER")
+)
+
+private fun registrerRapidsLyttere(rapidsConnection: RapidsConnection, dataSource: HikariDataSource) {
     try {
         KandidatInvitertLytter(rapidsConnection, dataSource)
         InvitertTreffKandidatEndretLytter(rapidsConnection, dataSource)
-        
-        rapidsConnection.start()
-        log.info("RapidApplication startet")
     } catch (e: Exception) {
         log.error("Feil ved oppstart av RapidApplication (se securelog)")
         secureLog.error("Feil ved oppstart av RapidApplication", e)
         throw e
     }
+}
 
+private fun registrerShutdownHook(
+    avsluttSignal: AtomicBoolean,
+    rapidsConnection: RapidsConnection,
+    minsideBestillingThread: Thread,
+    minsideBestillingProducer: org.apache.kafka.clients.producer.KafkaProducer<String, String>,
+    minsideOppdateringThread: Thread,
+    minsideOppdateringConsumer: org.apache.kafka.clients.consumer.KafkaConsumer<String, String>,
+    javalin: io.javalin.Javalin,
+    dataSource: HikariDataSource
+) {
     Runtime.getRuntime().addShutdownHook(Thread {
         log.info("Shutdownhook kjører")
-        shutdown.set(true)
+        avsluttSignal.set(true)
         rapidsConnection.stop()
         minsideBestillingThread.join()
         minsideBestillingProducer.close()
@@ -128,23 +157,25 @@ fun startApp(
         minsideOppdateringConsumer.close()
         javalin.stop()
         dataSource.close()
-        log.info("Shutdownhook ran successfully to completion")
+        log.info("Shutdownhook fullført")
     })
 }
 
-private fun backgroundThread(name: String, shutdown: AtomicBoolean, body: () -> Unit): Thread = thread(name = name) {
-    while (!shutdown.get()) {
-        try {
-            body()
-        } catch (e: Exception) {
-            log.error("Exception in background thread $name (Se secure log)")
-            secureLog.error("Exception in background thread $name", e)
-            Thread.sleep(1.seconds.inWholeMilliseconds)
+private fun backgroundThread(navn: String, avsluttSignal: AtomicBoolean, oppgave: () -> Unit): Thread =
+    thread(name = navn) {
+        while (!avsluttSignal.get()) {
+            try {
+                oppgave()
+            } catch (e: Exception) {
+                log.error("Exception i bakgrunnsThread $navn (se secure log)")
+                secureLog.error("Exception i bakgrunnsThread $navn", e)
+                Thread.sleep(1.seconds.inWholeMilliseconds)
+            }
         }
     }
-}
 
 val Any.log: Logger
     get() = LoggerFactory.getLogger(this::class.java)
 
-fun getenvOrThrow(name: String): String = getenv(name) ?: throw IllegalStateException("Mangler miljøvariabel '$name'")
+fun getenvOrThrow(name: String): String = 
+    getenv(name) ?: throw IllegalStateException("Mangler miljøvariabel '$name'")
