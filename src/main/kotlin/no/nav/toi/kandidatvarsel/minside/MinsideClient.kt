@@ -21,7 +21,7 @@ import kotlin.time.toJavaDuration
 const val BESTILLING_TOPIC = "min-side.aapen-brukervarsel-v1"
 const val OPPDATERING_TOPIC = "min-side.aapen-varsel-hendelse-v1"
 
-fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, tittel: String?, arbeidsgiver: String?) {
+fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: StillingMal, tittel: String, arbeidsgiver: String) {
     val clusterName = System.getenv("NAIS_CLUSTER_NAME") ?: "local"
     val isProd = clusterName == "prod-gcp"
     
@@ -31,15 +31,53 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, tittel
         ident = minsideVarsel.mottakerFnr
         tekster += Tekst(
             default = true,
-            tekst = minsideVarsel.mal.minsideTekst(tittel, arbeidsgiver),
+            tekst = mal.minsideTekst(tittel, arbeidsgiver),
             spraakkode = "nb",
         )
-        link = minsideVarsel.mal.lenkeurl(minsideVarsel.avsenderReferanseId, isProd)
+        link = mal.lenkeurl(minsideVarsel.avsenderReferanseId, isProd)
         eksternVarsling = EksternVarslingBestilling(
             prefererteKanaler = listOf(EksternKanal.SMS),
-            epostVarslingstittel = minsideVarsel.mal.epostTittel(),
-            epostVarslingstekst = minsideVarsel.mal.epostHtmlBody(),
-            smsVarslingstekst = minsideVarsel.mal.smsTekst(),
+            epostVarslingstittel = mal.epostTittel(),
+            epostVarslingstekst = mal.epostHtmlBody(),
+            smsVarslingstekst = mal.smsTekst(),
+        )
+        aktivFremTil = ZonedDateTime.now(ZoneId.of("Z")).plusWeeks(10)
+        sensitivitet = Sensitivitet.Substantial
+        produsent = Produsent(
+            appnavn = System.getenv("NAIS_APP_NAME") ?: "kandidatvarsel-api",
+            cluster = clusterName,
+            namespace = System.getenv("NAIS_NAMESPACE") ?: "toi",
+        )
+    }
+
+    val metadataFuture = send(ProducerRecord(BESTILLING_TOPIC, minsideVarsel.varselId, varselJson))
+
+    // Important to wait for send to finish, as it's only then we know the Kafka-server
+    // has acknowledged the record.
+    metadataFuture.get()
+
+    log.info("kafkameldig sendt. varselId/key: '{}' metadata: {}", minsideVarsel.varselId, metadataFuture.get())
+}
+
+fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: RekrutteringstreffMal, tittel: String?) {
+    val clusterName = System.getenv("NAIS_CLUSTER_NAME") ?: "local"
+    val isProd = clusterName == "prod-gcp"
+    
+    val varselJson = VarselActionBuilder.opprett {
+        type = Varseltype.Beskjed
+        varselId = minsideVarsel.varselId
+        ident = minsideVarsel.mottakerFnr
+        tekster += Tekst(
+            default = true,
+            tekst = mal.minsideTekst(),
+            spraakkode = "nb",
+        )
+        link = mal.lenkeurl(minsideVarsel.avsenderReferanseId, isProd)
+        eksternVarsling = EksternVarslingBestilling(
+            prefererteKanaler = listOf(EksternKanal.SMS),
+            epostVarslingstittel = mal.epostTittel(),
+            epostVarslingstekst = mal.epostHtmlBody(),
+            smsVarslingstekst = mal.smsTekst(),
         )
         aktivFremTil = ZonedDateTime.now(ZoneId.of("Z")).plusWeeks(10)
         sensitivitet = Sensitivitet.Substantial

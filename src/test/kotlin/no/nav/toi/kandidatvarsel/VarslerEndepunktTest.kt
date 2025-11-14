@@ -62,14 +62,14 @@ class VarslerEndepunktTest {
 
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.VurdertSomAktuell,
+                mal = no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.PassendeStilling,
+                mal = no.nav.toi.kandidatvarsel.minside.PassendeStilling,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident
@@ -101,14 +101,14 @@ class VarslerEndepunktTest {
 
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.KandidatInvitertTreff,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.InvitertTreffKandidatEndret,
+                mal = no.nav.toi.kandidatvarsel.minside.InvitertKandidatTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident
@@ -140,14 +140,14 @@ class VarslerEndepunktTest {
 
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.VurdertSomAktuell,
+                mal = no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.KandidatInvitertTreff,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident
@@ -169,14 +169,14 @@ class VarslerEndepunktTest {
 
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.KandidatInvitertTreff,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.VurdertSomAktuell,
+                mal = no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident

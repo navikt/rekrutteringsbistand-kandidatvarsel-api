@@ -6,6 +6,7 @@ import io.javalin.http.HttpStatus
 import io.javalin.http.bodyAsClass
 import no.nav.toi.kandidatvarsel.Rolle.*
 import no.nav.toi.kandidatvarsel.altinnsms.AltinnVarsel
+import no.nav.toi.kandidatvarsel.minside.*
 import no.nav.toi.kandidatvarsel.minside.Kanal
 import no.nav.toi.kandidatvarsel.minside.Mal
 import no.nav.toi.kandidatvarsel.minside.MinsideVarsel
@@ -46,11 +47,11 @@ enum class MinsideStatusDto {
 
 @Suppress("unused" /* deserialiseres */)
 enum class MalDto(val mal: Mal) {
-    VURDERT_SOM_AKTUELL(Mal.Companion.VurdertSomAktuell),
-    PASSENDE_STILLING(Mal.Companion.PassendeStilling),
-    PASSENDE_JOBBARRANGEMENT(Mal.Companion.PassendeJobbarrangement),
-    KANDIDAT_INVITERT_TREFF(Mal.Companion.KandidatInvitertTreff),
-    INVITERT_TREFF_KANDIDAT_ENDRET(Mal.Companion.InvitertTreffKandidatEndret),
+    VURDERT_SOM_AKTUELL(VurdertSomAktuell),
+    PASSENDE_STILLING(PassendeStilling),
+    PASSENDE_JOBBARRANGEMENT(PassendeJobbarrangement),
+    KANDIDAT_INVITERT_TREFF(KandidatInvitertTreff),
+    INVITERT_TREFF_KANDIDAT_ENDRET(InvitertKandidatTreffEndret),
 }
 
 data class QueryRequestDto(

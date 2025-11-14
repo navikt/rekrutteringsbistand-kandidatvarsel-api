@@ -8,7 +8,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
-import no.nav.toi.kandidatvarsel.rapids.lyttere.InvitertTreffKandidatEndretLytter
+import no.nav.toi.kandidatvarsel.rapids.lyttere.InvitertKandidatTreffEndretLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertLytter
 import org.flywaydb.core.api.output.MigrateResult
 import org.slf4j.Logger
@@ -129,7 +129,7 @@ private fun opprettOnBehalfOfTokenClient() = OnBehalfOfTokenClient(
 private fun registrerRapidsLyttere(rapidsConnection: RapidsConnection, dataSource: HikariDataSource) {
     try {
         KandidatInvitertLytter(rapidsConnection, dataSource)
-        InvitertTreffKandidatEndretLytter(rapidsConnection, dataSource)
+        InvitertKandidatTreffEndretLytter(rapidsConnection, dataSource)
     } catch (e: Exception) {
         log.error("Feil ved oppstart av RapidApplication (se securelog)")
         secureLog.error("Feil ved oppstart av RapidApplication", e)

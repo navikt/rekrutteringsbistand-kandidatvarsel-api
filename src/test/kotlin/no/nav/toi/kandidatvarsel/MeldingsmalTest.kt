@@ -1,6 +1,6 @@
 package no.nav.toi.kandidatvarsel
 
-import no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate
+import no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach

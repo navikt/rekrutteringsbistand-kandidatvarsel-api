@@ -17,19 +17,17 @@ fun bestillVarsel(
     val minsideVarsel = MinsideVarsel.finnOgLåsUsendtVarsel(tx) ?:
         return@transaction false
     
-    val (tittel, arbeidsgiver) = when (minsideVarsel.mal.varselType) {
-        VarselType.STILLING -> {
+    when (val mal = minsideVarsel.mal) {
+        is StillingMal -> {
             val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.avsenderReferanseId))
                 ?: throw IllegalStateException("Kunne ikke hente stilling med id ${minsideVarsel.avsenderReferanseId}")
-            Pair(stilling.title, stilling.businessName)
+            kafkaProducer.sendBestilling(minsideVarsel, mal, stilling.title, stilling.businessName)
         }
-        VarselType.REKRUTTERINGSTREFF -> {
-            // Rekrutteringstreff-varslene trenger ikke tittel og arbeidsgiver
-            Pair(null, null)
+        is RekrutteringstreffMal -> {
+            kafkaProducer.sendBestilling(minsideVarsel, mal, tittel = null)
         }
     }
     
-    kafkaProducer.sendBestilling(minsideVarsel, tittel, arbeidsgiver)
     val oppdatertVarsel = minsideVarsel.markerBestilt()
     oppdatertVarsel.save(tx)
     return@transaction true

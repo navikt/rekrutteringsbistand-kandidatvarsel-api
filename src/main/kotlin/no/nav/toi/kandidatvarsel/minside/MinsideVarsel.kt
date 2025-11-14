@@ -192,7 +192,7 @@ data class MinsideVarsel(
                 .getOrNull()
 
         fun hentVarslerForStilling(jdbcClient: JdbcClient, stillingId: String): List<MinsideVarsel> {
-            val stillingMaler = Mal.malerForVarselType(VarselType.STILLING)
+            val stillingMaler = Maler.malerForVarselType(VarselType.STILLING)
             return jdbcClient.sql("""
                 select * from minside_varsel 
                 where stilling_id = :stilling_id 
@@ -205,7 +205,7 @@ data class MinsideVarsel(
         }
 
         fun hentVarslerForRekrutteringstreff(jdbcClient: JdbcClient, rekrutteringstreffId: String): List<MinsideVarsel> {
-            val rekrutteringstreffMaler = Mal.malerForVarselType(VarselType.REKRUTTERINGSTREFF)
+            val rekrutteringstreffMaler = Maler.malerForVarselType(VarselType.REKRUTTERINGSTREFF)
             return jdbcClient.sql("""
                 select * from minside_varsel 
                 where stilling_id = :avsender_referanse_id 
@@ -230,7 +230,7 @@ data class MinsideVarsel(
                 mottakerFnr = rs.getString("mottaker_fnr"),
                 avsenderNavIdent = rs.getString("avsender_navident"),
                 varselId = rs.getString("varsel_id"),
-                mal = Mal.valueOf(rs.getString("mal")),
+                mal = Maler.valueOf(rs.getString("mal")),
                 avsenderReferanseId = rs.getString("stilling_id"),
                 bestilt = rs.getBoolean("bestilt"),
                 minsideStatus = rs.getString("minside_status")?.let { MinsideStatus.valueOf(it) },

@@ -246,7 +246,7 @@ class MeldingsmalApiTest {
                 meldingsmal.vurdertSomAktuell.smsTekst)
             assertEquals("Stilling som kan passe for deg?", 
                 meldingsmal.vurdertSomAktuell.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate(
+            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på Nav for å se stillingen."),
                 meldingsmal.vurdertSomAktuell.epostHtmlBody)
             
@@ -254,7 +254,7 @@ class MeldingsmalApiTest {
                 meldingsmal.passendeStilling.smsTekst)
             assertEquals("Stilling som kan passe for deg?", 
                 meldingsmal.passendeStilling.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate(
+            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på Nav for å se stillingen."),
                 meldingsmal.passendeStilling.epostHtmlBody)
             
@@ -262,7 +262,7 @@ class MeldingsmalApiTest {
                 meldingsmal.passendeJobbarrangement.smsTekst)
             assertEquals("Jobbarrangement", 
                 meldingsmal.passendeJobbarrangement.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate(
+            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på Nav for å se arrangementet."),
                 meldingsmal.passendeJobbarrangement.epostHtmlBody)
         }
@@ -277,7 +277,7 @@ class MeldingsmalApiTest {
                 meldingsmal.vurdertSomAktuell.smsTekst)
             assertEquals("Stilling som kan passe for deg?", 
                 meldingsmal.vurdertSomAktuell.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate(
+            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Vi har vurdert at kompetansen din kan passe til en stilling. Logg inn på Nav for å se stillingen."),
                 meldingsmal.vurdertSomAktuell.epostHtmlBody)
             
@@ -285,7 +285,7 @@ class MeldingsmalApiTest {
                 meldingsmal.passendeStilling.smsTekst)
             assertEquals("Stilling som kan passe for deg?", 
                 meldingsmal.passendeStilling.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate(
+            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på Nav for å se stillingen."),
                 meldingsmal.passendeStilling.epostHtmlBody)
             
@@ -293,7 +293,7 @@ class MeldingsmalApiTest {
                 meldingsmal.passendeJobbarrangement.smsTekst)
             assertEquals("Jobbarrangement", 
                 meldingsmal.passendeJobbarrangement.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate(
+            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på Nav for å se arrangementet."),
                 meldingsmal.passendeJobbarrangement.epostHtmlBody)
         }
@@ -308,7 +308,7 @@ class MeldingsmalApiTest {
                 meldingsmal.kandidatInvitertTreff.smsTekst)
             assertEquals("Du er invitert til et treff", 
                 meldingsmal.kandidatInvitertTreff.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate(
+            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på."),
                 meldingsmal.kandidatInvitertTreff.epostHtmlBody)
             
@@ -316,7 +316,7 @@ class MeldingsmalApiTest {
                 meldingsmal.invistertTreffKandidatEndret.smsTekst)
             assertEquals("Endringer på treff du er invitert til", 
                 meldingsmal.invistertTreffKandidatEndret.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Mal.Companion.epostHtmlBodyTemplate(
+            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon."),
                 meldingsmal.invistertTreffKandidatEndret.epostHtmlBody)
         }

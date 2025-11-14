@@ -2,8 +2,7 @@ package no.nav.toi.kandidatvarsel.rapids.lyttere
 
 import no.nav.toi.kandidatvarsel.util.TestRapid
 import no.nav.toi.kandidatvarsel.DatabaseConfig
-import no.nav.toi.kandidatvarsel.minside.Mal
-import no.nav.toi.kandidatvarsel.minside.MinsideVarsel
+import no.nav.toi.kandidatvarsel.minside.*
 import no.nav.toi.kandidatvarsel.transaction
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.*
@@ -67,7 +66,7 @@ class KandidatInvitertLytterTest {
         }
 
         assertEquals(1, varsler.size)
-        assertEquals(Mal.Companion.KandidatInvitertTreff.name, varsler[0].mal.name)
+        assertEquals(KandidatInvitertTreff.name, varsler[0].mal.name)
         assertEquals(varselId, varsler[0].avsenderReferanseId)
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)

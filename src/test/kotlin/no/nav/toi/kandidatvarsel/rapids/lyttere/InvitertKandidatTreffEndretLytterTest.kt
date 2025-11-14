@@ -2,8 +2,7 @@ package no.nav.toi.kandidatvarsel.rapids.lyttere
 
 import no.nav.toi.kandidatvarsel.util.TestRapid
 import no.nav.toi.kandidatvarsel.DatabaseConfig
-import no.nav.toi.kandidatvarsel.minside.Mal
-import no.nav.toi.kandidatvarsel.minside.MinsideVarsel
+import no.nav.toi.kandidatvarsel.minside.*
 import no.nav.toi.kandidatvarsel.transaction
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.*
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.testcontainers.containers.PostgreSQLContainer
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class InvitertTreffKandidatEndretLytterTest {
+class InvitertKandidatTreffEndretLytterTest {
 
     private val postgres = PostgreSQLContainer("postgres:14").apply { start() }
     private val dataSource = DatabaseConfig(
@@ -31,7 +30,7 @@ class InvitertTreffKandidatEndretLytterTest {
             .load()
             .migrate()
             
-        InvitertTreffKandidatEndretLytter(testRapid, dataSource)
+        InvitertKandidatTreffEndretLytter(testRapid, dataSource)
     }
 
     @BeforeEach
@@ -67,7 +66,7 @@ class InvitertTreffKandidatEndretLytterTest {
         }
 
         assertEquals(1, varsler.size)
-        assertEquals(Mal.Companion.InvitertTreffKandidatEndret.name, varsler[0].mal.name)
+        assertEquals(InvitertKandidatTreffEndret.name, varsler[0].mal.name)
         assertEquals(varselId, varsler[0].avsenderReferanseId)
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)

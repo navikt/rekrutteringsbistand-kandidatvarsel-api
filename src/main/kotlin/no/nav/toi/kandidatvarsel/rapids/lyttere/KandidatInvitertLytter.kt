@@ -8,7 +8,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.toi.kandidatvarsel.VarselService
-import no.nav.toi.kandidatvarsel.minside.Mal
+import no.nav.toi.kandidatvarsel.minside.*
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
@@ -49,7 +49,7 @@ class KandidatInvitertLytter(
                 dataSource = dataSource,
                 varselId = varselId,
                 fnrList = listOf(fnr),
-                mal = Mal.Companion.KandidatInvitertTreff,
+                mal = KandidatInvitertTreff,
                 avsenderNavident = avsenderNavident
             )
             log.info("Behandlet kandidat.invitert-hendelse for varselId=$varselId")

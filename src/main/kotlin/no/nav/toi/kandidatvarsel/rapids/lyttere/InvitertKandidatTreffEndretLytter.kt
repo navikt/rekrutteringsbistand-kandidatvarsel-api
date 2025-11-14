@@ -8,16 +8,16 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.toi.kandidatvarsel.VarselService
-import no.nav.toi.kandidatvarsel.minside.Mal
+import no.nav.toi.kandidatvarsel.minside.*
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
-class InvitertTreffKandidatEndretLytter(
+class InvitertKandidatTreffEndretLytter(
     rapidsConnection: RapidsConnection,
     private val dataSource: DataSource
 ) : River.PacketListener {
 
-    private val log = LoggerFactory.getLogger(InvitertTreffKandidatEndretLytter::class.java)
+    private val log = LoggerFactory.getLogger(InvitertKandidatTreffEndretLytter::class.java)
     private val secureLog = LoggerFactory.getLogger("secureLog")
 
     init {
@@ -49,7 +49,7 @@ class InvitertTreffKandidatEndretLytter(
                 dataSource = dataSource,
                 varselId = varselId,
                 fnrList = listOf(fnr),
-                mal = Mal.Companion.InvitertTreffKandidatEndret,
+                mal = InvitertKandidatTreffEndret,
                 avsenderNavident = avsenderNavident
             )
             log.info("Behandlet invitert.kandidat.endret-hendelse for varselId=$varselId")

@@ -1,6 +1,6 @@
 package no.nav.toi.kandidatvarsel
 import io.javalin.Javalin
-import no.nav.toi.kandidatvarsel.minside.Mal
+import no.nav.toi.kandidatvarsel.minside.*
 
 data class VurdertSomAktuell(
     val smsTekst: String,
@@ -50,9 +50,9 @@ data class RekrutteringstreffMeldingsmal(
 )
 
 fun hentStillingMeldingsmal(): StillingMeldingsmal {
-    val vurdertSomAktuell = Mal.Companion.VurdertSomAktuell
-    val passendeStilling = Mal.Companion.PassendeStilling
-    val passendeJobbarrangement = Mal.Companion.PassendeJobbarrangement
+    val vurdertSomAktuell = VurdertSomAktuell
+    val passendeStilling = PassendeStilling
+    val passendeJobbarrangement = PassendeJobbarrangement
     return StillingMeldingsmal(
         vurdertSomAktuell = VurdertSomAktuell(
             smsTekst = vurdertSomAktuell.smsTekst(),
@@ -73,8 +73,8 @@ fun hentStillingMeldingsmal(): StillingMeldingsmal {
 }
 
 fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
-    val kandidatInvitertTreff = Mal.Companion.KandidatInvitertTreff
-    val invistertTreffKandidatEndret = Mal.Companion.InvitertTreffKandidatEndret
+    val kandidatInvitertTreff = KandidatInvitertTreff
+    val invitertTreffKandidatEndret = InvitertKandidatTreffEndret
     return RekrutteringstreffMeldingsmal(
         kandidatInvitertTreff = KandidatInvitertTreff(
             smsTekst = kandidatInvitertTreff.smsTekst(),
@@ -82,9 +82,9 @@ fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
             epostHtmlBody = kandidatInvitertTreff.epostHtmlBody()
         ),
         invistertTreffKandidatEndret = InvitertTreffKandidatEndret(
-            smsTekst = invistertTreffKandidatEndret.smsTekst(),
-            epostTittel = invistertTreffKandidatEndret.epostTittel(),
-            epostHtmlBody = invistertTreffKandidatEndret.epostHtmlBody()
+            smsTekst = InvitertKandidatTreffEndret.smsTekst(),
+            epostTittel = InvitertKandidatTreffEndret.epostTittel(),
+            epostHtmlBody = InvitertKandidatTreffEndret.epostHtmlBody()
         )
     )
 }

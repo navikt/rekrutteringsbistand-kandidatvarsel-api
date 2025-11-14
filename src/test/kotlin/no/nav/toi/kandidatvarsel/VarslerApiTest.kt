@@ -77,14 +77,14 @@ class VarslerApiTest {
         // Opprett varsler direkte i databasen
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.VurdertSomAktuell,
+                mal = no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.PassendeStilling,
+                mal = no.nav.toi.kandidatvarsel.minside.PassendeStilling,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident
@@ -120,14 +120,14 @@ class VarslerApiTest {
         // Opprett varsler direkte i databasen
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.KandidatInvitertTreff,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.InvitertTreffKandidatEndret,
+                mal = no.nav.toi.kandidatvarsel.minside.InvitertKandidatTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident
@@ -590,7 +590,7 @@ class VarslerApiTest {
         // Opprett varsel med stilling-mal
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.VurdertSomAktuell,
+                mal = no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
@@ -617,7 +617,7 @@ class VarslerApiTest {
         // Opprett varsel med rekrutteringstreff-mal
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.KandidatInvitertTreff,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
@@ -649,7 +649,7 @@ class VarslerApiTest {
         app.dataSource.transaction { tx ->
             // Stilling-mal
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.VurdertSomAktuell,
+                mal = no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr1,
                 avsenderNavident = navident
@@ -657,7 +657,7 @@ class VarslerApiTest {
 
             // Rekrutteringstreff-mal med samme id (for å teste filtrering)
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.KandidatInvitertTreff,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident
@@ -665,7 +665,7 @@ class VarslerApiTest {
 
             // Rekrutteringstreff-mal med annen id
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.Mal.Companion.InvitertTreffKandidatEndret,
+                mal = no.nav.toi.kandidatvarsel.minside.InvitertKandidatTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr3,
                 avsenderNavident = navident
