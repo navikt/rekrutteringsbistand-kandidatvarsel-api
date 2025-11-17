@@ -4,16 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.KeyMessageContext
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.OutgoingMessage
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.SentMessage
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.FailedMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.*
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 
-class TestRapid(private val meterRegistry: MeterRegistry = SimpleMeterRegistry(), private val maxTriggedeMeldinger: Int = 10) :
+class TestRapid(
+    private val meterRegistry: MeterRegistry = SimpleMeterRegistry(),
+    private val maxTriggedeMeldinger: Int = 10
+) :
     RapidsConnection() {
     private companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -29,15 +27,19 @@ class TestRapid(private val meterRegistry: MeterRegistry = SimpleMeterRegistry()
     }
 
     fun sendTestMessage(message: String) {
-        notifyMessage(message, this,
-            MessageMetadata("test.message", -1, -1, null, emptyMap()), meterRegistry)
+        notifyMessage(
+            message, this,
+            MessageMetadata("test.message", -1, -1, null, emptyMap()), meterRegistry
+        )
         sjekkForLoop()
     }
 
     fun sendTestMessage(message: String, key: String) {
-        notifyMessage(message,
+        notifyMessage(
+            message,
             KeyMessageContext(this, key),
-            MessageMetadata("test.message", -1, -1, key, emptyMap()), meterRegistry)
+            MessageMetadata("test.message", -1, -1, key, emptyMap()), meterRegistry
+        )
         sjekkForLoop()
     }
 
@@ -52,18 +54,21 @@ class TestRapid(private val meterRegistry: MeterRegistry = SimpleMeterRegistry()
 
     private fun sjekkForLoopRecursive(kjørFra: Int) {
         val messages = keyOgMeldinger()
-        messages.filterIndexed { index, _ -> index>=kjørFra }.forEach { (key, message) ->
-            if(key == null) {
-                notifyMessage(message.toString(), this,
+        messages.filterIndexed { index, _ -> index >= kjørFra }.forEach { (key, message) ->
+            if (key == null) {
+                notifyMessage(
+                    message.toString(), this,
                     MessageMetadata(
                         "test.message",
                         -1,
                         -1,
                         null,
                         emptyMap()
-                    ), meterRegistry)
+                    ), meterRegistry
+                )
             } else {
-                notifyMessage(message.toString(),
+                notifyMessage(
+                    message.toString(),
                     KeyMessageContext(this, key),
                     MessageMetadata(
                         "test.message",
@@ -71,15 +76,16 @@ class TestRapid(private val meterRegistry: MeterRegistry = SimpleMeterRegistry()
                         -1,
                         key,
                         emptyMap()
-                    ), meterRegistry)
+                    ), meterRegistry
+                )
             }
         }
         val newMessages = keyOgMeldinger()
         if (newMessages.size > maxTriggedeMeldinger) {
             throw IllegalStateException("Loop antatt med ${newMessages.size} meldinger: $newMessages")
-        } else if(newMessages.size > messages.size) {
+        } else if (newMessages.size > messages.size) {
             sjekkForLoopRecursive(messages.size)
-        } else if(newMessages.size < messages.size) {
+        } else if (newMessages.size < messages.size) {
             throw IllegalStateException("Skal ikke være mulig å nå denne linjen. Feil i implementasjonen av ${this::class.java.simpleName}")
         }
     }
