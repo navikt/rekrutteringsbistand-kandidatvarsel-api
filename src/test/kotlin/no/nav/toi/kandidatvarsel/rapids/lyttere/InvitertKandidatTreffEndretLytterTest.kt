@@ -12,7 +12,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InvitertKandidatTreffEndretLytterTest {
 
-    private val postgres = PostgreSQLContainer("postgres:14").apply { start() }
+    private val postgres = PostgreSQLContainer("postgres:15").apply { start() }
     private val dataSource = DatabaseConfig(
         hostname = postgres.host,
         port = postgres.firstMappedPort,
