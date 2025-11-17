@@ -128,7 +128,7 @@ data object VurdertSomAktuell: StillingMal {
         }
 
         data object InvitertKandidatTreffEndret: RekrutteringstreffMal {
-            override val name = "INVITERT_TREFF_KANDIDAT_ENDRET"
+            override val name = "INVITERT_KANDIDAT_TREFF_ENDRET"
             
             override fun minsideTekst() =
                  "Det har skjedd endringer knyttet til et treff med arbeidsgivere som du er invitert til. Se mer her."
