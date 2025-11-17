@@ -12,5 +12,6 @@
     },
     "dbTier": "db-f1-micro",
     "kafkaPool": "nav-dev",
-    "fssCluster": "dev-fss"
+    "fssCluster": "dev-fss",
+    "kafka_consumer_group_id": "rekrutteringsbistand-kandidatvarsel-api-1"
 }

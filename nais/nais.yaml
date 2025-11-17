@@ -50,6 +50,9 @@ spec:
       value: {{adGroupRekbisUtvikler}}
     - name: KANDIDATSOK_API_URL
       value: http://rekrutteringsbistand-kandidatsok-api
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: value: {{ kafka_consumer_group_id }}
+
     {{#each env }}
     - name: {{ @key }}
       value: {{ this }}
