@@ -54,7 +54,7 @@ dependencies {
     testImplementation("org.wiremock:wiremock:3.3.1")
     testImplementation("org.skyscreamer:jsonassert:1.5.1")
     testImplementation("org.testcontainers:postgresql:1.19.7")
-    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("io.mockk:mockk:1.14.6")
 }
 
 tasks.test {
