@@ -20,9 +20,9 @@ sealed interface Mal {
             VarselType.STILLING -> "https://www.nav.no/arbeid/stilling/$avsenderReferanseId"
             VarselType.REKRUTTERINGSTREFF -> {
                 val domain = if (isProd)
-                    "https://www.nav.no/rekrutteringstreff"
+                    "www.nav.no"
                 else
-                    "https://rekrutteringstreff-bruker.intern.dev.nav.no"
+                    "rekrutteringstreff-bruker.intern.dev.nav.no"
 
                 return "https://$domain/rekrutteringstreff/$avsenderReferanseId"
             }

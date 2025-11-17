@@ -61,7 +61,7 @@ class InvitertKandidatTreffEndretLytter(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av invitert.kandidat.endret-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av invitert.kandidat.endret-melding: <se secure log>")
         secureLog.error("Feil ved parsing av invitert.kandidat.endret-melding: ${problems.toExtendedReport()}")
     }
 }
