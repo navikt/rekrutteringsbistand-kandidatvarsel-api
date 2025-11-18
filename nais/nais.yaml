@@ -43,11 +43,11 @@ spec:
         - application: rekrutteringsbistand-kandidatsok-api
   env:
     - name: KAFKA_RAPID_TOPIC
-    - value: toi.rapid-1
+      value: toi.rapid-1
     - name: KAFKA_CONSUMER_GROUP_ID
-    - value: {{ kafka_consumer_group_id }}
+      value: {{ kafka_consumer_group_id }}
     - name: KAFKA_RESET_POLICY
-    - value: "earliest"
+      value: "earliest"
     - name: AD_GROUP_REKBIS_ARBEIDSGIVERRETTET
       value: {{adGroupRekbisArbeidsgiverrettet}}
     - name: AD_GROUP_REKBIS_JOBBSOKERRETTET
