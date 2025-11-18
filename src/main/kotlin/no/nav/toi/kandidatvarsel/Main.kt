@@ -89,12 +89,16 @@ fun startOppApplikasjon(
     )
 
     registrerRapidsLyttere(kafkaRapid, dataSource)
-    kafkaRapid.start()
-    log.info("KafkaRapid startet")
+    
+    val kafkaRapidThread = backgroundThread("kafka-rapid", avsluttSignal) {
+        kafkaRapid.start()
+    }
+    log.info("KafkaRapid startet i bakgrunnstråd")
 
     registrerShutdownHook(
         avsluttSignal = avsluttSignal,
         rapidsConnection = kafkaRapid,
+        kafkaRapidThread = kafkaRapidThread,
         minsideBestillingThread = minsideBestillingThread,
         minsideBestillingProducer = minsideBestillingProducer,
         minsideOppdateringThread = minsideOppdateringThread,
@@ -140,6 +144,7 @@ private fun registrerRapidsLyttere(rapidsConnection: RapidsConnection, dataSourc
 private fun registrerShutdownHook(
     avsluttSignal: AtomicBoolean,
     rapidsConnection: RapidsConnection,
+    kafkaRapidThread: Thread,
     minsideBestillingThread: Thread,
     minsideBestillingProducer: org.apache.kafka.clients.producer.KafkaProducer<String, String>,
     minsideOppdateringThread: Thread,
@@ -151,6 +156,7 @@ private fun registrerShutdownHook(
         log.info("Shutdownhook kjører")
         avsluttSignal.set(true)
         rapidsConnection.stop()
+        kafkaRapidThread.join()
         minsideBestillingThread.join()
         minsideBestillingProducer.close()
         minsideOppdateringThread.join()
