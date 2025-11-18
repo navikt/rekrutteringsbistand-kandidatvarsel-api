@@ -4,8 +4,10 @@ import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
 import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import com.github.navikt.tbd_libs.kafka.AivenConfig
+import com.github.navikt.tbd_libs.kafka.ConsumerProducerFactory
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.helse.rapids_rivers.RapidApplication
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import no.nav.toi.kandidatvarsel.rapids.lyttere.InvitertKandidatTreffEndretLytter
@@ -27,21 +29,20 @@ fun main() {
     log.info("Starter applikasjon")
     
     try {
-        lateinit var kafkaRapid: KafkaRapid
-        val rapidsConnection = RapidApplication.create(
-            System.getenv(),
-            builder = { withHttpPort(9000) },
-            configure = { _, rapid ->
-                kafkaRapid = rapid
-            }
-        )
+        val aivenConfig = AivenConfig.default
+        val factory = ConsumerProducerFactory(aivenConfig)
         
+        val kafkaRapid = KafkaRapid(
+            factory = factory,
+            groupId = getenvOrThrow("KAFKA_CONSUMER_GROUP_ID"),
+            rapidTopic = getenvOrThrow("KAFKA_RAPID_TOPIC"),
+            meterRegistry = SimpleMeterRegistry()
+        )
         val dataSource = DatabaseConfig.nais().createDataSource()
         
         startOppApplikasjon(
-            rapidsConnection = rapidsConnection,
-            dataSource = dataSource,
-            kafkaRapid = kafkaRapid
+            kafkaRapid = kafkaRapid,
+            dataSource = dataSource
         )
     } catch (e: Exception) {
         secureLog.error("Uhåndtert exception, stanser applikasjonen", e)
@@ -51,9 +52,8 @@ fun main() {
 }
 
 fun startOppApplikasjon(
-    rapidsConnection: RapidsConnection,
-    dataSource: HikariDataSource,
-    kafkaRapid: KafkaRapid
+    kafkaRapid: KafkaRapid,
+    dataSource: HikariDataSource
 ) {
     val migreringsResultat = AtomicReference<MigrateResult>()
     val avsluttSignal = AtomicBoolean(false)
@@ -88,13 +88,13 @@ fun startOppApplikasjon(
         kafkaRapid = kafkaRapid
     )
 
-    registrerRapidsLyttere(rapidsConnection, dataSource)
-    rapidsConnection.start()
-    log.info("RapidApplication startet")
+    registrerRapidsLyttere(kafkaRapid, dataSource)
+    kafkaRapid.start()
+    log.info("KafkaRapid startet")
 
     registrerShutdownHook(
         avsluttSignal = avsluttSignal,
-        rapidsConnection = rapidsConnection,
+        rapidsConnection = kafkaRapid,
         minsideBestillingThread = minsideBestillingThread,
         minsideBestillingProducer = minsideBestillingProducer,
         minsideOppdateringThread = minsideOppdateringThread,
