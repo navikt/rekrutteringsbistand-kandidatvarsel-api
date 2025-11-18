@@ -42,6 +42,12 @@ spec:
         - application: rekrutteringsbistand-stilling-api
         - application: rekrutteringsbistand-kandidatsok-api
   env:
+    - name: KAFKA_RAPID_TOPIC
+    - value: toi.rapid-1
+    - name: KAFKA_CONSUMER_GROUP_ID
+    - value: {{ kafka_consumer_group_id }}
+    - name: KAFKA_RESET_POLICY
+    - value: "earliest"
     - name: AD_GROUP_REKBIS_ARBEIDSGIVERRETTET
       value: {{adGroupRekbisArbeidsgiverrettet}}
     - name: AD_GROUP_REKBIS_JOBBSOKERRETTET
@@ -50,8 +56,6 @@ spec:
       value: {{adGroupRekbisUtvikler}}
     - name: KANDIDATSOK_API_URL
       value: http://rekrutteringsbistand-kandidatsok-api
-    - name: KAFKA_CONSUMER_GROUP_ID
-      value: {{ kafka_consumer_group_id }}
 
     {{#each env }}
     - name: {{ @key }}
