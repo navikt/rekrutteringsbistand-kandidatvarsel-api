@@ -42,8 +42,13 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.flywaydb:flyway-core:10.10.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.10.0")
-    implementation("com.github.navikt:rapids-and-rivers:2025110410541762250064.d7e58c3fad81")
-
+    
+    // Rapids and rivers fra tbd-libs (uten Ktor)
+    val tbdLibsVersion = "2024.11.25-10.59-6f263a10"
+    implementation("com.github.navikt.tbd-libs:rapids-and-rivers:$tbdLibsVersion")
+    implementation("com.github.navikt.tbd-libs:rapids-and-rivers-api:$tbdLibsVersion")
+    implementation("com.github.navikt.tbd-libs:kafka:$tbdLibsVersion")
+    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
 
     testImplementation(platform("org.junit:junit-bom:5.10.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
