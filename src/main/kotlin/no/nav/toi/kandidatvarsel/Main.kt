@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 import kotlin.system.exitProcess
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -90,7 +91,7 @@ fun startOppApplikasjon(
 
     registrerRapidsLyttere(kafkaRapid, dataSource)
     
-    val kafkaRapidThread = backgroundThread("kafka-rapid", avsluttSignal) {
+    val kafkaRapidThread = backgroundThread(navn = "kafka-rapid", timeoutvarighet = 30.seconds, avsluttSignal = avsluttSignal) {
         kafkaRapid.start()
     }
     log.info("KafkaRapid startet i bakgrunnstråd")
@@ -167,7 +168,7 @@ private fun registrerShutdownHook(
     })
 }
 
-private fun backgroundThread(navn: String, avsluttSignal: AtomicBoolean, oppgave: () -> Unit): Thread =
+private fun backgroundThread(navn: String, avsluttSignal: AtomicBoolean, timeoutvarighet: Duration = 1.seconds, oppgave: () -> Unit): Thread =
     thread(name = navn) {
         while (!avsluttSignal.get()) {
             try {
@@ -175,7 +176,7 @@ private fun backgroundThread(navn: String, avsluttSignal: AtomicBoolean, oppgave
             } catch (e: Exception) {
                 log.error("Exception i bakgrunnsThread $navn (se secure log)")
                 secureLog.error("Exception i bakgrunnsThread $navn", e)
-                Thread.sleep(1.seconds.inWholeMilliseconds)
+                Thread.sleep(timeoutvarighet.inWholeMilliseconds)
             }
         }
     }

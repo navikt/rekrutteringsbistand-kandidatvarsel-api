@@ -99,10 +99,10 @@ fun hentMeldingsmal(): Meldingsmal {
 }
 
 fun Javalin.handleMeldingsmal() {
-    // Deprecated endpoint - bruk /api/meldingsmal/stilling for stilling-maler
     get(
         "/api/meldingsmal",
         { ctx ->
+            log.warn("Deprecated endpoint /api/meldingsmal kalles - bruk /api/meldingsmal/stilling i stedet")
             ctx.json(hentMeldingsmal())
         },
         Rolle.UNPROTECTED
