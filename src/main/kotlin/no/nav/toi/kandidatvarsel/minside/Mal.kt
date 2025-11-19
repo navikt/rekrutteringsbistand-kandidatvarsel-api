@@ -46,7 +46,7 @@ object Maler {
         PassendeStilling.name -> PassendeStilling
         PassendeJobbarrangement.name -> PassendeJobbarrangement
         KandidatInvitertTreff.name -> KandidatInvitertTreff
-        InvitertKandidatTreffEndret.name -> InvitertKandidatTreffEndret
+        KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
         else -> throw IllegalArgumentException("Ukjent Mal: $name")
     }
 
@@ -59,7 +59,7 @@ object Maler {
 
         VarselType.REKRUTTERINGSTREFF -> listOf(
             KandidatInvitertTreff.name,
-            InvitertKandidatTreffEndret.name
+            KandidatInvitertTreffEndret.name
         )
     }
 
@@ -148,8 +148,8 @@ data object KandidatInvitertTreff : RekrutteringstreffMal {
         )
 }
 
-data object InvitertKandidatTreffEndret : RekrutteringstreffMal {
-    override val name = "INVITERT_KANDIDAT_TREFF_ENDRET"
+data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
+    override val name = "KANDIDAT_INVITERT_TREFF_ENDRET"
 
     override fun minsideTekst() =
         "Det har skjedd endringer knyttet til et treff med arbeidsgivere som du er invitert til. Se mer her."

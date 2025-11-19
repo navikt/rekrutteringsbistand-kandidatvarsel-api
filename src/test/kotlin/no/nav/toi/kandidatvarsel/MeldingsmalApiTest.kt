@@ -190,7 +190,7 @@ class MeldingsmalApiTest {
         
         // Verifiser at alle rekrutteringstreffmaler er med
         assertTrue(meldingsmal.containsKey("kandidatInvitertTreff"))
-        assertTrue(meldingsmal.containsKey("invistertTreffKandidatEndret"))
+        assertTrue(meldingsmal.containsKey("kandidatInvitertTreffEndret"))
         
         // Verifiser struktur for en av malene
         val kandidatInvitertTreff = meldingsmal["kandidatInvitertTreff"] as Map<*, *>
@@ -219,7 +219,7 @@ class MeldingsmalApiTest {
     }
 
     @Test
-    fun `GET meldingsmal-rekrutteringstreff returnerer korrekt struktur for invistertTreffKandidatEndret`() {
+    fun `GET meldingsmal-rekrutteringstreff returnerer korrekt struktur for kandidatInvitertTreffEndret`() {
         val request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:${app.javalinPort()}/api/meldingsmal/rekrutteringstreff"))
             .GET()
@@ -229,12 +229,12 @@ class MeldingsmalApiTest {
         assertEquals(200, response.statusCode())
         
         val meldingsmal: Map<String, Any?> = objectMapper.readValue(response.body())
-        val invistertTreffKandidatEndret = meldingsmal["invistertTreffKandidatEndret"] as Map<*, *>
+        val kandidatInvitertTreffEndret = meldingsmal["kandidatInvitertTreffEndret"] as Map<*, *>
         
         // Verifiser at feltene ikke er tomme
-        assertTrue((invistertTreffKandidatEndret["smsTekst"] as String).isNotEmpty())
-        assertTrue((invistertTreffKandidatEndret["epostTittel"] as String).isNotEmpty())
-        assertTrue((invistertTreffKandidatEndret["epostHtmlBody"] as String).isNotEmpty())
+        assertTrue((kandidatInvitertTreffEndret["smsTekst"] as String).isNotEmpty())
+        assertTrue((kandidatInvitertTreffEndret["epostTittel"] as String).isNotEmpty())
+        assertTrue((kandidatInvitertTreffEndret["epostHtmlBody"] as String).isNotEmpty())
     }
 
     @Test
@@ -313,12 +313,12 @@ class MeldingsmalApiTest {
                 meldingsmal.kandidatInvitertTreff.epostHtmlBody)
             
             assertEquals("Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav", 
-                meldingsmal.invistertTreffKandidatEndret.smsTekst)
+                meldingsmal.kandidatInvitertTreffEndret.smsTekst)
             assertEquals("Endringer på treff du er invitert til", 
-                meldingsmal.invistertTreffKandidatEndret.epostTittel)
+                meldingsmal.kandidatInvitertTreffEndret.epostTittel)
             assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
                 "Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon."),
-                meldingsmal.invistertTreffKandidatEndret.epostHtmlBody)
+                meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody)
         }
     }
 }

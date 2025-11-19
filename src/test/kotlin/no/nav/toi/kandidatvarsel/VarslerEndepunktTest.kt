@@ -108,7 +108,7 @@ class VarslerEndepunktTest {
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.InvitertKandidatTreffEndret,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident

@@ -82,9 +82,9 @@ class MeldingsmalTest {
                     Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på.
                 """.trimIndent())
             )
-            assertEquals(meldingsmal.invistertTreffKandidatEndret.smsTekst, "Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav")
-            assertEquals(meldingsmal.invistertTreffKandidatEndret.epostTittel, "Endringer på treff du er invitert til")
-            assertEquals(meldingsmal.invistertTreffKandidatEndret.epostHtmlBody,
+            assertEquals(meldingsmal.kandidatInvitertTreffEndret.smsTekst, "Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav")
+            assertEquals(meldingsmal.kandidatInvitertTreffEndret.epostTittel, "Endringer på treff du er invitert til")
+            assertEquals(meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody,
                 epostHtmlBodyTemplate("""
                     Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon.
                 """.trimIndent())

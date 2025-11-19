@@ -26,7 +26,7 @@ data class KandidatInvitertTreff(
     val epostHtmlBody: String
 )
 
-data class InvitertTreffKandidatEndret(
+data class KandidatInvitertTreffEndret(
     val smsTekst: String,
     val epostTittel: String,
     val epostHtmlBody: String
@@ -46,7 +46,7 @@ data class StillingMeldingsmal(
 
 data class RekrutteringstreffMeldingsmal(
     val kandidatInvitertTreff: KandidatInvitertTreff,
-    val invistertTreffKandidatEndret: InvitertTreffKandidatEndret
+    val kandidatInvitertTreffEndret: KandidatInvitertTreffEndret
 )
 
 fun hentStillingMeldingsmal(): StillingMeldingsmal {
@@ -73,18 +73,18 @@ fun hentStillingMeldingsmal(): StillingMeldingsmal {
 }
 
 fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
-    val kandidatInvitertTreff = KandidatInvitertTreff
-    val invitertTreffKandidatEndret = InvitertKandidatTreffEndret
+    val kandidatInvitertTreff = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff
+    val kandidatInvitertTreffEndret = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
     return RekrutteringstreffMeldingsmal(
         kandidatInvitertTreff = KandidatInvitertTreff(
             smsTekst = kandidatInvitertTreff.smsTekst(),
             epostTittel = kandidatInvitertTreff.epostTittel(),
             epostHtmlBody = kandidatInvitertTreff.epostHtmlBody()
         ),
-        invistertTreffKandidatEndret = InvitertTreffKandidatEndret(
-            smsTekst = InvitertKandidatTreffEndret.smsTekst(),
-            epostTittel = InvitertKandidatTreffEndret.epostTittel(),
-            epostHtmlBody = InvitertKandidatTreffEndret.epostHtmlBody()
+        kandidatInvitertTreffEndret = KandidatInvitertTreffEndret(
+            smsTekst = kandidatInvitertTreffEndret.smsTekst(),
+            epostTittel = kandidatInvitertTreffEndret.epostTittel(),
+            epostHtmlBody = kandidatInvitertTreffEndret.epostHtmlBody()
         )
     )
 }

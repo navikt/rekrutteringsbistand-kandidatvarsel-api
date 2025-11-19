@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.testcontainers.containers.PostgreSQLContainer
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class InvitertKandidatTreffEndretLytterTest {
+class KandidatInvitertTreffEndretLytterTest {
 
     private val postgres = PostgreSQLContainer("postgres:15").apply { start() }
     private val dataSource = DatabaseConfig(
@@ -30,7 +30,7 @@ class InvitertKandidatTreffEndretLytterTest {
             .load()
             .migrate()
             
-        InvitertKandidatTreffEndretLytter(testRapid.delegate, dataSource)
+        KandidatInvitertTreffEndretLytter(testRapid.delegate, dataSource)
     }
 
     @BeforeEach
@@ -48,13 +48,13 @@ class InvitertKandidatTreffEndretLytterTest {
     }
 
     @Test
-    fun `skal opprette varsel når invitert kandidat endret melding mottas`() {
+    fun `skal opprette varsel når kandidat invitert treff endret melding mottas`() {
         val varselId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "invitert.kandidat.endret",
+                "@event_name": "kandidat.invitert.treff.endret",
                 "varselId": "$varselId",
                 "fnr": "$fnr",
                 "avsenderNavident": "Z123456"
@@ -66,7 +66,7 @@ class InvitertKandidatTreffEndretLytterTest {
         }
 
         assertEquals(1, varsler.size)
-        assertEquals(InvitertKandidatTreffEndret.name, varsler[0].mal.name)
+        assertEquals(KandidatInvitertTreffEndret.name, varsler[0].mal.name)
         assertEquals(varselId, varsler[0].avsenderReferanseId)
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
@@ -78,7 +78,7 @@ class InvitertKandidatTreffEndretLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "invitert.kandidat.endret",
+                "@event_name": "kandidat.invitert.treff.endret",
                 "fnr": "12345678901",
                 "avsenderNavident": "Z123456"
             }
@@ -97,7 +97,7 @@ class InvitertKandidatTreffEndretLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "invitert.kandidat.endret",
+                "@event_name": "kandidat.invitert.treff.endret",
                 "varselId": "$varselId",
                 "avsenderNavident": "Z123456"
             }
@@ -116,7 +116,7 @@ class InvitertKandidatTreffEndretLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "invitert.kandidat.endret",
+                "@event_name": "kandidat.invitert.treff.endret",
                 "varselId": "$varselId",
                 "fnr": "12345678901"
             }

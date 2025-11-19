@@ -127,7 +127,7 @@ class VarslerApiTest {
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.InvitertKandidatTreffEndret,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr2,
                 avsenderNavident = navident
@@ -665,7 +665,7 @@ class VarslerApiTest {
 
             // Rekrutteringstreff-mal med annen id
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.InvitertKandidatTreffEndret,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr3,
                 avsenderNavident = navident

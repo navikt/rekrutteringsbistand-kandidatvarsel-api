@@ -51,7 +51,7 @@ enum class MalDto(val mal: Mal) {
     PASSENDE_STILLING(PassendeStilling),
     PASSENDE_JOBBARRANGEMENT(PassendeJobbarrangement),
     KANDIDAT_INVITERT_TREFF(KandidatInvitertTreff),
-    INVITERT_KANDIDAT_TREFF_ENDRET(InvitertKandidatTreffEndret),
+    KANDIDAT_INVITERT_TREFF_ENDRET(KandidatInvitertTreffEndret),
 }
 
 data class QueryRequestDto(

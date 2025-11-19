@@ -54,7 +54,7 @@ class RekrutteringstreffVarslerTest {
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.InvitertKandidatTreffEndret,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId1,
                 mottakerFnr = fnr2,
                 avsenderNavident = "Z1"
@@ -168,7 +168,7 @@ class RekrutteringstreffVarslerTest {
             ).insert(tx)
 
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.InvitertKandidatTreffEndret,
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr2,
                 avsenderNavident = "Z1"

@@ -12,18 +12,18 @@ import no.nav.toi.kandidatvarsel.minside.*
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
-class InvitertKandidatTreffEndretLytter(
+class KandidatInvitertTreffEndretLytter(
     rapidsConnection: RapidsConnection,
     private val dataSource: DataSource
 ) : River.PacketListener {
 
-    private val log = LoggerFactory.getLogger(InvitertKandidatTreffEndretLytter::class.java)
+    private val log = LoggerFactory.getLogger(KandidatInvitertTreffEndretLytter::class.java)
     private val secureLog = LoggerFactory.getLogger("secureLog")
 
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "invitert.kandidat.endret")
+                it.requireValue("@event_name", "kandidat.invitert.treff.endret")
             }
             validate {
                 it.requireKey("varselId", "fnr", "avsenderNavident")
@@ -41,27 +41,27 @@ class InvitertKandidatTreffEndretLytter(
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["avsenderNavident"].asText()
 
-        log.info("Mottok invitert.kandidat.endret-hendelse for varselId=$varselId")
-        secureLog.info("Mottok invitert.kandidat.endret-hendelse for varselId=$varselId, fnr=$fnr, avsenderNavident=$avsenderNavident")
+        log.info("Mottok kandidat.invitert.treff.endret-hendelse for varselId=$varselId")
+        secureLog.info("Mottok kandidat.invitert.treff.endret-hendelse for varselId=$varselId, fnr=$fnr, avsenderNavident=$avsenderNavident")
 
         try {
             VarselService.opprettVarsler(
                 dataSource = dataSource,
                 varselId = varselId,
                 fnrList = listOf(fnr),
-                mal = InvitertKandidatTreffEndret,
+                mal = KandidatInvitertTreffEndret,
                 avsenderNavident = avsenderNavident
             )
-            log.info("Behandlet invitert.kandidat.endret-hendelse for varselId=$varselId")
+            log.info("Behandlet kandidat.invitert.treff.endret-hendelse for varselId=$varselId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av invitert.kandidat.endret-hendelse for varselId=$varselId", e)
-            secureLog.error("Feil ved behandling av invitert.kandidat.endret-hendelse for varselId=$varselId, fnr=$fnr", e)
+            log.error("Feil ved behandling av kandidat.invitert.treff.endret-hendelse for varselId=$varselId", e)
+            secureLog.error("Feil ved behandling av kandidat.invitert.treff.endret-hendelse for varselId=$varselId, fnr=$fnr", e)
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av invitert.kandidat.endret-melding: <se secure log>")
-        secureLog.error("Feil ved parsing av invitert.kandidat.endret-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av kandidat.invitert.treff.endret-melding: <se secure log>")
+        secureLog.error("Feil ved parsing av kandidat.invitert.treff.endret-melding: ${problems.toExtendedReport()}")
     }
 }
