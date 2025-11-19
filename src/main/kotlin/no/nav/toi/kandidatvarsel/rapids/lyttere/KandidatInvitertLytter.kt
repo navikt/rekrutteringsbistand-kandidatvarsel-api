@@ -23,7 +23,7 @@ class KandidatInvitertLytter(
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "kandidat.invitert")
+                it.requireValue("@event_name", "kandidatInvitert")
             }
             validate {
                 it.requireKey("varselId", "fnr", "avsenderNavident")
@@ -41,8 +41,8 @@ class KandidatInvitertLytter(
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["avsenderNavident"].asText()
 
-        log.info("Mottok kandidat.invitert-hendelse for varselId=$varselId")
-        secureLog.info("Mottok kandidat.invitert-hendelse for varselId=$varselId, fnr=$fnr, avsenderNavident=$avsenderNavident")
+        log.info("Mottok kandidatInvitert-hendelse for varselId=$varselId")
+        secureLog.info("Mottok kandidatInvitert-hendelse for varselId=$varselId, fnr=$fnr, avsenderNavident=$avsenderNavident")
 
         try {
             VarselService.opprettVarsler(
@@ -52,16 +52,16 @@ class KandidatInvitertLytter(
                 mal = KandidatInvitertTreff,
                 avsenderNavident = avsenderNavident
             )
-            log.info("Behandlet kandidat.invitert-hendelse for varselId=$varselId")
+            log.info("Behandlet kandidatInvitert-hendelse for varselId=$varselId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av kandidat.invitert-hendelse for varselId=$varselId", e)
-            secureLog.error("Feil ved behandling av kandidat.invitert-hendelse for varselId=$varselId, fnr=$fnr", e)
+            log.error("Feil ved behandling av kandidatInvitert-hendelse for varselId=$varselId", e)
+            secureLog.error("Feil ved behandling av kandidatInvitert-hendelse for varselId=$varselId, fnr=$fnr", e)
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av kandidat.invitert-melding: <se secure log>")
-        secureLog.error("Feil ved parsing av kandidat.invitert-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av kandidatInvitert-melding: <se secure log>")
+        secureLog.error("Feil ved parsing av kandidatInvitert-melding: ${problems.toExtendedReport()}")
     }
 }

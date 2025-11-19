@@ -54,7 +54,7 @@ class KandidatInvitertLytterTest {
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidat.invitert",
+                "@event_name": "kandidatInvitert",
                 "varselId": "$varselId",
                 "fnr": "$fnr",
                 "avsenderNavident": "Z123456"
@@ -78,7 +78,7 @@ class KandidatInvitertLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidat.invitert",
+                "@event_name": "kandidatInvitert",
                 "fnr": "12345678901",
                 "avsenderNavident": "Z123456"
             }
@@ -97,7 +97,7 @@ class KandidatInvitertLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidat.invitert",
+                "@event_name": "kandidatInvitert",
                 "varselId": "$varselId",
                 "avsenderNavident": "Z123456"
             }
@@ -116,7 +116,7 @@ class KandidatInvitertLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidat.invitert",
+                "@event_name": "kandidatInvitert",
                 "varselId": "$varselId",
                 "fnr": "12345678901"
             }

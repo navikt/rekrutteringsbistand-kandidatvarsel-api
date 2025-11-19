@@ -23,7 +23,7 @@ class KandidatInvitertTreffEndretLytter(
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "kandidat.invitert.treff.endret")
+                it.requireValue("@event_name", "kandidatInvitertTreffEndret")
             }
             validate {
                 it.requireKey("varselId", "fnr", "avsenderNavident")
@@ -41,8 +41,8 @@ class KandidatInvitertTreffEndretLytter(
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["avsenderNavident"].asText()
 
-        log.info("Mottok kandidat.invitert.treff.endret-hendelse for varselId=$varselId")
-        secureLog.info("Mottok kandidat.invitert.treff.endret-hendelse for varselId=$varselId, fnr=$fnr, avsenderNavident=$avsenderNavident")
+        log.info("Mottok kandidatInvitertTreffEndret-hendelse for varselId=$varselId")
+        secureLog.info("Mottok kandidatInvitertTreffEndret-hendelse for varselId=$varselId, fnr=$fnr, avsenderNavident=$avsenderNavident")
 
         try {
             VarselService.opprettVarsler(
@@ -52,16 +52,16 @@ class KandidatInvitertTreffEndretLytter(
                 mal = KandidatInvitertTreffEndret,
                 avsenderNavident = avsenderNavident
             )
-            log.info("Behandlet kandidat.invitert.treff.endret-hendelse for varselId=$varselId")
+            log.info("Behandlet kandidatInvitertTreffEndret-hendelse for varselId=$varselId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av kandidat.invitert.treff.endret-hendelse for varselId=$varselId", e)
-            secureLog.error("Feil ved behandling av kandidat.invitert.treff.endret-hendelse for varselId=$varselId, fnr=$fnr", e)
+            log.error("Feil ved behandling av kandidatInvitertTreffEndret-hendelse for varselId=$varselId", e)
+            secureLog.error("Feil ved behandling av kandidatInvitertTreffEndret-hendelse for varselId=$varselId, fnr=$fnr", e)
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av kandidat.invitert.treff.endret-melding: <se secure log>")
-        secureLog.error("Feil ved parsing av kandidat.invitert.treff.endret-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av kandidatInvitertTreffEndret-melding: <se secure log>")
+        secureLog.error("Feil ved parsing av kandidatInvitertTreffEndret-melding: ${problems.toExtendedReport()}")
     }
 }
