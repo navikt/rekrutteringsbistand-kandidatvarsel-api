@@ -10,24 +10,24 @@ object VarselService {
 
     fun opprettVarsler(
         dataSource: DataSource,
-        varselId: String,
+        rekrutteringstreffId: String,
         fnrList: List<String>,
         mal: Mal,
         avsenderNavident: String,
     ) {
-        log.info("Oppretter ${fnrList.size} varsler for varselId=$varselId med mal=${mal.name}")
+        log.info("Oppretter ${fnrList.size} varsler for rekrutteringstreffId=$rekrutteringstreffId med mal=${mal.name}")
         
         dataSource.transaction { tx ->
             for (fnr in fnrList) {
                 MinsideVarsel.create(
                     mal = mal,
-                    avsenderReferanseId = varselId,
+                    avsenderReferanseId = rekrutteringstreffId,
                     mottakerFnr = fnr,
                     avsenderNavident = avsenderNavident,
                 ).insert(tx)
             }
         }
         
-        log.info("Opprettet ${fnrList.size} varsler for varselId=$varselId")
+        log.info("Opprettet ${fnrList.size} varsler for rekrutteringstreffId=$rekrutteringstreffId")
     }
 }

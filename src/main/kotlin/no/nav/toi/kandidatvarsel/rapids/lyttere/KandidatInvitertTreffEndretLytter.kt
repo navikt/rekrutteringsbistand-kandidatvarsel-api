@@ -26,7 +26,7 @@ class KandidatInvitertTreffEndretLytter(
                 it.requireValue("@event_name", "kandidatInvitertTreffEndret")
             }
             validate {
-                it.requireKey("varselId", "fnr", "avsenderNavident")
+                it.requireKey("rekrutteringstreffId", "fnr", "avsenderNavident")
             }
         }.register(this)
     }
@@ -37,25 +37,25 @@ class KandidatInvitertTreffEndretLytter(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry
     ) {
-        val varselId = packet["varselId"].asText()
+        val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["avsenderNavident"].asText()
 
-        log.info("Mottok kandidatInvitertTreffEndret-hendelse for varselId=$varselId")
-        secureLog.info("Mottok kandidatInvitertTreffEndret-hendelse for varselId=$varselId, fnr=$fnr, avsenderNavident=$avsenderNavident")
+        log.info("Mottok kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
+        secureLog.info("Mottok kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident")
 
         try {
             VarselService.opprettVarsler(
                 dataSource = dataSource,
-                varselId = varselId,
+                rekrutteringstreffId = rekrutteringstreffId,
                 fnrList = listOf(fnr),
                 mal = KandidatInvitertTreffEndret,
                 avsenderNavident = avsenderNavident
             )
-            log.info("Behandlet kandidatInvitertTreffEndret-hendelse for varselId=$varselId")
+            log.info("Behandlet kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av kandidatInvitertTreffEndret-hendelse for varselId=$varselId", e)
-            secureLog.error("Feil ved behandling av kandidatInvitertTreffEndret-hendelse for varselId=$varselId, fnr=$fnr", e)
+            log.error("Feil ved behandling av kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
+            secureLog.error("Feil ved behandling av kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
             throw e
         }
     }
