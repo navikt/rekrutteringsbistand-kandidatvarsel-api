@@ -23,10 +23,11 @@ class KandidatInvitertTreffEndretLytter(
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "kandidatInvitertTreffEndret")
+                it.requireValue("@event_name", "rekrutteringstreffoppdatering")
             }
             validate {
-                it.requireKey("rekrutteringstreffId", "fnr", "avsenderNavident")
+                it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
+                it.interestedIn("endretAv")
             }
         }.register(this)
     }
@@ -39,10 +40,11 @@ class KandidatInvitertTreffEndretLytter(
     ) {
         val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
         val fnr = packet["fnr"].asText()
-        val avsenderNavident = packet["avsenderNavident"].asText()
+        val avsenderNavident = packet["endretAv"].asText("SYSTEM")
+        val hendelseId = packet["hendelseId"].asText()
 
-        log.info("Mottok kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
-        secureLog.info("Mottok kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident")
+        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
+        secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId")
 
         try {
             VarselService.opprettVarsler(
@@ -50,18 +52,19 @@ class KandidatInvitertTreffEndretLytter(
                 rekrutteringstreffId = rekrutteringstreffId,
                 fnrList = listOf(fnr),
                 mal = KandidatInvitertTreffEndret,
-                avsenderNavident = avsenderNavident
+                avsenderNavident = avsenderNavident,
+                varselId = hendelseId
             )
-            log.info("Behandlet kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
+            log.info("Behandlet rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
-            secureLog.error("Feil ved behandling av kandidatInvitertTreffEndret-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
+            log.error("Feil ved behandling av rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
+            secureLog.error("Feil ved behandling av rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av kandidatInvitertTreffEndret-melding: <se secure log>")
-        secureLog.error("Feil ved parsing av kandidatInvitertTreffEndret-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av rekrutteringstreffoppdatering-melding: <se secure log>")
+        secureLog.error("Feil ved parsing av rekrutteringstreffoppdatering-melding: ${problems.toExtendedReport()}")
     }
 }

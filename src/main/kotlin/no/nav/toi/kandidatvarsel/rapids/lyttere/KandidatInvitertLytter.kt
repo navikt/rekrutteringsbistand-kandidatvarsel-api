@@ -23,10 +23,10 @@ class KandidatInvitertLytter(
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "kandidatInvitert")
+                it.requireValue("@event_name", "rekrutteringstreffinvitasjon")
             }
             validate {
-                it.requireKey("rekrutteringstreffId", "fnr", "avsenderNavident")
+                it.requireKey("rekrutteringstreffId", "fnr", "opprettetAv", "hendelseId")
             }
         }.register(this)
     }
@@ -39,10 +39,11 @@ class KandidatInvitertLytter(
     ) {
         val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
         val fnr = packet["fnr"].asText()
-        val avsenderNavident = packet["avsenderNavident"].asText()
+        val avsenderNavident = packet["opprettetAv"].asText()
+        val hendelseId = packet["hendelseId"].asText()
 
-        log.info("Mottok kandidatInvitert-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
-        secureLog.info("Mottok kandidatInvitert-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident")
+        log.info("Mottok rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
+        secureLog.info("Mottok rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId")
 
         try {
             VarselService.opprettVarsler(
@@ -50,18 +51,19 @@ class KandidatInvitertLytter(
                 rekrutteringstreffId = rekrutteringstreffId,
                 fnrList = listOf(fnr),
                 mal = KandidatInvitertTreff,
-                avsenderNavident = avsenderNavident
+                avsenderNavident = avsenderNavident,
+                varselId = hendelseId
             )
-            log.info("Behandlet kandidatInvitert-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
+            log.info("Behandlet rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av kandidatInvitert-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
-            secureLog.error("Feil ved behandling av kandidatInvitert-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
+            log.error("Feil ved behandling av rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
+            secureLog.error("Feil ved behandling av rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av kandidatInvitert-melding: <se secure log>")
-        secureLog.error("Feil ved parsing av kandidatInvitert-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av rekrutteringstreffinvitasjon-melding: <se secure log>")
+        secureLog.error("Feil ved parsing av rekrutteringstreffinvitasjon-melding: ${problems.toExtendedReport()}")
     }
 }

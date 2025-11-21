@@ -51,13 +51,15 @@ class KandidatInvitertLytterTest {
     fun `skal opprette varsel når kandidat invitert melding mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
+        val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidatInvitert",
+                "@event_name": "rekrutteringstreffinvitasjon",
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
-                "avsenderNavident": "Z123456"
+                "opprettetAv": "Z123456",
+                "hendelseId": "$hendelseId"
             }
         """.trimIndent())
 
@@ -70,6 +72,7 @@ class KandidatInvitertLytterTest {
         assertEquals(rekrutteringstreffId, varsler[0].avsenderReferanseId)
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
+        assertEquals(hendelseId, varsler[0].varselId)
     }
     
     @Test
@@ -78,9 +81,10 @@ class KandidatInvitertLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidatInvitert",
+                "@event_name": "rekrutteringstreffinvitasjon",
                 "fnr": "12345678901",
-                "avsenderNavident": "Z123456"
+                "opprettetAv": "Z123456",
+                "hendelseId": "87654321-4321-4321-4321-210987654321"
             }
         """.trimIndent())
 
@@ -97,7 +101,7 @@ class KandidatInvitertLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidatInvitert",
+                "@event_name": "rekrutteringstreffinvitasjon",
                 "varselId": "$varselId",
                 "avsenderNavident": "Z123456"
             }

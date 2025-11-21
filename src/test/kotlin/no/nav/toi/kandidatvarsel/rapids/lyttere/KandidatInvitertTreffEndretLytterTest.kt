@@ -51,13 +51,15 @@ class KandidatInvitertTreffEndretLytterTest {
     fun `skal opprette varsel når kandidat invitert treff endret melding mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
+        val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidatInvitertTreffEndret",
+                "@event_name": "rekrutteringstreffoppdatering",
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
-                "avsenderNavident": "Z123456"
+                "endretAv": "Z123456",
+                "hendelseId": "$hendelseId"
             }
         """.trimIndent())
 
@@ -70,6 +72,30 @@ class KandidatInvitertTreffEndretLytterTest {
         assertEquals(rekrutteringstreffId, varsler[0].avsenderReferanseId)
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
+        assertEquals(hendelseId, varsler[0].varselId)
+    }
+
+    @Test
+    fun `skal bruke SYSTEM som avsender når endretAv mangler`() {
+        val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
+        val fnr = "12345678901"
+        val hendelseId = "87654321-4321-4321-4321-210987654321"
+
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "rekrutteringstreffoppdatering",
+                "rekrutteringstreffId": "$rekrutteringstreffId",
+                "fnr": "$fnr",
+                "hendelseId": "$hendelseId"
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId)
+        }
+
+        assertEquals(1, varsler.size)
+        assertEquals("SYSTEM", varsler[0].avsenderNavIdent)
     }
     
     @Test
@@ -78,9 +104,10 @@ class KandidatInvitertTreffEndretLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidatInvitertTreffEndret",
+                "@event_name": "rekrutteringstreffoppdatering",
                 "fnr": "12345678901",
-                "avsenderNavident": "Z123456"
+                "endretAv": "Z123456",
+                "hendelseId": "87654321-4321-4321-4321-210987654321"
             }
         """.trimIndent())
 
@@ -97,7 +124,7 @@ class KandidatInvitertTreffEndretLytterTest {
         
         testRapid.sendTestMessage("""
             {
-                "@event_name": "kandidatInvitertTreffEndret",
+                "@event_name": "rekrutteringstreffoppdatering",
                 "varselId": "$varselId",
                 "avsenderNavident": "Z123456"
             }

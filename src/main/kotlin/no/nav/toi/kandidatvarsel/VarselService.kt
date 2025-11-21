@@ -14,16 +14,24 @@ object VarselService {
         fnrList: List<String>,
         mal: Mal,
         avsenderNavident: String,
+        varselId: String? = null
     ) {
+        if (varselId != null && fnrList.size > 1) {
+            throw IllegalArgumentException("Kan ikke opprette varsler med samme varselId for flere mottakere")
+        }
+
         log.info("Oppretter ${fnrList.size} varsler for rekrutteringstreffId=$rekrutteringstreffId med mal=${mal.name}")
         
         dataSource.transaction { tx ->
-            for (fnr in fnrList) {
+            fnrList.filter {
+                varselId == null || MinsideVarsel.finnFraVarselId(tx, varselId) == null
+            }.forEach { fnr ->
                 MinsideVarsel.create(
                     mal = mal,
                     avsenderReferanseId = rekrutteringstreffId,
                     mottakerFnr = fnr,
                     avsenderNavident = avsenderNavident,
+                    varselId = varselId
                 ).insert(tx)
             }
         }

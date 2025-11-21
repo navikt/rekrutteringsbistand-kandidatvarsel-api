@@ -154,10 +154,11 @@ data class MinsideVarsel(
             avsenderReferanseId: String,
             mottakerFnr: String,
             avsenderNavident: String,
+            varselId: String? = null
         ) = MinsideVarsel(
             dbid = null,
             mal = mal,
-            varselId = uuidGenerator.generate().toString(),
+            varselId = varselId ?: uuidGenerator.generate().toString(),
             avsenderReferanseId = avsenderReferanseId,
             opprettet = LocalDateTime.now(ZoneId.of("Europe/Oslo")),
             mottakerFnr = mottakerFnr,
