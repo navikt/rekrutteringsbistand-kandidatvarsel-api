@@ -6,6 +6,7 @@ import io.javalin.http.HttpStatus
 import io.javalin.http.bodyAsClass
 import no.nav.toi.kandidatvarsel.Rolle.*
 import no.nav.toi.kandidatvarsel.altinnsms.AltinnVarsel
+import no.nav.toi.kandidatvarsel.minside.*
 import no.nav.toi.kandidatvarsel.minside.Kanal
 import no.nav.toi.kandidatvarsel.minside.Mal
 import no.nav.toi.kandidatvarsel.minside.MinsideVarsel
@@ -46,9 +47,11 @@ enum class MinsideStatusDto {
 
 @Suppress("unused" /* deserialiseres */)
 enum class MalDto(val mal: Mal) {
-    VURDERT_SOM_AKTUELL(Mal.Companion.VurdertSomAktuell),
-    PASSENDE_STILLING(Mal.Companion.PassendeStilling),
-    PASSENDE_JOBBARRANGEMENT(Mal.Companion.PassendeJobbarrangement),
+    VURDERT_SOM_AKTUELL(VurdertSomAktuell),
+    PASSENDE_STILLING(PassendeStilling),
+    PASSENDE_JOBBARRANGEMENT(PassendeJobbarrangement),
+    KANDIDAT_INVITERT_TREFF(KandidatInvitertTreff),
+    KANDIDAT_INVITERT_TREFF_ENDRET(KandidatInvitertTreffEndret),
 }
 
 data class QueryRequestDto(
@@ -90,6 +93,20 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
         REKBIS_ARBEIDSGIVERRETTET
     )
 
+    get(
+        "/api/varsler/rekrutteringstreff/{rekrutteringstreffId}",
+        { ctx ->
+            val rekrutteringstreffId = ctx.pathParam("rekrutteringstreffId")
+            val varsler = dataSource.transaction { tx ->
+                MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId)
+                    .map { it.toResponse() }
+            }
+            ctx.json(varsler)
+        },
+        REKBIS_UTVIKLER,
+        REKBIS_ARBEIDSGIVERRETTET
+    )
+
     post(
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
@@ -99,7 +116,7 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
                 for (fnr in nyeVarslerRequestDto.fnr) {
                     MinsideVarsel.create(
                         mal = nyeVarslerRequestDto.mal.mal,
-                        stillingId = stillingId,
+                        avsenderReferanseId = stillingId,
                         mottakerFnr = fnr,
                         avsenderNavident = ctx.authenticatedUser().navident,
                     )

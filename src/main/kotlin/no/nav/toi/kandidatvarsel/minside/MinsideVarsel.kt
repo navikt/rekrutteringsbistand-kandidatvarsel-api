@@ -28,7 +28,7 @@ data class MinsideVarsel(
     private val dbid: Long?,
     val mal: Mal,
     val varselId: String,
-    val stillingId: String,
+    val avsenderReferanseId: String,
     val opprettet: LocalDateTime,
     val mottakerFnr: String,
     val avsenderNavIdent: String,
@@ -55,7 +55,7 @@ data class MinsideVarsel(
          * Prefixer med "A" for å starte et nytt "namespace". */
         id = "A$dbid",
         opprettet = opprettet,
-        stillingId = stillingId,
+        stillingId = avsenderReferanseId,
         mottakerFnr = mottakerFnr,
         avsenderNavident = avsenderNavIdent,
         minsideStatus = when (minsideStatus) {
@@ -135,7 +135,9 @@ data class MinsideVarsel(
             .param("avsender_navident", avsenderNavIdent)
             .param("varsel_id", varselId)
             .param("mal", mal.name)
-            .param("stilling_id", stillingId)
+
+            // TODO: Bytte feltnavn i databasen til avsender_referanse_id, avventer databaseendring for å ikke forkludre tilbakerullingsmuligheter
+            .param("stilling_id", avsenderReferanseId)
             .param("bestilt", bestilt)
             .param("minside_status", minsideStatus?.name)
             .param("ekstern_status", eksternStatus?.name)
@@ -149,14 +151,15 @@ data class MinsideVarsel(
 
         fun create(
             mal: Mal,
-            stillingId: String,
+            avsenderReferanseId: String,
             mottakerFnr: String,
             avsenderNavident: String,
+            varselId: String? = null
         ) = MinsideVarsel(
             dbid = null,
             mal = mal,
-            varselId = uuidGenerator.generate().toString(),
-            stillingId = stillingId,
+            varselId = varselId ?: uuidGenerator.generate().toString(),
+            avsenderReferanseId = avsenderReferanseId,
             opprettet = LocalDateTime.now(ZoneId.of("Europe/Oslo")),
             mottakerFnr = mottakerFnr,
             avsenderNavIdent = avsenderNavident,
@@ -189,11 +192,31 @@ data class MinsideVarsel(
                 .optional()
                 .getOrNull()
 
-        fun hentVarslerForStilling(jdbcClient: JdbcClient, stillingId: String): List<MinsideVarsel> =
-            jdbcClient.sql(""" select * from minside_varsel where stilling_id = :stilling_id""")
+        fun hentVarslerForStilling(jdbcClient: JdbcClient, stillingId: String): List<MinsideVarsel> {
+            val stillingMaler = Maler.malerForVarselType(VarselType.STILLING)
+            return jdbcClient.sql("""
+                select * from minside_varsel 
+                where stilling_id = :stilling_id 
+                and mal = any(:maler)
+            """.trimIndent())
                 .param("stilling_id", stillingId)
+                .param("maler", stillingMaler.toTypedArray())
                 .query(RowMapper)
                 .list()
+        }
+
+        fun hentVarslerForRekrutteringstreff(jdbcClient: JdbcClient, rekrutteringstreffId: String): List<MinsideVarsel> {
+            val rekrutteringstreffMaler = Maler.malerForVarselType(VarselType.REKRUTTERINGSTREFF)
+            return jdbcClient.sql("""
+                select * from minside_varsel 
+                where stilling_id = :avsender_referanse_id 
+                and mal = any(:maler)
+            """.trimIndent())
+                .param("avsender_referanse_id", rekrutteringstreffId)
+                .param("maler", rekrutteringstreffMaler.toTypedArray())
+                .query(RowMapper)
+                .list()
+        }
 
         fun hentVarslerForQuery(jdbcClient: JdbcClient, queryRequestDto: QueryRequestDto): List<MinsideVarsel> =
             jdbcClient.sql(""" select * from minside_varsel where mottaker_fnr = :mottaker_fnr """)
@@ -208,8 +231,8 @@ data class MinsideVarsel(
                 mottakerFnr = rs.getString("mottaker_fnr"),
                 avsenderNavIdent = rs.getString("avsender_navident"),
                 varselId = rs.getString("varsel_id"),
-                mal = Mal.valueOf(rs.getString("mal")),
-                stillingId = rs.getString("stilling_id"),
+                mal = Maler.valueOf(rs.getString("mal")),
+                avsenderReferanseId = rs.getString("stilling_id"),
                 bestilt = rs.getBoolean("bestilt"),
                 minsideStatus = rs.getString("minside_status")?.let { MinsideStatus.valueOf(it) },
                 eksternStatus = rs.getString("ekstern_status")?.let { EksternStatus.valueOf(it) },

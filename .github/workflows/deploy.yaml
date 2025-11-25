@@ -1,12 +1,12 @@
 name: Build and deploy
-on: [ push, workflow_dispatch ]
+on: [push, workflow_dispatch]
 
 jobs:
   call-build-and-deploy:
     uses: navikt/toi-github-actions-workflows/.github/workflows/build-and-deploy.yaml@v1
     with:
-      java-version: '21'
-      deploy-to-dev-if-branch-name-is: 'eksponer-kanal-frontend'
+      java-version: "21"
+      deploy-to-dev-if-branch-name-is: "rapid"
     permissions:
       contents: read
       id-token: write

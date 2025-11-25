@@ -1,6 +1,6 @@
 package no.nav.toi.kandidatvarsel
 import io.javalin.Javalin
-import no.nav.toi.kandidatvarsel.minside.Mal
+import no.nav.toi.kandidatvarsel.minside.*
 
 data class VurdertSomAktuell(
     val smsTekst: String,
@@ -20,17 +20,40 @@ data class PassendeJobbarrangement(
     val epostHtmlBody: String
 )
 
+data class KandidatInvitertTreff(
+    val smsTekst: String,
+    val epostTittel: String,
+    val epostHtmlBody: String
+)
+
+data class KandidatInvitertTreffEndret(
+    val smsTekst: String,
+    val epostTittel: String,
+    val epostHtmlBody: String
+)
+
 data class Meldingsmal(
     val vurdertSomAktuell: VurdertSomAktuell,
     val passendeStilling: PassendeStilling,
     val passendeJobbarrangement: PassendeJobbarrangement
- )
+)
 
-fun hentMeldingsmal(): Meldingsmal {
-    val vurdertSomAktuell = Mal.Companion.VurdertSomAktuell
-    val passendeStilling = Mal.Companion.PassendeStilling
-    val passendeJobbarrangement = Mal.Companion.PassendeJobbarrangement
-    return Meldingsmal(
+data class StillingMeldingsmal(
+    val vurdertSomAktuell: VurdertSomAktuell,
+    val passendeStilling: PassendeStilling,
+    val passendeJobbarrangement: PassendeJobbarrangement
+)
+
+data class RekrutteringstreffMeldingsmal(
+    val kandidatInvitertTreff: KandidatInvitertTreff,
+    val kandidatInvitertTreffEndret: KandidatInvitertTreffEndret
+)
+
+fun hentStillingMeldingsmal(): StillingMeldingsmal {
+    val vurdertSomAktuell = VurdertSomAktuell
+    val passendeStilling = PassendeStilling
+    val passendeJobbarrangement = PassendeJobbarrangement
+    return StillingMeldingsmal(
         vurdertSomAktuell = VurdertSomAktuell(
             smsTekst = vurdertSomAktuell.smsTekst(),
             epostTittel = vurdertSomAktuell.epostTittel(),
@@ -49,11 +72,54 @@ fun hentMeldingsmal(): Meldingsmal {
     )
 }
 
+fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
+    val kandidatInvitertTreff = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff
+    val kandidatInvitertTreffEndret = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+    return RekrutteringstreffMeldingsmal(
+        kandidatInvitertTreff = KandidatInvitertTreff(
+            smsTekst = kandidatInvitertTreff.smsTekst(),
+            epostTittel = kandidatInvitertTreff.epostTittel(),
+            epostHtmlBody = kandidatInvitertTreff.epostHtmlBody()
+        ),
+        kandidatInvitertTreffEndret = KandidatInvitertTreffEndret(
+            smsTekst = kandidatInvitertTreffEndret.smsTekst(),
+            epostTittel = kandidatInvitertTreffEndret.epostTittel(),
+            epostHtmlBody = kandidatInvitertTreffEndret.epostHtmlBody()
+        )
+    )
+}
+
+fun hentMeldingsmal(): Meldingsmal {
+    val stillingMeldingsmal = hentStillingMeldingsmal()
+    return Meldingsmal(
+        vurdertSomAktuell = stillingMeldingsmal.vurdertSomAktuell,
+        passendeStilling = stillingMeldingsmal.passendeStilling,
+        passendeJobbarrangement = stillingMeldingsmal.passendeJobbarrangement
+    )
+}
+
 fun Javalin.handleMeldingsmal() {
     get(
         "/api/meldingsmal",
         { ctx ->
+            log.warn("Deprecated endpoint /api/meldingsmal kalles - bruk /api/meldingsmal/stilling i stedet")
             ctx.json(hentMeldingsmal())
+        },
+        Rolle.UNPROTECTED
+    )
+    
+    get(
+        "/api/meldingsmal/stilling",
+        { ctx ->
+            ctx.json(hentStillingMeldingsmal())
+        },
+        Rolle.UNPROTECTED
+    )
+    
+    get(
+        "/api/meldingsmal/rekrutteringstreff",
+        { ctx ->
+            ctx.json(hentRekrutteringstreffMeldingsmal())
         },
         Rolle.UNPROTECTED
     )

@@ -16,8 +16,18 @@ fun bestillVarsel(
 ): Boolean = dataSource.transaction { tx ->
     val minsideVarsel = MinsideVarsel.finnOgLåsUsendtVarsel(tx) ?:
         return@transaction false
-    val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.stillingId)) ?: return@transaction false
-    kafkaProducer.sendBestilling(minsideVarsel, stilling)
+    
+    when (val mal = minsideVarsel.mal) {
+        is StillingMal -> {
+            val stilling = stillingClient.getStilling(UUID.fromString(minsideVarsel.avsenderReferanseId))
+                ?: throw IllegalStateException("Kunne ikke hente stilling med id ${minsideVarsel.avsenderReferanseId}")
+            kafkaProducer.sendBestilling(minsideVarsel, mal, stilling.title, stilling.businessName)
+        }
+        is RekrutteringstreffMal -> {
+            kafkaProducer.sendBestilling(minsideVarsel, mal)
+        }
+    }
+    
     val oppdatertVarsel = minsideVarsel.markerBestilt()
     oppdatertVarsel.save(tx)
     return@transaction true
