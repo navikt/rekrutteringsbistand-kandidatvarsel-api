@@ -24,7 +24,7 @@ fun bestillVarsel(
             kafkaProducer.sendBestilling(minsideVarsel, mal, stilling.title, stilling.businessName)
         }
         is RekrutteringstreffMal -> {
-            kafkaProducer.sendBestilling(minsideVarsel, mal, tittel = null)
+            kafkaProducer.sendBestilling(minsideVarsel, mal)
         }
     }
     

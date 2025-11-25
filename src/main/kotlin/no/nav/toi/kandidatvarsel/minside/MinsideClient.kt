@@ -59,7 +59,7 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: S
     log.info("kafkameldig sendt. varselId/key: '{}' metadata: {}", minsideVarsel.varselId, metadataFuture.get())
 }
 
-fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: RekrutteringstreffMal, tittel: String?) {
+fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: RekrutteringstreffMal) {
     val clusterName = System.getenv("NAIS_CLUSTER_NAME") ?: "local"
     val isProd = clusterName == "prod-gcp"
     
