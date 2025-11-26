@@ -60,7 +60,7 @@ private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConn
     if (varsel.mal is RekrutteringstreffMal) {
         val responseDto = varsel.toResponse()
         val packet = mapOf(
-            "@event_name" to "rekrutteringstreff.varsel.oppdatering",
+            "@event_name" to "minsideVarselSvar",
             "varselId" to responseDto.id,
             "avsenderReferanseId" to responseDto.stillingId,
             "fnr" to responseDto.mottakerFnr,
