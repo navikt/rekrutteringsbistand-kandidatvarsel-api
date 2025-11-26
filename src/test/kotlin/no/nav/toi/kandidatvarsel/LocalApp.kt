@@ -90,7 +90,7 @@ class LocalApp() {
 
     val migrateResult = AtomicReference<MigrateResult>()
 
-    private val mockKafkaRapid = mockk<KafkaRapid>().also {
+    val mockKafkaRapid = mockk<KafkaRapid>(relaxed = true).also {
         every { it.isRunning() } returns true
     }
 

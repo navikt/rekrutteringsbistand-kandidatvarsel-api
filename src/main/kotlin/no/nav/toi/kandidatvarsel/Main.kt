@@ -78,7 +78,7 @@ fun startOppApplikasjon(
     }
 
     val minsideOppdateringThread = backgroundThread("minside-oppdatering", avsluttSignal) {
-        sjekkVarselOppdateringer(dataSource, minsideOppdateringConsumer)
+        sjekkVarselOppdateringer(dataSource, minsideOppdateringConsumer, kafkaRapid)
     }
 
     val javalin = startJavalin(
