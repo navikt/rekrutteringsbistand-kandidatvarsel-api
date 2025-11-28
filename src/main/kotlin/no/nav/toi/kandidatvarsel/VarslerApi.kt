@@ -66,7 +66,10 @@ data class NyeVarslerRequestDto(
 data class VarselResponseDto(
     val id: String,
     val opprettet: LocalDateTime,
+
+    // TODO: Dette bør hete avsenderReferanseId når vi bytter feltnavn til det i databasen. Feltet kan også inneholde id til rekrutteirngstreff nå.
     val stillingId: String,
+    
     val mottakerFnr: String,
     val avsenderNavident: String,
     val minsideStatus: MinsideStatusDto,
