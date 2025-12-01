@@ -1,9 +1,13 @@
 package no.nav.toi.kandidatvarsel
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
+import io.mockk.slot
 import io.mockk.verify
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -11,9 +15,13 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
 import uk.org.webcompere.systemstubs.jupiter.SystemStub
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 private const val kandidatsokPort = 10003
+
+private val objectMapper = jacksonObjectMapper()
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SystemStubsExtension::class)
@@ -67,9 +75,27 @@ class RekrutteringstreffRapidTest {
         minside.varselOpprettet(varsel.varselId)
         sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
 
+        val messageSlot = slot<String>()
         verify(exactly = 1) {
-            app.mockKafkaRapid.publish(fnr, any())
+            app.mockKafkaRapid.publish(fnr, capture(messageSlot))
         }
+
+        val packet = objectMapper.readValue<Map<String, Any?>>(messageSlot.captured)
+        
+        // Verifiser alle forventede felter
+        assertEquals("minsideVarselSvar", packet["@event_name"])
+        assertNotNull(packet["varselId"], "varselId skal være satt")
+        assertTrue(packet["varselId"].toString().startsWith("A"), "varselId skal ha prefix 'A'")
+        assertEquals(rekrutteringstreffId, packet["avsenderReferanseId"])
+        assertEquals(fnr, packet["fnr"])
+        assertEquals(navident, packet["avsenderNavident"])
+        assertEquals("KANDIDAT_INVITERT_TREFF", packet["mal"])
+        
+        // Verifiser at opprettet er en nylig ZonedDateTime-streng (mellom ett minutt siden og nå)
+        val opprettet = ZonedDateTime.parse(packet["opprettet"] as String, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        val now = ZonedDateTime.now()
+        assertTrue(opprettet.isAfter(now.minusMinutes(1)), "opprettet skal være etter ett minutt siden")
+        assertTrue(opprettet.isBefore(now.plusSeconds(1)), "opprettet skal være før nå")
     }
 
     @Test
@@ -89,9 +115,26 @@ class RekrutteringstreffRapidTest {
         minside.varselOpprettet(varselId)
         sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
 
+        val messageSlot = slot<String>()
         verify(exactly = 1) {
-            app.mockKafkaRapid.publish(fnr, any())
+            app.mockKafkaRapid.publish(fnr, capture(messageSlot))
         }
+
+        val packet = objectMapper.readValue<Map<String, Any?>>(messageSlot.captured)
+        
+        // Verifiser alle forventede felter
+        assertEquals("minsideVarselSvar", packet["@event_name"])
+        assertNotNull(packet["varselId"])
+        assertEquals(rekrutteringstreffId, packet["avsenderReferanseId"])
+        assertEquals(fnr, packet["fnr"])
+        assertEquals(navident, packet["avsenderNavident"])
+        assertEquals("KANDIDAT_INVITERT_TREFF_ENDRET", packet["mal"])
+        
+        // Verifiser at opprettet er en nylig ZonedDateTime-streng (mellom ett minutt siden og nå)
+        val opprettet = ZonedDateTime.parse(packet["opprettet"] as String, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        val now = ZonedDateTime.now()
+        assertTrue(opprettet.isAfter(now.minusMinutes(1)), "opprettet skal være etter ett minutt siden")
+        assertTrue(opprettet.isBefore(now.plusSeconds(1)), "opprettet skal være før nå")
     }
 
     @Test

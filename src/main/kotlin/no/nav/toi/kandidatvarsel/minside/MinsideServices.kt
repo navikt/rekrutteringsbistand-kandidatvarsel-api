@@ -59,6 +59,7 @@ fun sjekkVarselOppdateringer(
 private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConnection) {
     if (varsel.mal is RekrutteringstreffMal) {
         val responseDto = varsel.toResponse()
+        val opprettetZoned = responseDto.opprettet.atZone(java.time.ZoneId.of("Europe/Oslo"))
         val packet = mapOf(
             "@event_name" to "minsideVarselSvar",
             "varselId" to responseDto.id,
@@ -66,7 +67,7 @@ private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConn
             "fnr" to responseDto.mottakerFnr,
             "eksternStatus" to responseDto.eksternStatus,
             "minsideStatus" to responseDto.minsideStatus,
-            "opprettet" to responseDto.opprettet,
+            "opprettet" to opprettetZoned.format(java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME),
             "avsenderNavident" to responseDto.avsenderNavident,
             "eksternFeilmelding" to responseDto.eksternFeilmelding,
             "eksternKanal" to responseDto.eksternKanal,
