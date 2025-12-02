@@ -60,8 +60,9 @@ fun sjekkVarselOppdateringer(
                     .mapNotNull { oppdatering -> varsler[oppdatering.varselId]?.let { it to oppdatering } }
                     .map { (varsel, oppdatering) -> varsel.oppdaterFra(oppdatering) }
                     .onEach { it.save(tx) }
-                    .onEach { log.info("Oppdatert varsel ${it.varselId} for stilling ${it.avsenderReferanseId}") }
+                    .onEach { log.info("Oppdatert varsel ${it.varselId} i database for avsender id ${it.avsenderReferanseId}") }
                     .filter { it.mal.brukerRapid() && it.skalPubliseresPåRapid() }
+                    .onEach { log.info("Oppdatert varsel ${it.varselId} på rapid for avsender id ${it.avsenderReferanseId}") }
                     .forEach { publiserPåRapid(it, rapidsConnection) }
             }
         }
