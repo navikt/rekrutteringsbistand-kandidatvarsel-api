@@ -54,7 +54,7 @@ fun sjekkVarselOppdateringer(
                 val varsel = MinsideVarsel.finnFraVarselId(tx, oppdatering.varselId) ?: continue
                 val oppdatertVarsel = varsel.oppdaterFra(oppdatering)
                 oppdatertVarsel.save(tx)
-                log.info("Oppdatert varsel for stilling ${varsel.avsenderReferanseId}")
+                log.info("Oppdatert varsel ${varsel.varselId} for stilling ${varsel.avsenderReferanseId}")
 
                 // Foreløpig kun rekrutteringstreff som bruker rapid for svar, stilling bruker polling mot rest api i denne applikasjonen
                 if (varsel.mal.brukerRapid()) {
