@@ -6,6 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.toi.kandidatvarsel.*
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
+import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
 
@@ -44,12 +45,16 @@ fun sjekkVarselOppdateringer(
     kafkaConsumer: Consumer<String, String>,
     rapidsConnection: RapidsConnection
 ) {
+    val log = LoggerFactory.getLogger(Any::class.java)
+
     kafkaConsumer.pollOppdateringer { oppdateringer ->
+        log.info("Behandler ${oppdateringer.toList().size}")
         dataSource.transaction { tx ->
             for (oppdatering in oppdateringer) {
                 val varsel = MinsideVarsel.finnFraVarselId(tx, oppdatering.varselId) ?: continue
                 val oppdatertVarsel = varsel.oppdaterFra(oppdatering)
                 oppdatertVarsel.save(tx)
+                log.info("Oppdatert varsel for stilling ${varsel.avsenderReferanseId}")
 
                 // Foreløpig kun rekrutteringstreff som bruker rapid for svar, stilling bruker polling mot rest api i denne applikasjonen
                 if (varsel.mal.brukerRapid()) {
