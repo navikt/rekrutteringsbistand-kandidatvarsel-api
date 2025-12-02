@@ -47,18 +47,25 @@ fun sjekkVarselOppdateringer(
 ) {
     val log = LoggerFactory.getLogger(Any::class.java)
 
-    kafkaConsumer.pollOppdateringer { oppdateringer ->
-        log.info("Behandler ${oppdateringer.toList().size}")
-        dataSource.transaction { tx ->
-            for (oppdatering in oppdateringer) {
-                val varsel = MinsideVarsel.finnFraVarselId(tx, oppdatering.varselId) ?: continue
-                val oppdatertVarsel = varsel.oppdaterFra(oppdatering)
-                oppdatertVarsel.save(tx)
-                log.info("Oppdatert varsel ${varsel.varselId} for stilling ${varsel.avsenderReferanseId}")
+    kafkaConsumer.pollOppdateringer { oppdateringerSequence ->
+        val oppdateringer = oppdateringerSequence.toList()
+        log.info("Behandler ${oppdateringer.size}")
+        
+        if (oppdateringer.isNotEmpty()) {
+            dataSource.transaction { tx ->
+                val varselIder = oppdateringer.map { it.varselId }
+                val varsler = MinsideVarsel.finnFraVarselIder(tx, varselIder).associateBy { it.varselId }
 
-                // Foreløpig kun rekrutteringstreff som bruker rapid for svar, stilling bruker polling mot rest api i denne applikasjonen
-                if (varsel.mal.brukerRapid()) {
-                    publiserPåRapid(oppdatertVarsel, rapidsConnection)
+                for (oppdatering in oppdateringer) {
+                    val varsel = varsler[oppdatering.varselId] ?: continue
+                    val oppdatertVarsel = varsel.oppdaterFra(oppdatering)
+                    oppdatertVarsel.save(tx)
+                    log.info("Oppdatert varsel ${varsel.varselId} for stilling ${varsel.avsenderReferanseId}")
+
+                    // Publiser på rapid kun for rekrutteringstreff og kun ved endelig ekstern status (FERDIGSTILT eller FEILET)
+                    if (varsel.mal.brukerRapid() && oppdatertVarsel.skalPubliseresPåRapid()) {
+                        publiserPåRapid(oppdatertVarsel, rapidsConnection)
+                    }
                 }
             }
         }

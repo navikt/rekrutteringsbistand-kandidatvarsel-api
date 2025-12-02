@@ -50,6 +50,10 @@ data class MinsideVarsel(
 
     fun markerBestilt() = copy(bestilt = true)
 
+    /** Sjekker om varselet har en endelig ekstern status som skal publiseres på rapid */
+    fun skalPubliseresPåRapid(): Boolean = 
+        eksternStatus == EksternStatus.FERDIGSTILT || eksternStatus == EksternStatus.FEILET
+
     fun toResponse() = VarselResponseDto(
         /* De gamle Altinn-varslene brukte dbid som id.
          * Prefixer med "A" for å starte et nytt "namespace". */
@@ -191,6 +195,16 @@ data class MinsideVarsel(
                 .query(RowMapper)
                 .optional()
                 .getOrNull()
+
+        fun finnFraVarselIder(jdbcClient: JdbcClient, varselIder: List<String>): List<MinsideVarsel> =
+            if (varselIder.isEmpty()) emptyList()
+            else jdbcClient.sql("""
+                select * from minside_varsel
+                where varsel_id in (:varsel_ider)
+            """.trimIndent())
+                .param("varsel_ider", varselIder)
+                .query(RowMapper)
+                .list()
 
         fun hentVarslerForStilling(jdbcClient: JdbcClient, stillingId: String): List<MinsideVarsel> {
             val stillingMaler = Maler.malerForVarselType(VarselType.STILLING)
