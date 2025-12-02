@@ -28,16 +28,20 @@ sealed interface Mal {
             }
         }
     }
+
+    fun brukerRapid(): Boolean
 }
 
 sealed interface StillingMal : Mal {
     override val varselType: VarselType get() = VarselType.STILLING
     fun minsideTekst(tittel: String, arbeidsgiver: String): String
+    override fun brukerRapid() = false
 }
 
 sealed interface RekrutteringstreffMal : Mal {
     override val varselType: VarselType get() = VarselType.REKRUTTERINGSTREFF
     fun minsideTekst(): String
+    override fun brukerRapid() = true
 }
 
 object Maler {

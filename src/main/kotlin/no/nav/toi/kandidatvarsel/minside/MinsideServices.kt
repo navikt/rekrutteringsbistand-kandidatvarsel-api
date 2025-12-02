@@ -50,14 +50,18 @@ fun sjekkVarselOppdateringer(
                 val varsel = MinsideVarsel.finnFraVarselId(tx, oppdatering.varselId) ?: continue
                 val oppdatertVarsel = varsel.oppdaterFra(oppdatering)
                 oppdatertVarsel.save(tx)
-                publiserPåRapid(oppdatertVarsel, rapidsConnection)
+
+                // Foreløpig kun rekrutteringstreff som bruker rapid for svar, stilling bruker polling mot rest api i denne applikasjonen
+                if (varsel.mal.brukerRapid()) {
+                    publiserPåRapid(oppdatertVarsel, rapidsConnection)
+                }
             }
         }
     }
 }
 
 private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConnection) {
-    if (varsel.mal is RekrutteringstreffMal) {
+
         val responseDto = varsel.toResponse()
         val opprettetZoned = responseDto.opprettet.atZone(java.time.ZoneId.of("Europe/Oslo"))
         val packet = mapOf(
@@ -74,7 +78,7 @@ private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConn
             "mal" to varsel.mal.name
         )
         rapidsConnection.publish(responseDto.mottakerFnr, objectMapper.writeValueAsString(packet))
-    }
+
 }
 
 
