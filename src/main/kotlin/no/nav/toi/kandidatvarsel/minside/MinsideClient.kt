@@ -145,7 +145,7 @@ fun Consumer<String, String>.pollOppdateringer(body: (Sequence<VarselOppdatering
 
     body(oppdateringer)
 
-    commitAsync()
+    commitSync()
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

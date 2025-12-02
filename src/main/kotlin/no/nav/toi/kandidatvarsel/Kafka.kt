@@ -37,7 +37,8 @@ class KafkaConfig(
 
 fun KafkaConfig.minsideOppdateringsConsumer(): KafkaConsumer<String, String> {
     val config = this.asKafkaProperties + mapOf(
-        "group.id" to "rekrutteringsbistand-kandidatvarsel-0"
+        "group.id" to "rekrutteringsbistand-kandidatvarsel-0",
+        "enable.auto.commit" to "false"
     )
     return KafkaConsumer(config, StringDeserializer(), StringDeserializer()).apply {
         subscribe(listOf(OPPDATERING_TOPIC))
