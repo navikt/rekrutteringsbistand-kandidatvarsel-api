@@ -62,7 +62,7 @@ fun sjekkVarselOppdateringer(
                     .onEach { it.save(tx) }
                     .onEach { log.info("Oppdatert varsel ${it.varselId} i database for avsender id ${it.avsenderReferanseId}") }
                     .filter { it.mal.brukerRapid() && it.skalPubliseresPåRapid() }
-                    .onEach { log.info("Oppdatert varsel ${it.varselId} på rapid for avsender id ${it.avsenderReferanseId}") }
+                    .onEach { log.info("Oppdatert varsel ${it.varselId} på rapid for avsender id ${it.avsenderReferanseId} status: ${it.eksternStatus}") }
                     .forEach { publiserPåRapid(it, rapidsConnection) }
             }
         }
