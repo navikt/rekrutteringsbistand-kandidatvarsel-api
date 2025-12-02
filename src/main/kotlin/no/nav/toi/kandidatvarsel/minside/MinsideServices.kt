@@ -53,20 +53,16 @@ fun sjekkVarselOppdateringer(
         
         if (oppdateringer.isNotEmpty()) {
             dataSource.transaction { tx ->
-                val varselIder = oppdateringer.map { it.varselId }
-                val varsler = MinsideVarsel.finnFraVarselIder(tx, varselIder).associateBy { it.varselId }
+                val varsler = MinsideVarsel.finnFraVarselIder(tx, oppdateringer.map { it.varselId })
+                    .associateBy { it.varselId }
 
-                for (oppdatering in oppdateringer) {
-                    val varsel = varsler[oppdatering.varselId] ?: continue
-                    val oppdatertVarsel = varsel.oppdaterFra(oppdatering)
-                    oppdatertVarsel.save(tx)
-                    log.info("Oppdatert varsel ${varsel.varselId} for stilling ${varsel.avsenderReferanseId}")
-
-                    // Publiser på rapid kun for rekrutteringstreff og kun ved endelig ekstern status (FERDIGSTILT eller FEILET)
-                    if (varsel.mal.brukerRapid() && oppdatertVarsel.skalPubliseresPåRapid()) {
-                        publiserPåRapid(oppdatertVarsel, rapidsConnection)
-                    }
-                }
+                oppdateringer
+                    .mapNotNull { oppdatering -> varsler[oppdatering.varselId]?.let { it to oppdatering } }
+                    .map { (varsel, oppdatering) -> varsel.oppdaterFra(oppdatering) }
+                    .onEach { it.save(tx) }
+                    .onEach { log.info("Oppdatert varsel ${it.varselId} for stilling ${it.avsenderReferanseId}") }
+                    .filter { it.mal.brukerRapid() && it.skalPubliseresPåRapid() }
+                    .forEach { publiserPåRapid(it, rapidsConnection) }
             }
         }
     }
