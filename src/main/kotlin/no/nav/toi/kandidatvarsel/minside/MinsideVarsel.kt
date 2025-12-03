@@ -52,7 +52,7 @@ data class MinsideVarsel(
 
     /** Sjekker om varselet har en endelig ekstern status som skal publiseres på rapid */
     fun skalPubliseresPåRapid(): Boolean = 
-        eksternStatus == EksternStatus.FERDIGSTILT || eksternStatus == EksternStatus.FEILET
+        eksternStatus == EksternStatus.FERDIGSTILT || eksternStatus == EksternStatus.FEILET || eksternStatus == EksternStatus.SENDT
 
     fun toResponse() = VarselResponseDto(
         /* De gamle Altinn-varslene brukte dbid som id.

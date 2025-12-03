@@ -182,7 +182,7 @@ class RekrutteringstreffRapidTest {
     }
 
     @Test
-    fun `skal IKKE publisere melding på rapid når rekrutteringstreff-varsel får SENDT status`() {
+    fun `skal publisere melding på rapid når rekrutteringstreff-varsel får SENDT status`() {
         // Opprett varsel
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
@@ -200,9 +200,18 @@ class RekrutteringstreffRapidTest {
         minside.eksterntVarselSendt(varsel.varselId, "SMS")
         sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
 
-        verify(exactly = 0) {
-            app.mockKafkaRapid.publish(any(), any())
+        val messageSlot = slot<String>()
+        verify(exactly = 1) {
+            app.mockKafkaRapid.publish(fnr, capture(messageSlot))
         }
+
+        val packet = objectMapper.readValue<Map<String, Any?>>(messageSlot.captured)
+
+        assertEquals("minsideVarselSvar", packet["@event_name"])
+        assertEquals(rekrutteringstreffId, packet["avsenderReferanseId"])
+        assertEquals(fnr, packet["fnr"])
+        assertEquals("KANDIDAT_INVITERT_TREFF", packet["mal"])
+        assertEquals("VELLYKKET_SMS", packet["eksternStatus"])
     }
 
     @Test
