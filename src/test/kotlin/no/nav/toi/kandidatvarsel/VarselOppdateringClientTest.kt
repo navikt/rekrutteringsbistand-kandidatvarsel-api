@@ -55,6 +55,19 @@ class VarselOppdateringClientTest {
     }
 
     @Test
+    fun `partitionOffset formateres som partisjon kolon offset`() {
+        val consumer = createMockConsumer()
+        consumer.addRecord(42, Eksempel.OPPRETTET)
+
+        consumer.pollOppdateringer { oppdateringer ->
+            val oppdatering = oppdateringer.first()
+            assertEquals(PARITION, oppdatering.partition)
+            assertEquals(42L, oppdatering.offset)
+            assertEquals("$PARITION:42", oppdatering.partitionOffset)
+        }
+    }
+
+    @Test
     fun `Feil i prosesseringen ved første poll fører ikke til commit`() {
         val consumer = createMockConsumer()
         consumer.addRecord(0, Eksempel.OPPRETTET)

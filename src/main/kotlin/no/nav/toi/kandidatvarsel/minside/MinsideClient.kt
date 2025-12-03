@@ -100,43 +100,52 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: R
 
 sealed interface VarselOppdatering {
     val varselId: String
+    val partition: Int
     val offset: Long
+    val partitionOffset: String get() = "$partition:$offset"
 }
 
 data class StatusOppdatering(
     override val varselId: String,
+    override val partition: Int,
     override val offset: Long,
     val status: MinsideStatus,
 ) : VarselOppdatering
 
 data class EksternVarselBestilt(
     override val varselId: String,
+    override val partition: Int,
     override val offset: Long,
 ): VarselOppdatering
 
 data class EksternVarselVenter(
     override val varselId: String,
+    override val partition: Int,
     override val offset: Long,
 ): VarselOppdatering
 
 data class EksternVarselKansellert(
     override val varselId: String,
+    override val partition: Int,
     override val offset: Long,
 ): VarselOppdatering
 
 data class EksternVarselFerdigstilt(
     override val varselId: String,
+    override val partition: Int,
     override val offset: Long,
 ): VarselOppdatering
 
 data class EksternVarselSendt(
     override val varselId: String,
+    override val partition: Int,
     override val offset: Long,
     val kanal: Kanal,
 ): VarselOppdatering
 
 data class EksternVarselFeilet(
     override val varselId: String,
+    override val partition: Int,
     override val offset: Long,
     val feilmelding: String,
 ): VarselOppdatering
@@ -147,7 +156,7 @@ fun Consumer<String, String>.pollOppdateringer(body: (Sequence<VarselOppdatering
     val records = poll(1.seconds.toJavaDuration())
 
     val oppdateringer = records.asSequence()
-        .map { record -> minsideObjectMapper.readValue<VarselOppdateringDto>(record.value()).asDomain(record.offset()) }
+        .map { record -> minsideObjectMapper.readValue<VarselOppdateringDto>(record.value()).asDomain(record.partition(), record.offset()) }
 
     body(oppdateringer)
 
@@ -163,17 +172,17 @@ private data class VarselOppdateringDto(
     val kanal: String? = null,
     val feilmelding: String? = null,
 ) {
-    fun asDomain(offset: Long): VarselOppdatering = when (eventName) {
-        "opprettet" -> StatusOppdatering(varselId, offset, MinsideStatus.OPPRETTET)
-        "inaktivert" -> StatusOppdatering(varselId, offset, MinsideStatus.INAKTIVERT)
-        "slettet" -> StatusOppdatering(varselId, offset, MinsideStatus.SLETTET)
+    fun asDomain(partition: Int, offset: Long): VarselOppdatering = when (eventName) {
+        "opprettet" -> StatusOppdatering(varselId, partition, offset, MinsideStatus.OPPRETTET)
+        "inaktivert" -> StatusOppdatering(varselId, partition, offset, MinsideStatus.INAKTIVERT)
+        "slettet" -> StatusOppdatering(varselId, partition, offset, MinsideStatus.SLETTET)
         "eksternStatusOppdatert" -> when (status) {
-            "bestilt" -> EksternVarselBestilt(varselId, offset)
-            "sendt" -> EksternVarselSendt(varselId, offset, Kanal.valueOf(kanal!!))
-            "feilet" -> EksternVarselFeilet(varselId, offset, feilmelding!!)
-            "venter" ->  EksternVarselVenter(varselId, offset)
-            "kansellert" ->  EksternVarselKansellert(varselId, offset)
-            "ferdigstilt" -> EksternVarselFerdigstilt(varselId, offset)
+            "bestilt" -> EksternVarselBestilt(varselId, partition, offset)
+            "sendt" -> EksternVarselSendt(varselId, partition, offset, Kanal.valueOf(kanal!!))
+            "feilet" -> EksternVarselFeilet(varselId, partition, offset, feilmelding!!)
+            "venter" ->  EksternVarselVenter(varselId, partition, offset)
+            "kansellert" ->  EksternVarselKansellert(varselId, partition, offset)
+            "ferdigstilt" -> EksternVarselFerdigstilt(varselId, partition, offset)
             else -> {
                 secureLog.error("Ukjent status: $status i eksternStatusOppdatert for varselId: $varselId")
                 throw IllegalStateException("Ukjent status: $status i eksternStatusOppdatert")

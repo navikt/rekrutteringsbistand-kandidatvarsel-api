@@ -70,10 +70,10 @@ fun sjekkVarselOppdateringer(
                 val oppdatertVarsel = varsel.oppdaterFra(oppdatering)
                 oppdatertVarsel.save(tx)
                 varsler[oppdatering.varselId] = oppdatertVarsel
-                log.info("Lagret oppdatering for varsel ${oppdatering.varselId}, status: ${oppdatertVarsel.eksternStatus}, offset: ${oppdatering.offset}")
+                log.info("Lagret oppdatering for varsel ${oppdatering.varselId}, status: ${oppdatertVarsel.eksternStatus}, partitionOffset: ${oppdatering.partitionOffset}")
 
                 if (oppdatertVarsel.mal.brukerRapid() && oppdatertVarsel.skalPubliseresPåRapid()) {
-                    log.info("Publiserer varsel ${oppdatering.varselId} på rapid, status: ${oppdatertVarsel.eksternStatus}, offset: ${oppdatering.offset}")
+                    log.info("Publiserer varsel ${oppdatering.varselId} på rapid, status: ${oppdatertVarsel.eksternStatus}, partitionOffset: ${oppdatering.partitionOffset}")
                     publiserPåRapid(oppdatertVarsel, rapidsConnection)
                 }
             }
