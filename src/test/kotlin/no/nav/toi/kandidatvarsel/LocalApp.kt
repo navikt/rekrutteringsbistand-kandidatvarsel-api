@@ -6,13 +6,11 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.nimbusds.jwt.SignedJWT
-import io.mockk.every
-import io.mockk.mockk
 import no.nav.security.mock.oauth2.MockOAuth2Server
+import no.nav.toi.kandidatvarsel.util.TestRapid
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -90,17 +88,16 @@ class LocalApp() {
 
     val migrateResult = AtomicReference<MigrateResult>()
 
-    val mockKafkaRapid = mockk<KafkaRapid>(relaxed = true).also {
-        every { it.isRunning() } returns true
-    }
+    val testRapid = TestRapid()
 
-    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, mockKafkaRapid, port = 0)
+    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, { true }, port = 0)
     private val httpClient = HttpClient.newBuilder().build()
     private val objectMapper = jacksonObjectMapper()
 
     fun prepare() {
         flyway.clean()
         migrateResult.set(dataSource.migrate())
+        testRapid.reset()
     }
 
     fun close() {

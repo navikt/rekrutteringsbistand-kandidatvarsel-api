@@ -3,8 +3,6 @@ package no.nav.toi.kandidatvarsel
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
-import io.mockk.slot
-import io.mockk.verify
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
@@ -34,7 +32,6 @@ class RekrutteringstreffRapidTest {
     fun beforeEach() {
         minside = FakeMinside()
         app.prepare()
-        io.mockk.clearMocks(app.mockKafkaRapid)
     }
 
     @AfterAll
@@ -73,14 +70,10 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.eksterntVarselFerdigstilt(varsel.varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
 
-        val messageSlot = slot<String>()
-        verify(exactly = 1) {
-            app.mockKafkaRapid.publish(fnr, capture(messageSlot))
-        }
-
-        val packet = objectMapper.readValue<Map<String, Any?>>(messageSlot.captured)
+        assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
+        val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
         
         // Verifiser alle forventede felter
         assertEquals("minsideVarselSvar", packet["@event_name"])
@@ -116,14 +109,10 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.eksterntVarselFeilet(varsel.varselId, "Kunne ikke sende SMS")
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
 
-        val messageSlot = slot<String>()
-        verify(exactly = 1) {
-            app.mockKafkaRapid.publish(fnr, capture(messageSlot))
-        }
-
-        val packet = objectMapper.readValue<Map<String, Any?>>(messageSlot.captured)
+        assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
+        val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
         
         assertEquals("minsideVarselSvar", packet["@event_name"])
         assertEquals(rekrutteringstreffId, packet["avsenderReferanseId"])
@@ -150,11 +139,9 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.varselOpprettet(varsel.varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
 
-        verify(exactly = 0) {
-            app.mockKafkaRapid.publish(any(), any())
-        }
+        assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
     }
 
     @Test
@@ -174,11 +161,9 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.eksterntVarselBestilt(varsel.varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
 
-        verify(exactly = 0) {
-            app.mockKafkaRapid.publish(any(), any())
-        }
+        assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
     }
 
     @Test
@@ -198,11 +183,9 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.eksterntVarselSendt(varsel.varselId, "SMS")
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
 
-        verify(exactly = 0) {
-            app.mockKafkaRapid.publish(any(), any())
-        }
+        assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
     }
 
     @Test
@@ -220,14 +203,10 @@ class RekrutteringstreffRapidTest {
         }
 
         minside.eksterntVarselFerdigstilt(varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
 
-        val messageSlot = slot<String>()
-        verify(exactly = 1) {
-            app.mockKafkaRapid.publish(fnr, capture(messageSlot))
-        }
-
-        val packet = objectMapper.readValue<Map<String, Any?>>(messageSlot.captured)
+        assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
+        val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
         
         // Verifiser alle forventede felter
         assertEquals("minsideVarselSvar", packet["@event_name"])
@@ -261,10 +240,8 @@ class RekrutteringstreffRapidTest {
         }
 
         minside.eksterntVarselFerdigstilt(varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.mockKafkaRapid)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
 
-        verify(exactly = 0) {
-            app.mockKafkaRapid.publish(any(), any())
-        }
+        assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
     }
 }

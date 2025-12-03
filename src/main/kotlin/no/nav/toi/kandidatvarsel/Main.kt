@@ -86,7 +86,7 @@ fun startOppApplikasjon(
         dataSource = dataSource,
         migrateResult = migreringsResultat,
         kandidatsokApiKlient = kandidatsokApiKlient,
-        kafkaRapid = kafkaRapid
+        isRapidRunning = kafkaRapid::isRunning
     )
 
     registrerRapidsLyttere(kafkaRapid, dataSource)
