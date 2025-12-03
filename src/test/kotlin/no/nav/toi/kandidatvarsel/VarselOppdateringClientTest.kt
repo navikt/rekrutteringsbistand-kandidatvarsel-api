@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 
-private const val PARITION = 10
-private val topicPartition = TopicPartition(OPPDATERING_TOPIC, PARITION)
+private const val PARTITION = 10
+private val topicPartition = TopicPartition(OPPDATERING_TOPIC, PARTITION)
 private val topicPartitionSet = setOf(topicPartition)
 
 class VarselOppdateringClientTest {
@@ -61,9 +61,9 @@ class VarselOppdateringClientTest {
 
         consumer.pollOppdateringer { oppdateringer ->
             val oppdatering = oppdateringer.first()
-            assertEquals(PARITION, oppdatering.partition)
+            assertEquals(PARTITION, oppdatering.partition)
             assertEquals(42L, oppdatering.offset)
-            assertEquals("$PARITION:42", oppdatering.partitionOffset)
+            assertEquals("$PARTITION:42", oppdatering.partitionOffset)
         }
     }
 
@@ -115,7 +115,7 @@ class VarselOppdateringClientTest {
         addRecord(
             ConsumerRecord(
                 OPPDATERING_TOPIC,
-                PARITION,
+                PARTITION,
                 offset,
                 key,
                 json,
