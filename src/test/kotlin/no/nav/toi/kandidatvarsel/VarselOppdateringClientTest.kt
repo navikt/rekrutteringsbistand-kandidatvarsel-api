@@ -46,12 +46,12 @@ class VarselOppdateringClientTest {
         consumer.addRecord(3, varselId2, Eksempel.bestilt(varselId2))
         consumer.addRecord(4, varselId1, Eksempel.smsSendt(varselId1))
 
-        val mottattOffsets = mutableListOf<Long>()
+        val mottattPartitionOffsets = mutableListOf<String>()
         consumer.pollOppdateringer { oppdateringer ->
-            oppdateringer.forEach { mottattOffsets.add(it.offset) }
+            oppdateringer.forEach { mottattPartitionOffsets.add(it.partitionOffset) }
         }
 
-        assertEquals(listOf(0L, 1L, 2L, 3L, 4L), mottattOffsets)
+        assertEquals(listOf("$PARTITION:0", "$PARTITION:1", "$PARTITION:2", "$PARTITION:3", "$PARTITION:4"), mottattPartitionOffsets)
     }
 
     @Test
@@ -61,8 +61,6 @@ class VarselOppdateringClientTest {
 
         consumer.pollOppdateringer { oppdateringer ->
             val oppdatering = oppdateringer.first()
-            assertEquals(PARTITION, oppdatering.partition)
-            assertEquals(42L, oppdatering.offset)
             assertEquals("$PARTITION:42", oppdatering.partitionOffset)
         }
     }
