@@ -100,36 +100,44 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: R
 
 sealed interface VarselOppdatering {
     val varselId: String
+    val offset: Long
 }
 
 data class StatusOppdatering(
     override val varselId: String,
+    override val offset: Long,
     val status: MinsideStatus,
 ) : VarselOppdatering
 
 data class EksternVarselBestilt(
     override val varselId: String,
+    override val offset: Long,
 ): VarselOppdatering
 
 data class EksternVarselVenter(
     override val varselId: String,
+    override val offset: Long,
 ): VarselOppdatering
 
 data class EksternVarselKansellert(
     override val varselId: String,
+    override val offset: Long,
 ): VarselOppdatering
 
 data class EksternVarselFerdigstilt(
     override val varselId: String,
+    override val offset: Long,
 ): VarselOppdatering
 
 data class EksternVarselSendt(
     override val varselId: String,
+    override val offset: Long,
     val kanal: Kanal,
 ): VarselOppdatering
 
 data class EksternVarselFeilet(
     override val varselId: String,
+    override val offset: Long,
     val feilmelding: String,
 ): VarselOppdatering
 
@@ -139,9 +147,7 @@ fun Consumer<String, String>.pollOppdateringer(body: (Sequence<VarselOppdatering
     val records = poll(1.seconds.toJavaDuration())
 
     val oppdateringer = records.asSequence()
-        .map {  it.value() }
-        .filterNotNull()
-        .map { minsideObjectMapper.readValue<VarselOppdateringDto>(it).asDomain() }
+        .map { record -> minsideObjectMapper.readValue<VarselOppdateringDto>(record.value()).asDomain(record.offset()) }
 
     body(oppdateringer)
 
@@ -157,17 +163,17 @@ private data class VarselOppdateringDto(
     val kanal: String? = null,
     val feilmelding: String? = null,
 ) {
-    fun asDomain(): VarselOppdatering = when (eventName) {
-        "opprettet" -> StatusOppdatering(varselId, MinsideStatus.OPPRETTET)
-        "inaktivert" -> StatusOppdatering(varselId, MinsideStatus.INAKTIVERT)
-        "slettet" -> StatusOppdatering(varselId, MinsideStatus.SLETTET)
+    fun asDomain(offset: Long): VarselOppdatering = when (eventName) {
+        "opprettet" -> StatusOppdatering(varselId, offset, MinsideStatus.OPPRETTET)
+        "inaktivert" -> StatusOppdatering(varselId, offset, MinsideStatus.INAKTIVERT)
+        "slettet" -> StatusOppdatering(varselId, offset, MinsideStatus.SLETTET)
         "eksternStatusOppdatert" -> when (status) {
-            "bestilt" -> EksternVarselBestilt(varselId)
-            "sendt" -> EksternVarselSendt(varselId, Kanal.valueOf(kanal!!))
-            "feilet" -> EksternVarselFeilet(varselId, feilmelding!!)
-            "venter" ->  EksternVarselVenter(varselId)
-            "kansellert" ->  EksternVarselKansellert(varselId)
-            "ferdigstilt" -> EksternVarselFerdigstilt(varselId)
+            "bestilt" -> EksternVarselBestilt(varselId, offset)
+            "sendt" -> EksternVarselSendt(varselId, offset, Kanal.valueOf(kanal!!))
+            "feilet" -> EksternVarselFeilet(varselId, offset, feilmelding!!)
+            "venter" ->  EksternVarselVenter(varselId, offset)
+            "kansellert" ->  EksternVarselKansellert(varselId, offset)
+            "ferdigstilt" -> EksternVarselFerdigstilt(varselId, offset)
             else -> {
                 secureLog.error("Ukjent status: $status i eksternStatusOppdatert for varselId: $varselId")
                 throw IllegalStateException("Ukjent status: $status i eksternStatusOppdatert")

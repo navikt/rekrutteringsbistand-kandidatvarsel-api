@@ -47,23 +47,35 @@ fun sjekkVarselOppdateringer(
 ) {
     val log = LoggerFactory.getLogger(Any::class.java)
 
-    kafkaConsumer.pollOppdateringer { oppdateringerSequence ->
-        val oppdateringer = oppdateringerSequence.toList()
-        log.info("Behandler ${oppdateringer.size}")
-        
-        if (oppdateringer.isNotEmpty()) {
-            dataSource.transaction { tx ->
-                val varsler = MinsideVarsel.finnFraVarselIder(tx, oppdateringer.map { it.varselId })
-                    .associateBy { it.varselId }
+    kafkaConsumer.pollOppdateringer { oppdateringerSeq ->
+        val oppdateringer = oppdateringerSeq.toList()
+        if (oppdateringer.isEmpty()) return@pollOppdateringer
 
-                oppdateringer
-                    .mapNotNull { oppdatering -> varsler[oppdatering.varselId]?.let { it to oppdatering } }
-                    .map { (varsel, oppdatering) -> varsel.oppdaterFra(oppdatering) }
-                    .onEach { it.save(tx) }
-                    .onEach { log.info("Oppdatert varsel ${it.varselId} i database for avsender id ${it.avsenderReferanseId}") }
-                    .filter { it.mal.brukerRapid() && it.skalPubliseresPåRapid() }
-                    .onEach { log.info("Oppdatert varsel ${it.varselId} på rapid for avsender id ${it.avsenderReferanseId} status: ${it.eksternStatus}") }
-                    .forEach { publiserPåRapid(it, rapidsConnection) }
+        log.info("Behandler ${oppdateringer.size} oppdateringer")
+
+        dataSource.transaction { tx ->
+            val varsler = MinsideVarsel.finnFraVarselIder(tx, oppdateringer.map { it.varselId })
+                .associateBy { it.varselId }
+                .toMutableMap()
+
+            oppdateringer.forEach { oppdatering ->
+                log.info("Mottatt oppdatering for varselId ${oppdatering.varselId}, type: ${oppdatering::class.simpleName}")
+
+                val varsel = varsler[oppdatering.varselId]
+                if (varsel == null) {
+                    log.info("Fant ikke varsel med id ${oppdatering.varselId}, ignorerer oppdatering")
+                    return@forEach
+                }
+
+                val oppdatertVarsel = varsel.oppdaterFra(oppdatering)
+                oppdatertVarsel.save(tx)
+                varsler[oppdatering.varselId] = oppdatertVarsel
+                log.info("Lagret oppdatering for varsel ${oppdatering.varselId}, status: ${oppdatertVarsel.eksternStatus}, offset: ${oppdatering.offset}")
+
+                if (oppdatertVarsel.mal.brukerRapid() && oppdatertVarsel.skalPubliseresPåRapid()) {
+                    log.info("Publiserer varsel ${oppdatering.varselId} på rapid, status: ${oppdatertVarsel.eksternStatus}, offset: ${oppdatering.offset}")
+                    publiserPåRapid(oppdatertVarsel, rapidsConnection)
+                }
             }
         }
     }
