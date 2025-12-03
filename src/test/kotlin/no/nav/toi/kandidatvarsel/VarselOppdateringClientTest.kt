@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 
-private const val PARITION = 10
-private val topicPartition = TopicPartition(OPPDATERING_TOPIC, PARITION)
+private const val PARTITION = 10
+private val topicPartition = TopicPartition(OPPDATERING_TOPIC, PARTITION)
 private val topicPartitionSet = setOf(topicPartition)
 
 class VarselOppdateringClientTest {
@@ -31,6 +31,38 @@ class VarselOppdateringClientTest {
         }
         assertEquals(hendelser.size, antallOppdateringer)
         assertEquals(hendelser.size, consumer.committed())
+    }
+
+    @Test
+    fun `Flere varsler i samme batch bevarer offset-rekkefølge`() {
+        val consumer = createMockConsumer()
+        val varselId1 = UUID.randomUUID().toString()
+        val varselId2 = UUID.randomUUID().toString()
+
+        // Interleaved meldinger for to forskjellige varsler
+        consumer.addRecord(0, varselId1, Eksempel.opprettet(varselId1))
+        consumer.addRecord(1, varselId2, Eksempel.opprettet(varselId2))
+        consumer.addRecord(2, varselId1, Eksempel.bestilt(varselId1))
+        consumer.addRecord(3, varselId2, Eksempel.bestilt(varselId2))
+        consumer.addRecord(4, varselId1, Eksempel.smsSendt(varselId1))
+
+        val mottattPartitionOffsets = mutableListOf<String>()
+        consumer.pollOppdateringer { oppdateringer ->
+            oppdateringer.forEach { mottattPartitionOffsets.add(it.partitionOffset) }
+        }
+
+        assertEquals(listOf("$PARTITION:0", "$PARTITION:1", "$PARTITION:2", "$PARTITION:3", "$PARTITION:4"), mottattPartitionOffsets)
+    }
+
+    @Test
+    fun `partitionOffset formateres som partisjon kolon offset`() {
+        val consumer = createMockConsumer()
+        consumer.addRecord(42, Eksempel.OPPRETTET)
+
+        consumer.pollOppdateringer { oppdateringer ->
+            val oppdatering = oppdateringer.first()
+            assertEquals("$PARTITION:42", oppdatering.partitionOffset)
+        }
     }
 
     @Test
@@ -75,12 +107,15 @@ class VarselOppdateringClientTest {
     }
 
     private fun MockConsumer<String, String>.addRecord(offset: Long, json: String) =
+        addRecord(offset, UUID.randomUUID().toString(), json)
+
+    private fun MockConsumer<String, String>.addRecord(offset: Long, key: String, json: String) =
         addRecord(
             ConsumerRecord(
                 OPPDATERING_TOPIC,
-                PARITION,
+                PARTITION,
                 offset,
-                UUID.randomUUID().toString(),
+                key,
                 json,
             )
         )
@@ -91,6 +126,40 @@ class VarselOppdateringClientTest {
 }
 
 private object Eksempel {
+    fun opprettet(varselId: String) = """
+        {
+          "@event_name": "opprettet",
+          "varseltype": "beskjed",
+          "varselId": "$varselId",
+          "namespace": "team-test",
+          "appnavn": "demo-app"
+        }
+    """
+
+    fun bestilt(varselId: String) = """
+        {
+          "@event_name": "eksternStatusOppdatert",
+          "status": "bestilt",
+          "varseltype": "beskjed",
+          "varselId": "$varselId",
+          "namespace": "team-test",
+          "appnavn": "demo-app"
+        }
+    """
+
+    fun smsSendt(varselId: String) = """
+        {
+          "@event_name": "eksternStatusOppdatert",
+          "status": "sendt",
+          "varseltype": "beskjed",
+          "varselId": "$varselId",
+          "kanal": "SMS",
+          "renotifikasjon": false,
+          "namespace": "team-test",
+          "appnavn": "demo-app"
+        }
+    """
+
     const val OPPRETTET = """
         {
           "@event_name": "opprettet",

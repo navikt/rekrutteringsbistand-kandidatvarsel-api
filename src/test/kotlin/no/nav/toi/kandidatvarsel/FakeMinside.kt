@@ -69,6 +69,14 @@ class FakeMinside {
         )
     )
 
+    fun eksterntVarselFerdigstilt(varselId: String) = addRecord(
+        varselId = varselId,
+        eventName = "eksternStatusOppdatert",
+        mapOf(
+            "status" to "ferdigstilt"
+        )
+    )
+
 
     private fun addRecord(varselId: String, eventName: String, hendelse: Map<String, Any> = emptyMap()) {
         consumer.addRecord(

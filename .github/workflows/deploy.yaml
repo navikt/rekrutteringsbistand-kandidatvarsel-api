@@ -6,7 +6,7 @@ jobs:
     uses: navikt/toi-github-actions-workflows/.github/workflows/build-and-deploy.yaml@v1
     with:
       java-version: "21"
-      deploy-to-dev-if-branch-name-is: "minsidevarsel-paa-rapid"
+      deploy-to-dev-if-branch-name-is: "begrens-rapidmeldinger"
     permissions:
       contents: read
       id-token: write
