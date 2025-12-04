@@ -37,6 +37,7 @@ data class MinsideVarsel(
     val eksternStatus: EksternStatus?,
     val eksternKanal: Kanal?,
     val eksternFeilmelding: String?,
+    val malParametere: List<MalParameter>? = null,
 ) {
     fun oppdaterFra(oppdatering: VarselOppdatering): MinsideVarsel = when (oppdatering) {
         is EksternVarselBestilt -> copy(eksternStatus = EksternStatus.BESTILLT)
@@ -53,6 +54,16 @@ data class MinsideVarsel(
     /** Sjekker om varselet har en endelig ekstern status som skal publiseres på rapid */
     fun skalPubliseresPåRapid(): Boolean = 
         eksternStatus == EksternStatus.FERDIGSTILT || eksternStatus == EksternStatus.FEILET
+
+    /** Serialiserer mal-navnet med parametere for lagring i databasen.
+     * Format: "KANDIDAT_INVITERT_TREFF_ENDRET:TITTEL,STED" */
+    fun malMedParametere(): String {
+        return if (mal == KandidatInvitertTreffEndret && malParametere != null && malParametere.isNotEmpty()) {
+            "${mal.name}:${malParametere.joinToString(",") { it.name }}"
+        } else {
+            mal.name
+        }
+    }
 
     fun toResponse() = VarselResponseDto(
         /* De gamle Altinn-varslene brukte dbid som id.
@@ -138,7 +149,7 @@ data class MinsideVarsel(
             .param("mottaker_fnr", mottakerFnr)
             .param("avsender_navident", avsenderNavIdent)
             .param("varsel_id", varselId)
-            .param("mal", mal.name)
+            .param("mal", malMedParametere())
 
             // TODO: Bytte feltnavn i databasen til avsender_referanse_id, avventer databaseendring for å ikke forkludre tilbakerullingsmuligheter
             .param("stilling_id", avsenderReferanseId)
@@ -158,7 +169,8 @@ data class MinsideVarsel(
             avsenderReferanseId: String,
             mottakerFnr: String,
             avsenderNavident: String,
-            varselId: String? = null
+            varselId: String? = null,
+            malParametere: List<MalParameter>? = null
         ) = MinsideVarsel(
             dbid = null,
             mal = mal,
@@ -171,7 +183,8 @@ data class MinsideVarsel(
             minsideStatus = null,
             eksternStatus = null,
             eksternKanal = null,
-            eksternFeilmelding = null
+            eksternFeilmelding = null,
+            malParametere = malParametere
         )
 
         fun finnOgLåsUsendtVarsel(jdbcClient: JdbcClient): MinsideVarsel? =
@@ -219,15 +232,19 @@ data class MinsideVarsel(
                 .list()
         }
 
+        /**
+         * Henter varsler for en gitt rekrutteringstreff-ID.
+         * Brukes kun av tester, rekrutteringstreff bruker ikke rest api polling.
+         */
         fun hentVarslerForRekrutteringstreff(jdbcClient: JdbcClient, rekrutteringstreffId: String): List<MinsideVarsel> {
-            val rekrutteringstreffMaler = Maler.malerForVarselType(VarselType.REKRUTTERINGSTREFF)
+            // Mal-feltet kan inneholde parameter-suffix (f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:TITTEL,STED")
+            // Bruker starts_with som er effektivt med B-tree indeks på prefiks
             return jdbcClient.sql("""
                 select * from minside_varsel 
                 where stilling_id = :avsender_referanse_id 
-                and mal = any(:maler)
+                and (starts_with(mal, 'KANDIDAT_INVITERT_TREFF_ENDRET') or mal = 'KANDIDAT_INVITERT_TREFF')
             """.trimIndent())
                 .param("avsender_referanse_id", rekrutteringstreffId)
-                .param("maler", rekrutteringstreffMaler.toTypedArray())
                 .query(RowMapper)
                 .list()
         }
@@ -239,20 +256,26 @@ data class MinsideVarsel(
                 .list()
 
         object RowMapper: org.springframework.jdbc.core.RowMapper<MinsideVarsel> {
-            override fun mapRow(rs: ResultSet, rowNum: Int) = MinsideVarsel(
-                dbid = rs.getLong("dbid"),
-                opprettet = rs.getObject("opprettet", LocalDateTime::class.java),
-                mottakerFnr = rs.getString("mottaker_fnr"),
-                avsenderNavIdent = rs.getString("avsender_navident"),
-                varselId = rs.getString("varsel_id"),
-                mal = Maler.valueOf(rs.getString("mal")),
-                avsenderReferanseId = rs.getString("stilling_id"),
-                bestilt = rs.getBoolean("bestilt"),
-                minsideStatus = rs.getString("minside_status")?.let { MinsideStatus.valueOf(it) },
-                eksternStatus = rs.getString("ekstern_status")?.let { EksternStatus.valueOf(it) },
-                eksternKanal = rs.getString("ekstern_kanal")?.let { Kanal.valueOf(it) },
-                eksternFeilmelding = rs.getString("ekstern_feilmelding"),
-            )
+            override fun mapRow(rs: ResultSet, rowNum: Int): MinsideVarsel {
+                val malStreng = rs.getString("mal")
+                val (mal, malParametere) = Maler.parseValueOf(malStreng)
+                
+                return MinsideVarsel(
+                    dbid = rs.getLong("dbid"),
+                    opprettet = rs.getObject("opprettet", LocalDateTime::class.java),
+                    mottakerFnr = rs.getString("mottaker_fnr"),
+                    avsenderNavIdent = rs.getString("avsender_navident"),
+                    varselId = rs.getString("varsel_id"),
+                    mal = mal,
+                    avsenderReferanseId = rs.getString("stilling_id"),
+                    bestilt = rs.getBoolean("bestilt"),
+                    minsideStatus = rs.getString("minside_status")?.let { MinsideStatus.valueOf(it) },
+                    eksternStatus = rs.getString("ekstern_status")?.let { EksternStatus.valueOf(it) },
+                    eksternKanal = rs.getString("ekstern_kanal")?.let { Kanal.valueOf(it) },
+                    eksternFeilmelding = rs.getString("ekstern_feilmelding"),
+                    malParametere = malParametere
+                )
+            }
         }
     }
 }

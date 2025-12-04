@@ -3,6 +3,7 @@ package no.nav.toi.kandidatvarsel
 import no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -82,13 +83,51 @@ class MeldingsmalTest {
                     Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på.
                 """.trimIndent())
             )
-            assertEquals(meldingsmal.kandidatInvitertTreffEndret.smsTekst, "Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav")
+            // Sjekk at KANDIDAT_INVITERT_TREFF_ENDRET har placeholder
+            assertEquals("{{ENDRINGER}}", meldingsmal.kandidatInvitertTreffEndret.placeholder)
+            assertTrue(meldingsmal.kandidatInvitertTreffEndret.smsTekst.contains("{{ENDRINGER}}"))
+            assertTrue(meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody.contains("{{ENDRINGER}}"))
             assertEquals(meldingsmal.kandidatInvitertTreffEndret.epostTittel, "Endringer på treff du er invitert til")
-            assertEquals(meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody,
-                epostHtmlBodyTemplate("""
-                    Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon.
-                """.trimIndent())
-            )
+            
+            // Sjekk at alle malParametere er med
+            assertEquals(5, meldingsmal.kandidatInvitertTreffEndret.malParametere.size)
+            val parametere = meldingsmal.kandidatInvitertTreffEndret.malParametere.map { it.kode }
+            assertTrue(parametere.contains("TITTEL"))
+            assertTrue(parametere.contains("TIDSPUNKT"))
+            assertTrue(parametere.contains("SVARFRIST"))
+            assertTrue(parametere.contains("STED"))
+            assertTrue(parametere.contains("INNHOLD"))
         }
+    }
+    
+    @Test
+    fun `KandidatInvitertTreffEndret formaterer malParametere korrekt`() {
+        val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+        
+        // Én parameter
+        assertTrue(mal.smsTekst(listOf(no.nav.toi.kandidatvarsel.minside.MalParameter.TITTEL))
+            .contains("endringer i tittel på"))
+        
+        // To parametere - bruk "og"
+        assertTrue(mal.smsTekst(listOf(
+            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.STED
+        )).contains("endringer i tidspunkt og sted på"))
+        
+        // Tre parametere - bruk komma og "og"
+        assertTrue(mal.smsTekst(listOf(
+            no.nav.toi.kandidatvarsel.minside.MalParameter.TITTEL,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.STED
+        )).contains("endringer i tittel, tidspunkt og sted på"))
+        
+        // Alle fem parametere
+        assertTrue(mal.smsTekst(listOf(
+            no.nav.toi.kandidatvarsel.minside.MalParameter.TITTEL,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.SVARFRIST,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.STED,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.INNHOLD
+        )).contains("endringer i tittel, tidspunkt, svarfrist, sted og innhold på"))
     }
 }

@@ -96,45 +96,6 @@ class VarslerEndepunktTest {
     }
 
     @Test
-    fun `GET rekrutteringstreff endepunkt returnerer varsler for rekrutteringstreffId`() {
-        val rekrutteringstreffId = UUID.randomUUID().toString()
-
-        app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
-                avsenderReferanseId = rekrutteringstreffId,
-                mottakerFnr = fnr1,
-                avsenderNavident = navident
-            ).insert(tx)
-
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
-                avsenderReferanseId = rekrutteringstreffId,
-                mottakerFnr = fnr2,
-                avsenderNavident = navident
-            ).insert(tx)
-        }
-
-        val response = httpGet("/api/varsler/rekrutteringstreff/$rekrutteringstreffId", token)
-
-        assertEquals(200, response.statusCode())
-
-        val varsler: List<Map<String, Any?>> = objectMapper.readValue(response.body())
-        assertEquals(2, varsler.size)
-
-        val mottakerFnrListe = varsler.map { it["mottakerFnr"] as String }
-        assertTrue(mottakerFnrListe.contains(fnr1))
-        assertTrue(mottakerFnrListe.contains(fnr2))
-
-        varsler.forEach { varsel ->
-            assertEquals(rekrutteringstreffId, varsel["stillingId"] as String)
-            assertEquals(navident, varsel["avsenderNavident"] as String)
-            assertEquals("UNDER_UTSENDING", varsel["minsideStatus"] as String)
-            assertEquals("UNDER_UTSENDING", varsel["eksternStatus"] as String)
-        }
-    }
-
-    @Test
     fun `GET stilling endepunkt returnerer kun stilling-maler`() {
         val stillingId = UUID.randomUUID().toString()
 
@@ -164,51 +125,10 @@ class VarslerEndepunktTest {
     }
 
     @Test
-    fun `GET rekrutteringstreff endepunkt returnerer kun rekrutteringstreff-maler`() {
-        val rekrutteringstreffId = UUID.randomUUID().toString()
-
-        app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
-                avsenderReferanseId = rekrutteringstreffId,
-                mottakerFnr = fnr1,
-                avsenderNavident = navident
-            ).insert(tx)
-
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell,
-                avsenderReferanseId = rekrutteringstreffId,
-                mottakerFnr = fnr2,
-                avsenderNavident = navident
-            ).insert(tx)
-        }
-
-        val response = httpGet("/api/varsler/rekrutteringstreff/$rekrutteringstreffId", token)
-
-        assertEquals(200, response.statusCode())
-
-        val varsler: List<Map<String, Any?>> = objectMapper.readValue(response.body())
-        assertEquals(1, varsler.size)
-        assertEquals(fnr1, varsler[0]["mottakerFnr"] as String)
-    }
-
-    @Test
     fun `GET stilling endepunkt returnerer tomt array når ingen varsler finnes`() {
         val stillingId = UUID.randomUUID().toString()
 
         val response = httpGet("/api/varsler/stilling/$stillingId", token)
-
-        assertEquals(200, response.statusCode())
-
-        val varsler: List<Map<String, Any?>> = objectMapper.readValue(response.body())
-        assertEquals(0, varsler.size)
-    }
-
-    @Test
-    fun `GET rekrutteringstreff endepunkt returnerer tomt array når ingen varsler finnes`() {
-        val rekrutteringstreffId = UUID.randomUUID().toString()
-
-        val response = httpGet("/api/varsler/rekrutteringstreff/$rekrutteringstreffId", token)
 
         assertEquals(200, response.statusCode())
 

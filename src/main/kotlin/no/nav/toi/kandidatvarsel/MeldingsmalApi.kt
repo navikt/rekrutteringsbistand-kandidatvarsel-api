@@ -29,7 +29,14 @@ data class KandidatInvitertTreff(
 data class KandidatInvitertTreffEndret(
     val smsTekst: String,
     val epostTittel: String,
-    val epostHtmlBody: String
+    val epostHtmlBody: String,
+    val placeholder: String,
+    val malParametere: List<MalParameterDto>
+)
+
+data class MalParameterDto(
+    val kode: String,
+    val displayTekst: String
 )
 
 data class Meldingsmal(
@@ -84,7 +91,9 @@ fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
         kandidatInvitertTreffEndret = KandidatInvitertTreffEndret(
             smsTekst = kandidatInvitertTreffEndret.smsTekst(),
             epostTittel = kandidatInvitertTreffEndret.epostTittel(),
-            epostHtmlBody = kandidatInvitertTreffEndret.epostHtmlBody()
+            epostHtmlBody = kandidatInvitertTreffEndret.epostHtmlBody(),
+            placeholder = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret.PLACEHOLDER,
+            malParametere = MalParameter.entries.map { MalParameterDto(it.name, it.displayTekst) }
         )
     )
 }

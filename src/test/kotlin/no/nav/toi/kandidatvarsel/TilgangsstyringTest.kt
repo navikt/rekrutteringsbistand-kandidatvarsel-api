@@ -111,13 +111,6 @@ class TilgangsstyringTest {
                 assertEquals(if (tilgangListVarslerPåStilling) 200 else 403, response.statusCode())
             }
 
-        app.get("/api/varsler/rekrutteringstreff/1")
-            .token(token)
-            .response()
-            .also { (_, response, _) ->
-                assertEquals(if (tilgangListVarslerPåStilling) 200 else 403, response.statusCode())
-            }
-
         app.post("/api/varsler/query")
             .token(token)
             .body("""{"fnr": "1"}""")

@@ -6,11 +6,11 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
-import no.nav.toi.kandidatvarsel.log
 import no.nav.toi.kandidatvarsel.secureLog
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.slf4j.LoggerFactory
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.time.Duration.Companion.seconds
@@ -22,6 +22,7 @@ const val BESTILLING_TOPIC = "min-side.aapen-brukervarsel-v1"
 const val OPPDATERING_TOPIC = "min-side.aapen-varsel-hendelse-v1"
 
 fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: StillingMal, tittel: String, arbeidsgiver: String) {
+    val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.MinsideClient")!!
     val clusterName = System.getenv("NAIS_CLUSTER_NAME") ?: "local"
     val isProd = clusterName == "prod-gcp"
     
@@ -59,9 +60,49 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: S
     log.info("kafkameldig sendt. varselId/key: '{}' metadata: {}", minsideVarsel.varselId, metadataFuture.get())
 }
 
+/** Holder genererte tekster for et rekrutteringstreff-varsel */
+private data class VarselTekster(
+    val minsideTekst: String,
+    val smsTekst: String,
+    val epostHtmlBody: String
+)
+
+/** Genererer tekster for rekrutteringstreff-maler, håndterer parametriserte maler */
+private fun genererTekster(minsideVarsel: MinsideVarsel, mal: RekrutteringstreffMal, log: org.slf4j.Logger): VarselTekster {
+    return when (mal) {
+        is KandidatInvitertTreffEndret -> {
+            val malParametere = minsideVarsel.malParametere
+            if (malParametere.isNullOrEmpty()) {
+                log.error("KandidatInvitertTreffEndret varsel mangler malParametere, varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}")
+                secureLog.error("KandidatInvitertTreffEndret varsel mangler malParametere, varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}, fnr=${minsideVarsel.mottakerFnr}")
+                throw IllegalStateException("KandidatInvitertTreffEndret krever at malParametere er satt")
+            }
+            val minsideTekst = mal.minsideTekst(malParametere)
+            val smsTekst = mal.smsTekst(malParametere)
+            val epostHtmlBody = mal.epostHtmlBody(malParametere)
+            log.info("Genererte tekster for parametrisert varsel varselId=${minsideVarsel.varselId}: minside='$minsideTekst', sms='$smsTekst', email='$epostHtmlBody'")
+            VarselTekster(
+                minsideTekst = minsideTekst,
+                smsTekst = smsTekst,
+                epostHtmlBody = epostHtmlBody
+            )
+        }
+        else -> {
+            VarselTekster(
+                minsideTekst = mal.minsideTekst(),
+                smsTekst = mal.smsTekst(),
+                epostHtmlBody = mal.epostHtmlBody()
+            )
+        }
+    }
+}
+
 fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: RekrutteringstreffMal) {
+    val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.MinsideClient")!!
     val clusterName = System.getenv("NAIS_CLUSTER_NAME") ?: "local"
     val isProd = clusterName == "prod-gcp"
+    
+    val genererteTekster = genererTekster(minsideVarsel, mal, log)
     
     val varselJson = VarselActionBuilder.opprett {
         type = Varseltype.Beskjed
@@ -69,15 +110,15 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: R
         ident = minsideVarsel.mottakerFnr
         tekster += Tekst(
             default = true,
-            tekst = mal.minsideTekst(),
+            tekst = genererteTekster.minsideTekst,
             spraakkode = "nb",
         )
         link = mal.lenkeurl(minsideVarsel.avsenderReferanseId, isProd)
         eksternVarsling = EksternVarslingBestilling(
             prefererteKanaler = listOf(EksternKanal.SMS),
             epostVarslingstittel = mal.epostTittel(),
-            epostVarslingstekst = mal.epostHtmlBody(),
-            smsVarslingstekst = mal.smsTekst(),
+            epostVarslingstekst = genererteTekster.epostHtmlBody,
+            smsVarslingstekst = genererteTekster.smsTekst,
         )
         aktivFremTil = ZonedDateTime.now(ZoneId.of("Z")).plusWeeks(10)
         sensitivitet = Sensitivitet.Substantial

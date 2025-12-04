@@ -96,20 +96,6 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
         REKBIS_ARBEIDSGIVERRETTET
     )
 
-    get(
-        "/api/varsler/rekrutteringstreff/{rekrutteringstreffId}",
-        { ctx ->
-            val rekrutteringstreffId = ctx.pathParam("rekrutteringstreffId")
-            val varsler = dataSource.transaction { tx ->
-                MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId)
-                    .map { it.toResponse() }
-            }
-            ctx.json(varsler)
-        },
-        REKBIS_UTVIKLER,
-        REKBIS_ARBEIDSGIVERRETTET
-    )
-
     post(
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
