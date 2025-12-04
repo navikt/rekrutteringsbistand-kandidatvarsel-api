@@ -172,22 +172,6 @@ class LocalApp() {
         return arrayNode.toList().associateBy { it["mottakerFnr"].asText() }
     }
 
-    fun getVarselRekrutteringstreff(
-        rekrutteringstreffId: String,
-        token: SignedJWT,
-    ): Map<String, JsonNode> {
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:${javalin.port()}/api/varsler/rekrutteringstreff/$rekrutteringstreffId"))
-            .header("Authorization", "Bearer ${token.serialize()}")
-            .GET()
-            .build()
-
-        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
-        assertEquals(200, response.statusCode())
-        val arrayNode = objectMapper.readValue<ArrayNode>(response.body())
-        return arrayNode.toList().associateBy { it["mottakerFnr"].asText() }
-    }
-
     fun getVarselFnr(fnr: String, token: SignedJWT): Map<String, JsonNode> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:${javalin.port()}/api/varsler/query"))

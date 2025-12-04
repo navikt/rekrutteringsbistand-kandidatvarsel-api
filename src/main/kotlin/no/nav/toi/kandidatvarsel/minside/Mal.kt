@@ -7,6 +7,20 @@ enum class VarselType {
     REKRUTTERINGSTREFF
 }
 
+enum class MalParameter(val displayTekst: String) {
+    TITTEL("tittel"),
+    TIDSPUNKT("tidspunkt"),
+    SVARFRIST("svarfrist"),
+    STED("sted"),
+    INNHOLD("innhold");
+
+    companion object {
+        fun fromString(value: String): MalParameter = 
+            entries.find { it.name == value.uppercase() }
+                ?: throw IllegalArgumentException("Ukjent MalParameter: $value")
+    }
+}
+
 sealed interface Mal {
     val name: String
     val varselType: VarselType
@@ -45,13 +59,25 @@ sealed interface RekrutteringstreffMal : Mal {
 }
 
 object Maler {
-    fun valueOf(name: String): Mal = when (name) {
+    fun valueOf(name: String): Mal = when (name.substringBefore(":")) {
         VurdertSomAktuell.name -> VurdertSomAktuell
         PassendeStilling.name -> PassendeStilling
         PassendeJobbarrangement.name -> PassendeJobbarrangement
         KandidatInvitertTreff.name -> KandidatInvitertTreff
         KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
         else -> throw IllegalArgumentException("Ukjent Mal: $name")
+    }
+    
+    /** Parser mal-streng som kan inneholde parametere, f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:TITTEL,STED" */
+    fun parseValueOf(malStreng: String): Pair<Mal, List<MalParameter>?> {
+        val parts = malStreng.split(":", limit = 2)
+        val mal = valueOf(parts[0])
+        val malParametere = if (parts.size > 1 && parts[1].isNotEmpty()) {
+            parts[1].split(",").map { MalParameter.valueOf(it) }
+        } else {
+            null
+        }
+        return Pair(mal, malParametere)
     }
 
     fun malerForVarselType(varselType: VarselType): List<String> = when (varselType) {
@@ -154,12 +180,14 @@ data object KandidatInvitertTreff : RekrutteringstreffMal {
 
 data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
     override val name = "KANDIDAT_INVITERT_TREFF_ENDRET"
+    
+    const val PLACEHOLDER = "{{ENDRINGER}}"
 
     override fun minsideTekst() =
-        "Det har skjedd endringer knyttet til et treff med arbeidsgivere som du er invitert til. Se mer her."
+        "Det har skjedd endringer i $PLACEHOLDER knyttet til et treff med arbeidsgivere som du er invitert til. Se mer her."
 
     override fun smsTekst() =
-        "Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
+        "Hei! Det har skjedd endringer i $PLACEHOLDER på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
 
     override fun epostTittel() =
         "Endringer på treff du er invitert til"
@@ -167,7 +195,27 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
     override fun epostHtmlBody() =
         Maler.epostHtmlBodyTemplate(
             """
-                    Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon.
+                    Det har skjedd endringer i $PLACEHOLDER på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon.
                 """.trimIndent()
         )
+    
+    fun minsideTekst(malParametere: List<MalParameter>) =
+        minsideTekst().replace(PLACEHOLDER, formaterParametere(malParametere))
+    
+    fun smsTekst(malParametere: List<MalParameter>) =
+        smsTekst().replace(PLACEHOLDER, formaterParametere(malParametere))
+    
+    fun epostHtmlBody(malParametere: List<MalParameter>) =
+        epostHtmlBody().replace(PLACEHOLDER, formaterParametere(malParametere))
+    
+    private fun formaterParametere(parametere: List<MalParameter>): String {
+        if (parametere.isEmpty()) {
+            return "ukjente felter" // Fallback som ikke skal skje, men unngår exception
+        }
+        val tekster = parametere.map { it.displayTekst }
+        return when (tekster.size) {
+            1 -> tekster.first()
+            else -> tekster.dropLast(1).joinToString(", ") + " og " + tekster.last()
+        }
+    }
 }

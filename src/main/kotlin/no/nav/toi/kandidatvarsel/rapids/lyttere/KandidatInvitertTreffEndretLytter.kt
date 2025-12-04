@@ -27,7 +27,7 @@ class KandidatInvitertTreffEndretLytter(
             }
             validate {
                 it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
-                it.interestedIn("endretAv")
+                it.interestedIn("endretAv", "malParametere")
             }
         }.register(this)
     }
@@ -42,9 +42,24 @@ class KandidatInvitertTreffEndretLytter(
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["endretAv"].asText("SYSTEM")
         val hendelseId = packet["hendelseId"].asText()
+        
+        val malParametereNode = packet["malParametere"]
+        val malParametere: List<MalParameter> = if (malParametereNode.isArray && malParametereNode.size() > 0) {
+            try {
+                malParametereNode.map { MalParameter.fromString(it.asText()) }
+            } catch (e: IllegalArgumentException) {
+                log.error("Ugyldig malParameter i melding for rekrutteringstreffId=$rekrutteringstreffId: ${e.message}")
+                secureLog.error("Ugyldig malParameter i melding for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr: ${e.message}")
+                return
+            }
+        } else {
+            log.error("Mangler eller tom malParametere-liste for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
+            secureLog.error("Mangler eller tom malParametere-liste for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
+            return
+        }
 
-        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
-        secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId")
+        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId med malParametere=${malParametere.map { it.name }}")
+        secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, malParametere=${malParametere.map { it.name }}")
 
         try {
             VarselService.opprettVarsler(
@@ -53,7 +68,8 @@ class KandidatInvitertTreffEndretLytter(
                 fnrList = listOf(fnr),
                 mal = KandidatInvitertTreffEndret,
                 avsenderNavident = avsenderNavident,
-                varselId = hendelseId
+                varselId = hendelseId,
+                malParametere = malParametere
             )
             log.info("Behandlet rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
         } catch (e: Exception) {

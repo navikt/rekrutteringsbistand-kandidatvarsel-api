@@ -235,6 +235,21 @@ class MeldingsmalApiTest {
         assertTrue((kandidatInvitertTreffEndret["smsTekst"] as String).isNotEmpty())
         assertTrue((kandidatInvitertTreffEndret["epostTittel"] as String).isNotEmpty())
         assertTrue((kandidatInvitertTreffEndret["epostHtmlBody"] as String).isNotEmpty())
+        
+        // Verifiser placeholder
+        assertEquals("{{ENDRINGER}}", kandidatInvitertTreffEndret["placeholder"])
+        assertTrue((kandidatInvitertTreffEndret["smsTekst"] as String).contains("{{ENDRINGER}}"))
+        
+        // Verifiser malParametere
+        @Suppress("UNCHECKED_CAST")
+        val malParametere = kandidatInvitertTreffEndret["malParametere"] as List<Map<String, String>>
+        assertEquals(5, malParametere.size)
+        val koder = malParametere.map { it["kode"] }
+        assertTrue(koder.contains("TITTEL"))
+        assertTrue(koder.contains("TIDSPUNKT"))
+        assertTrue(koder.contains("SVARFRIST"))
+        assertTrue(koder.contains("STED"))
+        assertTrue(koder.contains("INNHOLD"))
     }
 
     @Test
@@ -312,13 +327,13 @@ class MeldingsmalApiTest {
                 "Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på."),
                 meldingsmal.kandidatInvitertTreff.epostHtmlBody)
             
-            assertEquals("Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav", 
-                meldingsmal.kandidatInvitertTreffEndret.smsTekst)
+            // Verifiser at KANDIDAT_INVITERT_TREFF_ENDRET har placeholder
+            assertTrue(meldingsmal.kandidatInvitertTreffEndret.smsTekst.contains("{{ENDRINGER}}"))
             assertEquals("Endringer på treff du er invitert til", 
                 meldingsmal.kandidatInvitertTreffEndret.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
-                "Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon."),
-                meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody)
+            assertTrue(meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody.contains("{{ENDRINGER}}"))
+            assertEquals("{{ENDRINGER}}", meldingsmal.kandidatInvitertTreffEndret.placeholder)
+            assertEquals(5, meldingsmal.kandidatInvitertTreffEndret.malParametere.size)
         }
     }
 }
