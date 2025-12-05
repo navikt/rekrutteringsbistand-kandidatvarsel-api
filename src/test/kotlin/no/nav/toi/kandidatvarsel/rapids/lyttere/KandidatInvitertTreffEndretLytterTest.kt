@@ -30,7 +30,7 @@ class KandidatInvitertTreffEndretLytterTest {
             .load()
             .migrate()
             
-        KandidatInvitertTreffEndretLytter(testRapid.delegate, dataSource)
+        KandidatInvitertTreffEndretLytter(testRapid, dataSource)
     }
 
     @BeforeEach

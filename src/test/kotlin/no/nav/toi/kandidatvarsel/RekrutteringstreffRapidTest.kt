@@ -70,7 +70,7 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.eksterntVarselFerdigstilt(varsel.varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
@@ -109,7 +109,7 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.eksterntVarselFeilet(varsel.varselId, "Kunne ikke sende SMS")
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
@@ -139,7 +139,7 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.varselOpprettet(varsel.varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
     }
@@ -161,7 +161,7 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.eksterntVarselBestilt(varsel.varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
     }
@@ -183,7 +183,7 @@ class RekrutteringstreffRapidTest {
         }
         
         minside.eksterntVarselSendt(varsel.varselId, "SMS")
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
     }
@@ -203,7 +203,7 @@ class RekrutteringstreffRapidTest {
         }
 
         minside.eksterntVarselFerdigstilt(varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
@@ -240,7 +240,7 @@ class RekrutteringstreffRapidTest {
         }
 
         minside.eksterntVarselFerdigstilt(varselId)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
     }
