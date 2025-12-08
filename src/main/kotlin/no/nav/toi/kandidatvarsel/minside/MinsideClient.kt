@@ -147,9 +147,13 @@ fun Consumer<String, String>.pollOppdateringer(body: (Sequence<VarselOppdatering
     val records = poll(1.seconds.toJavaDuration())
 
     val oppdateringer = records.asSequence()
+        .filter { it.value() != null }
         .map { record -> 
             val partitionOffset = "${record.partition()}:${record.offset()}"
-            minsideObjectMapper.readValue<VarselOppdateringDto>(record.value()).asDomain(partitionOffset) 
+            val dto = minsideObjectMapper.readValue<VarselOppdateringDto>(record.value())
+            secureLog.info("Mottok varseloppdatering: partitionOffset={}, eventName={}, varselId={}, status={}, kanal={}, feilmelding={}",
+                partitionOffset, dto.eventName, dto.varselId, dto.status, dto.kanal, dto.feilmelding)
+            dto.asDomain(partitionOffset) 
         }
 
     body(oppdateringer)
