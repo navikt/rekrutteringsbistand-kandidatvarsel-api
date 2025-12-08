@@ -188,9 +188,11 @@ fun Consumer<String, String>.pollOppdateringer(body: (Sequence<VarselOppdatering
     val records = poll(1.seconds.toJavaDuration())
 
     val oppdateringer = records.asSequence()
+        .filter { it.value() != null }
         .map { record -> 
             val partitionOffset = "${record.partition()}:${record.offset()}"
-            minsideObjectMapper.readValue<VarselOppdateringDto>(record.value()).asDomain(partitionOffset) 
+            val dto = minsideObjectMapper.readValue<VarselOppdateringDto>(record.value())
+            dto.asDomain(partitionOffset) 
         }
 
     body(oppdateringer)

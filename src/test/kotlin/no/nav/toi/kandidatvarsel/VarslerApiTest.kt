@@ -281,7 +281,7 @@ class VarslerApiTest {
         val varselId1 = bestillinger[fnr1]!!["varselId"].asText()
 
         minside.varselOpprettet(varselId1)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         app.getVarselStilling(stillingId1, token).also { varsler ->
             assertEquals(2, varsler.size)
@@ -306,7 +306,7 @@ class VarslerApiTest {
         }
 
         minside.eksterntVarselBestilt(varselId1)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         app.getVarselStilling(stillingId1, token).also { varsler ->
             assertEquals(2, varsler.size)
@@ -329,7 +329,7 @@ class VarslerApiTest {
         }
 
         minside.eksterntVarselSendt(varselId1, "SMS")
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         app.getVarselStilling(stillingId1, token).also { varsler ->
             assertEquals(2, varsler.size)
@@ -353,7 +353,7 @@ class VarslerApiTest {
         }
 
         minside.eksterntVarselSendt(varselId1, "EPOST")
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         app.getVarselStilling(stillingId1, token).also { varsler ->
             assertEquals(2, varsler.size)
@@ -377,7 +377,7 @@ class VarslerApiTest {
         }
 
         minside.eksterntVarselFeilet(varselId1, "En feil har skjedd")
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         app.getVarselStilling(stillingId1, token).also { varsler ->
             assertEquals(2, varsler.size)
@@ -400,7 +400,7 @@ class VarslerApiTest {
         }
 
         minside.varselInaktivert(varselId1)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         app.getVarselStilling(stillingId1, token).also { varsler ->
             assertEquals(2, varsler.size)
@@ -423,7 +423,7 @@ class VarslerApiTest {
         }
 
         minside.varselSlettet(varselId1)
-        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid.delegate)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         app.getVarselStilling(stillingId1, token).also { varsler ->
             assertEquals(2, varsler.size)
