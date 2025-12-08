@@ -52,7 +52,20 @@ fun sjekkVarselOppdateringer(
         val oppdateringer = oppdateringerSeq.toList()
         if (oppdateringer.isEmpty()) return@pollOppdateringer
 
-        log.info("Behandler ${oppdateringer.size} oppdateringer")
+        // Logg alle varselId-er med deres ekstern status i samme loggmelding
+        val oppdateringerInfo = oppdateringer.joinToString("; ") { oppdatering ->
+            val status = when (oppdatering) {
+                is StatusOppdatering -> oppdatering.status.name
+                is EksternVarselBestilt -> "bestilt"
+                is EksternVarselSendt -> "sendt"
+                is EksternVarselFerdigstilt -> "ferdigstilt"
+                is EksternVarselFeilet -> "feilet"
+                is EksternVarselVenter -> "venter"
+                is EksternVarselKansellert -> "kansellert"
+            }
+            "${oppdatering.varselId}($status,${oppdatering.partitionOffset})"
+        }
+        log.info("Behandler ${oppdateringer.size} oppdateringer: $oppdateringerInfo")
 
         dataSource.transaction { tx ->
             val varsler = MinsideVarsel.finnFraVarselIder(tx, oppdateringer.map { it.varselId })
@@ -98,5 +111,3 @@ private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConn
     rapidsConnection.publish(responseDto.mottakerFnr, objectMapper.writeValueAsString(packet))
 
 }
-
-
