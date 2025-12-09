@@ -8,11 +8,11 @@ enum class VarselType {
 }
 
 enum class MalParameter(val displayTekst: String) {
-    TITTEL("tittel"),
+    NAVN("navn"),
     TIDSPUNKT("tidspunkt"),
     SVARFRIST("svarfrist"),
     STED("sted"),
-    INNHOLD("innhold");
+    INTRODUKSJON("introduksjon");
 
     companion object {
         fun fromString(value: String): MalParameter = 

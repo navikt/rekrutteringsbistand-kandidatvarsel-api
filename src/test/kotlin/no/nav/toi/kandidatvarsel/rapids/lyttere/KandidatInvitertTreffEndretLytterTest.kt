@@ -60,7 +60,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "malParametere": ["TITTEL", "TIDSPUNKT"]
+                "malParametere": ["NAVN", "TIDSPUNKT"]
             }
         """.trimIndent())
 
@@ -74,7 +74,7 @@ class KandidatInvitertTreffEndretLytterTest {
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
         assertEquals(hendelseId, varsler[0].varselId)
-        assertEquals(listOf(MalParameter.TITTEL, MalParameter.TIDSPUNKT), varsler[0].malParametere)
+        assertEquals(listOf(MalParameter.NAVN, MalParameter.TIDSPUNKT), varsler[0].malParametere)
     }
 
     @Test
@@ -111,7 +111,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "12345678901",
                 "endretAv": "Z123456",
                 "hendelseId": "87654321-4321-4321-4321-210987654321",
-                "malParametere": ["TITTEL"]
+                "malParametere": ["NAVN"]
             }
         """.trimIndent())
 
@@ -131,7 +131,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "@event_name": "rekrutteringstreffoppdatering",
                 "varselId": "$varselId",
                 "avsenderNavident": "Z123456",
-                "malParametere": ["INNHOLD"]
+                "malParametere": ["INTRODUKSJON"]
             }
         """.trimIndent())
 
@@ -178,7 +178,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "malParametere": ["TITTEL", "TIDSPUNKT", "SVARFRIST", "STED", "INNHOLD"]
+                "malParametere": ["NAVN", "TIDSPUNKT", "SVARFRIST", "STED", "INTRODUKSJON"]
             }
         """.trimIndent())
 
@@ -188,7 +188,7 @@ class KandidatInvitertTreffEndretLytterTest {
 
         assertEquals(1, varsler.size)
         assertEquals(
-            listOf(MalParameter.TITTEL, MalParameter.TIDSPUNKT, MalParameter.SVARFRIST, MalParameter.STED, MalParameter.INNHOLD), 
+            listOf(MalParameter.NAVN, MalParameter.TIDSPUNKT, MalParameter.SVARFRIST, MalParameter.STED, MalParameter.INTRODUKSJON), 
             varsler[0].malParametere
         )
     }

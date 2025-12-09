@@ -92,11 +92,11 @@ class MeldingsmalTest {
             // Sjekk at alle malParametere er med
             assertEquals(5, meldingsmal.kandidatInvitertTreffEndret.malParametere.size)
             val parametere = meldingsmal.kandidatInvitertTreffEndret.malParametere.map { it.kode }
-            assertTrue(parametere.contains("TITTEL"))
+            assertTrue(parametere.contains("NAVN"))
             assertTrue(parametere.contains("TIDSPUNKT"))
             assertTrue(parametere.contains("SVARFRIST"))
             assertTrue(parametere.contains("STED"))
-            assertTrue(parametere.contains("INNHOLD"))
+            assertTrue(parametere.contains("INTRODUKSJON"))
         }
     }
     
@@ -105,8 +105,8 @@ class MeldingsmalTest {
         val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
         
         // Én parameter
-        assertTrue(mal.smsTekst(listOf(no.nav.toi.kandidatvarsel.minside.MalParameter.TITTEL))
-            .contains("endringer i tittel på"))
+        assertTrue(mal.smsTekst(listOf(no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN))
+            .contains("endringer i navn på"))
         
         // To parametere - bruk "og"
         assertTrue(mal.smsTekst(listOf(
@@ -116,18 +116,18 @@ class MeldingsmalTest {
         
         // Tre parametere - bruk komma og "og"
         assertTrue(mal.smsTekst(listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.TITTEL,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
             no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
             no.nav.toi.kandidatvarsel.minside.MalParameter.STED
-        )).contains("endringer i tittel, tidspunkt og sted på"))
+        )).contains("endringer i navn, tidspunkt og sted på"))
         
         // Alle fem parametere
         assertTrue(mal.smsTekst(listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.TITTEL,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
             no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
             no.nav.toi.kandidatvarsel.minside.MalParameter.SVARFRIST,
             no.nav.toi.kandidatvarsel.minside.MalParameter.STED,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.INNHOLD
-        )).contains("endringer i tittel, tidspunkt, svarfrist, sted og innhold på"))
+            no.nav.toi.kandidatvarsel.minside.MalParameter.INTRODUKSJON
+        )).contains("endringer i navn, tidspunkt, svarfrist, sted og introduksjon på"))
     }
 }

@@ -245,11 +245,11 @@ class MeldingsmalApiTest {
         val malParametere = kandidatInvitertTreffEndret["malParametere"] as List<Map<String, String>>
         assertEquals(5, malParametere.size)
         val koder = malParametere.map { it["kode"] }
-        assertTrue(koder.contains("TITTEL"))
+        assertTrue(koder.contains("NAVN"))
         assertTrue(koder.contains("TIDSPUNKT"))
         assertTrue(koder.contains("SVARFRIST"))
         assertTrue(koder.contains("STED"))
-        assertTrue(koder.contains("INNHOLD"))
+        assertTrue(koder.contains("INTRODUKSJON"))
     }
 
     @Test
