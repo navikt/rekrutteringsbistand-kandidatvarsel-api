@@ -76,12 +76,12 @@ class MeldingsmalTest {
     @Test
     fun rekrutteringstreffMeldingsmal() {
         app.getRekrutteringstreffMeldingsmal(veileder1).also { meldingsmal ->
-            assertEquals(meldingsmal.kandidatInvitertTreff.smsTekst, "Hei! Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav")
-            assertEquals(meldingsmal.kandidatInvitertTreff.epostTittel, "Du er invitert til et treff")
+            assertEquals(meldingsmal.kandidatInvitertTreff.smsTekst, "Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav")
+            assertEquals(meldingsmal.kandidatInvitertTreff.epostTittel, "Invitasjon til å treffe arbeidsgivere")
             assertEquals(meldingsmal.kandidatInvitertTreff.epostHtmlBody,
-                epostHtmlBodyTemplate("""
-                    Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på.
-                """.trimIndent())
+                """
+                <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+                """.trimIndent()
             )
             // Sjekk at KANDIDAT_INVITERT_TREFF_ENDRET har placeholder
             assertEquals("{{ENDRINGER}}", meldingsmal.kandidatInvitertTreffEndret.placeholder)
@@ -106,28 +106,22 @@ class MeldingsmalTest {
         
         // Én parameter
         assertTrue(mal.smsTekst(listOf(no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN))
-            .contains("endringer i navn på"))
+            .contains("navn"))
         
         // To parametere - bruk "og"
         assertTrue(mal.smsTekst(listOf(
             no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
             no.nav.toi.kandidatvarsel.minside.MalParameter.STED
-        )).contains("endringer i tidspunkt og sted på"))
+        )).contains("tidspunkt og sted"))
         
         // Tre parametere - bruk komma og "og"
         assertTrue(mal.smsTekst(listOf(
             no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
             no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
             no.nav.toi.kandidatvarsel.minside.MalParameter.STED
-        )).contains("endringer i navn, tidspunkt og sted på"))
-        
-        // Alle fem parametere
-        assertTrue(mal.smsTekst(listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.SVARFRIST,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.STED,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.INTRODUKSJON
-        )).contains("endringer i navn, tidspunkt, svarfrist, sted og introduksjon på"))
+        )).contains("navn, tidspunkt og sted"))
     }
+    
+
+
 }

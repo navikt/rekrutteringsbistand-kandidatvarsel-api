@@ -319,12 +319,13 @@ class MeldingsmalApiTest {
         val token = app.userToken(navIdent = "Z1")
         
         app.getRekrutteringstreffMeldingsmal(token).also { meldingsmal ->
-            assertEquals("Hei! Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav", 
+            assertEquals("Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav", 
                 meldingsmal.kandidatInvitertTreff.smsTekst)
-            assertEquals("Du er invitert til et treff", 
+            assertEquals("Invitasjon til å treffe arbeidsgivere", 
                 meldingsmal.kandidatInvitertTreff.epostTittel)
-            assertEquals(no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate(
-                "Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på."),
+            assertEquals("""
+                <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+                """.trimIndent(),
                 meldingsmal.kandidatInvitertTreff.epostHtmlBody)
             
             // Verifiser at KANDIDAT_INVITERT_TREFF_ENDRET har placeholder

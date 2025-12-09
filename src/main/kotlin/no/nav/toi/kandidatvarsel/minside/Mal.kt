@@ -162,20 +162,18 @@ data object KandidatInvitertTreff : RekrutteringstreffMal {
     override val name = "KANDIDAT_INVITERT_TREFF"
 
     override fun minsideTekst() =
-        "Du er invitert til et treff med arbeidsgivere. Du kan melde deg på inne på minside hos Nav."
+        "Du er invitert til et treff der du kan møte arbeidsgivere."
 
     override fun smsTekst() =
-        "Hei! Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav"
+        "Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav"
 
     override fun epostTittel() =
-        "Du er invitert til et treff"
+        "Invitasjon til å treffe arbeidsgivere"
 
     override fun epostHtmlBody() =
-        Maler.epostHtmlBodyTemplate(
-            """
-                    Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på.
-                """.trimIndent()
-        )
+        """
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        """.trimIndent()
 }
 
 data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
@@ -184,20 +182,19 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
     const val PLACEHOLDER = "{{ENDRINGER}}"
 
     override fun minsideTekst() =
-        "Det har skjedd endringer i $PLACEHOLDER knyttet til et treff med arbeidsgivere som du er invitert til. Se mer her."
+        "Det har skjedd endringer i $PLACEHOLDER knyttet til et treff med arbeidsgivere som du er invitert til."
 
     override fun smsTekst() =
-        "Hei! Det har skjedd endringer i $PLACEHOLDER på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
+        "Det har skjedd endringer på et treff med arbeidsgiver som du er invitert til:\n\n$PLACEHOLDER\n\nLogg inn på Nav for mer informasjon.\n\nVennlig hilsen Nav."
 
     override fun epostTittel() =
         "Endringer på treff du er invitert til"
 
     override fun epostHtmlBody() =
-        Maler.epostHtmlBodyTemplate(
-            """
-                    Det har skjedd endringer i $PLACEHOLDER på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon.
-                """.trimIndent()
-        )
+        """
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på et treff med arbeidsgiver som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        """.trimIndent()
+
     
     fun minsideTekst(malParametere: List<MalParameter>) =
         minsideTekst().replace(PLACEHOLDER, formaterParametere(malParametere))
