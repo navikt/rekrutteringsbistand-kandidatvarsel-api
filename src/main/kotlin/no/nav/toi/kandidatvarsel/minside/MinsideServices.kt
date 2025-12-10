@@ -95,7 +95,8 @@ private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConn
 
     val responseDto = varsel.toResponse()
     val opprettetZoned = responseDto.opprettet.atZone(java.time.ZoneId.of("Europe/Oslo"))
-    val packet = mapOf(
+    val malParametere = varsel.malParametere?.map { it.name }
+    val packet = mapOf<String, Any?>(
         "@event_name" to "minsideVarselSvar",
         "varselId" to responseDto.id,
         "avsenderReferanseId" to responseDto.stillingId,
@@ -107,7 +108,8 @@ private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConn
         "eksternFeilmelding" to responseDto.eksternFeilmelding,
         "eksternKanal" to responseDto.eksternKanal,
         "mal" to varsel.mal.name
-    )
+    ) + if (malParametere != null) mapOf("malParametere" to malParametere) else emptyMap()
+
     rapidsConnection.publish(responseDto.mottakerFnr, objectMapper.writeValueAsString(packet))
 
 }

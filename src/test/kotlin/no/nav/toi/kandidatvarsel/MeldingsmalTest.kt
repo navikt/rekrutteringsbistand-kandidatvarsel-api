@@ -3,6 +3,8 @@ package no.nav.toi.kandidatvarsel
 import no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -122,6 +124,105 @@ class MeldingsmalTest {
         )).contains("navn, tidspunkt og sted"))
     }
     
+    @Test
+    fun `KandidatInvitertTreffEndret minsideTekst inneholder placeholder`() {
+        val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+        
+        // Verifiser at minsideTekst() uten parametere inneholder placeholder
+        assertTrue(mal.minsideTekst().contains("{{ENDRINGER}}"))
+        
+        // Verifiser at minsideTekst med parametere erstatter placeholder
+        val minsideTekst = mal.minsideTekst(listOf(
+            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT
+        ))
+        assertFalse(minsideTekst.contains("{{ENDRINGER}}"))
+        assertTrue(minsideTekst.contains("navn og tidspunkt"))
+    }
+    
+    @Test
+    fun `KandidatInvitertTreffEndret epostHtmlBody inneholder placeholder og kan erstattes`() {
+        val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+        
+        // Verifiser at epostHtmlBody() uten parametere inneholder placeholder
+        assertTrue(mal.epostHtmlBody().contains("{{ENDRINGER}}"))
+        
+        // Verifiser at epostHtmlBody med parametere erstatter placeholder
+        val epostBody = mal.epostHtmlBody(listOf(no.nav.toi.kandidatvarsel.minside.MalParameter.STED))
+        assertFalse(epostBody.contains("{{ENDRINGER}}"))
+        assertTrue(epostBody.contains("sted"))
+    }
+    
+    @Test
+    fun `malMedParametere serialiserer korrekt`() {
+        // Uten parametere
+        val varselUten = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+            mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
+            avsenderReferanseId = "test-id",
+            mottakerFnr = "12345678901",
+            avsenderNavident = "Z123456"
+        )
+        assertEquals("KANDIDAT_INVITERT_TREFF", varselUten.malMedParametere())
+        
+        // Med parametere
+        val varselMed = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+            mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+            avsenderReferanseId = "test-id",
+            mottakerFnr = "12345678901",
+            avsenderNavident = "Z123456",
+            malParametere = listOf(
+                no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
+                no.nav.toi.kandidatvarsel.minside.MalParameter.STED
+            )
+        )
+        assertEquals("KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED", varselMed.malMedParametere())
+    }
+    
+    @Test
+    fun `parseValueOf deserialiserer korrekt`() {
+        // Uten parametere
+        val (mal1, params1) = no.nav.toi.kandidatvarsel.minside.Maler.parseValueOf("KANDIDAT_INVITERT_TREFF")
+        assertEquals(no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff, mal1)
+        assertNull(params1)
+        
+        // Med parametere
+        val (mal2, params2) = no.nav.toi.kandidatvarsel.minside.Maler.parseValueOf("KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED")
+        assertEquals(no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret, mal2)
+        assertEquals(listOf(
+            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.STED
+        ), params2)
+    }
+    
+    @Test
+    fun `database round-trip for varsel med malParametere`() {
+        // Opprett varsel med malParametere
+        val originalParametere = listOf(
+            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.STED
+        )
+        val rekrutteringstreffId = "test-roundtrip-${System.currentTimeMillis()}"
+        
+        app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+                avsenderReferanseId = rekrutteringstreffId,
+                mottakerFnr = "12345678901",
+                avsenderNavident = "Z123456",
+                malParametere = originalParametere
+            ).insert(tx)
+        }
+        
+        // Hent varselet tilbake fra databasen
+        val hentetVarsel = app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
+        }
+        
+        // Verifiser at malParametere er bevart
+        assertEquals(no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret, hentetVarsel.mal)
+        assertEquals(originalParametere, hentetVarsel.malParametere)
+    }
 
 
 }

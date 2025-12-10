@@ -223,6 +223,46 @@ class RekrutteringstreffRapidTest {
         assertTrue(opprettet.isAfter(now.minusMinutes(1)), "opprettet skal være etter ett minutt siden")
         assertTrue(opprettet.isBefore(now.plusSeconds(1)), "opprettet skal være før nå")
     }
+    
+    @Test
+    fun `skal publisere melding med malParametere på rapid når endret rekrutteringstreff-varsel får FERDIGSTILT status`() {
+        val varselId = UUID.randomUUID().toString()
+        val malParametere = listOf(
+            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
+            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT
+        )
+        
+        // Opprett varsel med malParametere
+        app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+                avsenderReferanseId = rekrutteringstreffId,
+                mottakerFnr = fnr,
+                avsenderNavident = navident,
+                varselId = varselId,
+                malParametere = malParametere
+            ).insert(tx)
+        }
+
+        minside.eksterntVarselFerdigstilt(varselId)
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
+
+        assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
+        val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
+        
+        // Verifiser alle forventede felter
+        assertEquals("minsideVarselSvar", packet["@event_name"])
+        assertEquals(rekrutteringstreffId, packet["avsenderReferanseId"])
+        assertEquals(fnr, packet["fnr"])
+        assertEquals("KANDIDAT_INVITERT_TREFF_ENDRET", packet["mal"])
+        assertEquals("FERDIGSTILT", packet["eksternStatus"])
+        
+        // Verifiser at malParametere er med i meldingen
+        @Suppress("UNCHECKED_CAST")
+        val rapidMalParametere = packet["malParametere"] as? List<String>
+        assertNotNull(rapidMalParametere, "malParametere skal være med i rapid-meldingen")
+        assertEquals(listOf("NAVN", "TIDSPUNKT"), rapidMalParametere)
+    }
 
     @Test
     fun `skal IKKE publisere melding på rapid når stilling-varsel får FERDIGSTILT status`() {
