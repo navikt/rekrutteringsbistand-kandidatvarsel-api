@@ -56,7 +56,7 @@ data class MinsideVarsel(
         eksternStatus == EksternStatus.FERDIGSTILT || eksternStatus == EksternStatus.FEILET
 
     /** Serialiserer mal-navnet med parametere for lagring i databasen.
-     * Format: "KANDIDAT_INVITERT_TREFF_ENDRET:TITTEL,STED" */
+     * Format: "KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED" */
     fun malMedParametere(): String {
         return if (mal == KandidatInvitertTreffEndret && malParametere != null && malParametere.isNotEmpty()) {
             "${mal.name}:${malParametere.joinToString(",") { it.name }}"
@@ -237,7 +237,7 @@ data class MinsideVarsel(
          * Brukes kun av tester, rekrutteringstreff bruker ikke rest api polling.
          */
         fun hentVarslerForRekrutteringstreff(jdbcClient: JdbcClient, rekrutteringstreffId: String): List<MinsideVarsel> {
-            // Mal-feltet kan inneholde parameter-suffix (f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:TITTEL,STED")
+            // Mal-feltet kan inneholde parameter-suffix (f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED")
             // Bruker starts_with som er effektivt med B-tree indeks på prefiks
             return jdbcClient.sql("""
                 select * from minside_varsel 
@@ -279,5 +279,3 @@ data class MinsideVarsel(
         }
     }
 }
-
-

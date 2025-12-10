@@ -68,7 +68,7 @@ object Maler {
         else -> throw IllegalArgumentException("Ukjent Mal: $name")
     }
     
-    /** Parser mal-streng som kan inneholde parametere, f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:TITTEL,STED" */
+    /** Parser mal-streng som kan inneholde parametere, f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED" */
     fun parseValueOf(malStreng: String): Pair<Mal, List<MalParameter>?> {
         val parts = malStreng.split(":", limit = 2)
         val mal = valueOf(parts[0])
@@ -185,14 +185,14 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
         "Det har skjedd endringer i $PLACEHOLDER knyttet til et treff med arbeidsgivere som du er invitert til."
 
     override fun smsTekst() =
-        "Det har skjedd endringer på et treff med arbeidsgiver som du er invitert til:\n\n$PLACEHOLDER\n\nLogg inn på Nav for mer informasjon.\n\nVennlig hilsen Nav."
+        "Det har skjedd endringer på et treff med arbeidsgivere som du er invitert til:\n\n$PLACEHOLDER\n\nLogg inn på Nav for mer informasjon.\n\nVennlig hilsen Nav"
 
     override fun epostTittel() =
         "Endringer på treff du er invitert til"
 
     override fun epostHtmlBody() =
         """
-        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på et treff med arbeidsgiver som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på et treff med arbeidsgivere som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
 
     
