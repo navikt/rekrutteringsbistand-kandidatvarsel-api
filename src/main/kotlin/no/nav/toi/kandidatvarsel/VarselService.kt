@@ -1,6 +1,5 @@
 package no.nav.toi.kandidatvarsel
 
-import no.nav.toi.kandidatvarsel.minside.MalParameter
 import no.nav.toi.kandidatvarsel.minside.Mal
 import no.nav.toi.kandidatvarsel.minside.MinsideVarsel
 import org.slf4j.LoggerFactory
@@ -16,7 +15,9 @@ object VarselService {
         mal: Mal,
         avsenderNavident: String,
         varselId: String? = null,
-        malParametere: List<MalParameter>? = null
+        /** Flettedata med endringsinformasjon som flettes inn i meldingstekster.
+         *  Inneholder liste med displayTekster for endrede felter, f.eks. ["tidspunkt", "sted"] */
+        flettedata: List<String>? = null
     ) {
         if (varselId != null && fnrList.size > 1) {
             throw IllegalArgumentException("Kan ikke opprette varsler med samme varselId for flere mottakere")
@@ -34,7 +35,7 @@ object VarselService {
                     mottakerFnr = fnr,
                     avsenderNavident = avsenderNavident,
                     varselId = varselId,
-                    malParametere = malParametere
+                    flettedata = flettedata
                 ).insert(tx)
             }
         }

@@ -60,7 +60,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "malParametere": ["NAVN", "TIDSPUNKT"]
+                "flettedata": ["navn", "tidspunkt"]
             }
         """.trimIndent())
 
@@ -74,7 +74,7 @@ class KandidatInvitertTreffEndretLytterTest {
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
         assertEquals(hendelseId, varsler[0].varselId)
-        assertEquals(listOf(MalParameter.NAVN, MalParameter.TIDSPUNKT), varsler[0].malParametere)
+        assertEquals(listOf("navn", "tidspunkt"), varsler[0].flettedata)
     }
 
     @Test
@@ -89,7 +89,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
                 "hendelseId": "$hendelseId",
-                "malParametere": ["STED"]
+                "flettedata": ["sted"]
             }
         """.trimIndent())
 
@@ -111,7 +111,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "12345678901",
                 "endretAv": "Z123456",
                 "hendelseId": "87654321-4321-4321-4321-210987654321",
-                "malParametere": ["NAVN"]
+                "flettedata": ["navn"]
             }
         """.trimIndent())
 
@@ -131,7 +131,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "@event_name": "rekrutteringstreffoppdatering",
                 "varselId": "$varselId",
                 "avsenderNavident": "Z123456",
-                "malParametere": ["INTRODUKSJON"]
+                "flettedata": ["introduksjon"]
             }
         """.trimIndent())
 
@@ -143,7 +143,7 @@ class KandidatInvitertTreffEndretLytterTest {
     }
     
     @Test
-    fun `skal ikke opprette varsel når malParametere mangler`() {
+    fun `skal ikke opprette varsel når flettedata mangler`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
@@ -166,7 +166,7 @@ class KandidatInvitertTreffEndretLytterTest {
     }
     
     @Test
-    fun `skal lagre alle malParametere`() {
+    fun `skal lagre alle flettedata elementer`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
@@ -178,7 +178,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "malParametere": ["NAVN", "TIDSPUNKT", "SVARFRIST", "STED", "INTRODUKSJON"]
+                "flettedata": ["navn", "tidspunkt", "svarfrist", "sted", "introduksjon"]
             }
         """.trimIndent())
 
@@ -188,8 +188,8 @@ class KandidatInvitertTreffEndretLytterTest {
 
         assertEquals(1, varsler.size)
         assertEquals(
-            listOf(MalParameter.NAVN, MalParameter.TIDSPUNKT, MalParameter.SVARFRIST, MalParameter.STED, MalParameter.INTRODUKSJON), 
-            varsler[0].malParametere
+            listOf("navn", "tidspunkt", "svarfrist", "sted", "introduksjon"), 
+            varsler[0].flettedata
         )
     }
 }

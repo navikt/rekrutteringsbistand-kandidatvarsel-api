@@ -31,10 +31,14 @@ data class KandidatInvitertTreffEndret(
     val epostTittel: String,
     val epostHtmlBody: String,
     val placeholder: String,
-    val malParametere: List<MalParameterDto>
+    /** Liste over mulige endringsfelt med kode og displayTekst som brukes i varsler */
+    val endringsFelt: List<EndringsFeltDto>
 )
 
-data class MalParameterDto(
+/** Representerer et felt som kan endres på et rekrutteringstreff.
+ *  displayTekst er det som vises i sms/email/minside.
+ *  kode er identifikatoren som brukes i API-kall. */
+data class EndringsFeltDto(
     val kode: String,
     val displayTekst: String
 )
@@ -93,7 +97,7 @@ fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
             epostTittel = kandidatInvitertTreffEndret.epostTittel(),
             epostHtmlBody = kandidatInvitertTreffEndret.epostHtmlBody(),
             placeholder = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret.PLACEHOLDER,
-            malParametere = MalParameter.entries.map { MalParameterDto(it.name, it.displayTekst) }
+            endringsFelt = MalParameter.entries.map { EndringsFeltDto(it.name, it.displayTekst) }
         )
     )
 }

@@ -91,51 +91,43 @@ class MeldingsmalTest {
             assertTrue(meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody.contains("{{ENDRINGER}}"))
             assertEquals(meldingsmal.kandidatInvitertTreffEndret.epostTittel, "Endringer på treff du er invitert til")
             
-            // Sjekk at alle malParametere er med
-            assertEquals(5, meldingsmal.kandidatInvitertTreffEndret.malParametere.size)
-            val parametere = meldingsmal.kandidatInvitertTreffEndret.malParametere.map { it.kode }
-            assertTrue(parametere.contains("NAVN"))
-            assertTrue(parametere.contains("TIDSPUNKT"))
-            assertTrue(parametere.contains("SVARFRIST"))
-            assertTrue(parametere.contains("STED"))
-            assertTrue(parametere.contains("INTRODUKSJON"))
+            // Sjekk at alle endringsFelt er med
+            assertEquals(5, meldingsmal.kandidatInvitertTreffEndret.endringsFelt.size)
+            val feltKoder = meldingsmal.kandidatInvitertTreffEndret.endringsFelt.map { it.kode }
+            assertTrue(feltKoder.contains("NAVN"))
+            assertTrue(feltKoder.contains("TIDSPUNKT"))
+            assertTrue(feltKoder.contains("SVARFRIST"))
+            assertTrue(feltKoder.contains("STED"))
+            assertTrue(feltKoder.contains("INTRODUKSJON"))
         }
     }
     
     @Test
-    fun `KandidatInvitertTreffEndret formaterer malParametere korrekt`() {
+    fun `KandidatInvitertTreffEndret formaterer endringsTekster korrekt`() {
         val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
         
-        // Én parameter
-        assertTrue(mal.smsTekst(listOf(no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN))
+        // Én endring
+        assertTrue(mal.smsTekst(listOf("navn"))
             .contains("navn"))
         
-        // To parametere - bruk "og"
-        assertTrue(mal.smsTekst(listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.STED
-        )).contains("tidspunkt og sted"))
+        // To endringer - bruk "og"
+        assertTrue(mal.smsTekst(listOf("tidspunkt", "sted"))
+            .contains("tidspunkt og sted"))
         
-        // Tre parametere - bruk komma og "og"
-        assertTrue(mal.smsTekst(listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.STED
-        )).contains("navn, tidspunkt og sted"))
+        // Tre endringer - bruk komma og "og"
+        assertTrue(mal.smsTekst(listOf("navn", "tidspunkt", "sted"))
+            .contains("navn, tidspunkt og sted"))
     }
     
     @Test
     fun `KandidatInvitertTreffEndret minsideTekst inneholder placeholder`() {
         val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
         
-        // Verifiser at minsideTekst() uten parametere inneholder placeholder
+        // Verifiser at minsideTekst() uten endringsTekster inneholder placeholder
         assertTrue(mal.minsideTekst().contains("{{ENDRINGER}}"))
         
-        // Verifiser at minsideTekst med parametere erstatter placeholder
-        val minsideTekst = mal.minsideTekst(listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT
-        ))
+        // Verifiser at minsideTekst med endringsTekster erstatter placeholder
+        val minsideTekst = mal.minsideTekst(listOf("navn", "tidspunkt"))
         assertFalse(minsideTekst.contains("{{ENDRINGER}}"))
         assertTrue(minsideTekst.contains("navn og tidspunkt"))
     }
@@ -144,64 +136,19 @@ class MeldingsmalTest {
     fun `KandidatInvitertTreffEndret epostHtmlBody inneholder placeholder og kan erstattes`() {
         val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
         
-        // Verifiser at epostHtmlBody() uten parametere inneholder placeholder
+        // Verifiser at epostHtmlBody() uten endringsTekster inneholder placeholder
         assertTrue(mal.epostHtmlBody().contains("{{ENDRINGER}}"))
         
-        // Verifiser at epostHtmlBody med parametere erstatter placeholder
-        val epostBody = mal.epostHtmlBody(listOf(no.nav.toi.kandidatvarsel.minside.MalParameter.STED))
+        // Verifiser at epostHtmlBody med endringsTekster erstatter placeholder
+        val epostBody = mal.epostHtmlBody(listOf("sted"))
         assertFalse(epostBody.contains("{{ENDRINGER}}"))
         assertTrue(epostBody.contains("sted"))
     }
     
     @Test
-    fun `malMedParametere serialiserer korrekt`() {
-        // Uten parametere
-        val varselUten = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-            mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
-            avsenderReferanseId = "test-id",
-            mottakerFnr = "12345678901",
-            avsenderNavident = "Z123456"
-        )
-        assertEquals("KANDIDAT_INVITERT_TREFF", varselUten.malMedParametere())
-        
-        // Med parametere
-        val varselMed = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-            mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
-            avsenderReferanseId = "test-id",
-            mottakerFnr = "12345678901",
-            avsenderNavident = "Z123456",
-            malParametere = listOf(
-                no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
-                no.nav.toi.kandidatvarsel.minside.MalParameter.STED
-            )
-        )
-        assertEquals("KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED", varselMed.malMedParametere())
-    }
-    
-    @Test
-    fun `parseValueOf deserialiserer korrekt`() {
-        // Uten parametere
-        val (mal1, params1) = no.nav.toi.kandidatvarsel.minside.Maler.parseValueOf("KANDIDAT_INVITERT_TREFF")
-        assertEquals(no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff, mal1)
-        assertNull(params1)
-        
-        // Med parametere
-        val (mal2, params2) = no.nav.toi.kandidatvarsel.minside.Maler.parseValueOf("KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED")
-        assertEquals(no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret, mal2)
-        assertEquals(listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.STED
-        ), params2)
-    }
-    
-    @Test
-    fun `database round-trip for varsel med malParametere`() {
-        // Opprett varsel med malParametere
-        val originalParametere = listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.STED
-        )
+    fun `database round-trip for varsel med flettedata`() {
+        // Opprett varsel med flettedata (displayTekster for endringene)
+        val originalFlettedata = listOf("navn", "tidspunkt", "sted")
         val rekrutteringstreffId = "test-roundtrip-${System.currentTimeMillis()}"
         
         app.dataSource.transaction { tx ->
@@ -210,7 +157,7 @@ class MeldingsmalTest {
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = "12345678901",
                 avsenderNavident = "Z123456",
-                malParametere = originalParametere
+                flettedata = originalFlettedata
             ).insert(tx)
         }
         
@@ -219,9 +166,9 @@ class MeldingsmalTest {
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
         }
         
-        // Verifiser at malParametere er bevart
+        // Verifiser at flettedata er bevart
         assertEquals(no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret, hentetVarsel.mal)
-        assertEquals(originalParametere, hentetVarsel.malParametere)
+        assertEquals(originalFlettedata, hentetVarsel.flettedata)
     }
 
 

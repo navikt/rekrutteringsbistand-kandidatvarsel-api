@@ -6,7 +6,7 @@ jobs:
     uses: navikt/toi-github-actions-workflows/.github/workflows/build-and-deploy.yaml@v1
     with:
       java-version: "21"
-      deploy-to-dev-if-branch-name-is: "parameterisert-mal"
+      deploy-to-dev-if-branch-name-is: "uspesifisert"
     permissions:
       contents: read
       id-token: write

@@ -240,11 +240,11 @@ class MeldingsmalApiTest {
         assertEquals("{{ENDRINGER}}", kandidatInvitertTreffEndret["placeholder"])
         assertTrue((kandidatInvitertTreffEndret["smsTekst"] as String).contains("{{ENDRINGER}}"))
         
-        // Verifiser malParametere
+        // Verifiser endringsFelt
         @Suppress("UNCHECKED_CAST")
-        val malParametere = kandidatInvitertTreffEndret["malParametere"] as List<Map<String, String>>
-        assertEquals(5, malParametere.size)
-        val koder = malParametere.map { it["kode"] }
+        val endringsFelt = kandidatInvitertTreffEndret["endringsFelt"] as List<Map<String, String>>
+        assertEquals(5, endringsFelt.size)
+        val koder = endringsFelt.map { it["kode"] }
         assertTrue(koder.contains("NAVN"))
         assertTrue(koder.contains("TIDSPUNKT"))
         assertTrue(koder.contains("SVARFRIST"))
@@ -334,7 +334,7 @@ class MeldingsmalApiTest {
                 meldingsmal.kandidatInvitertTreffEndret.epostTittel)
             assertTrue(meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody.contains("{{ENDRINGER}}"))
             assertEquals("{{ENDRINGER}}", meldingsmal.kandidatInvitertTreffEndret.placeholder)
-            assertEquals(5, meldingsmal.kandidatInvitertTreffEndret.malParametere.size)
+            assertEquals(5, meldingsmal.kandidatInvitertTreffEndret.endringsFelt.size)
         }
     }
 }

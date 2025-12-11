@@ -71,15 +71,15 @@ private data class VarselTekster(
 private fun genererTekster(minsideVarsel: MinsideVarsel, mal: RekrutteringstreffMal, log: org.slf4j.Logger): VarselTekster {
     return when (mal) {
         is KandidatInvitertTreffEndret -> {
-            val malParametere = minsideVarsel.malParametere
-            if (malParametere.isNullOrEmpty()) {
-                log.error("KandidatInvitertTreffEndret varsel mangler malParametere, varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}")
-                secureLog.error("KandidatInvitertTreffEndret varsel mangler malParametere, varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}, fnr=${minsideVarsel.mottakerFnr}")
-                throw IllegalStateException("KandidatInvitertTreffEndret krever at malParametere er satt")
+            val endringsTekster = minsideVarsel.hentEndringsTekster()
+            if (endringsTekster.isEmpty()) {
+                log.error("KandidatInvitertTreffEndret varsel mangler data (endringsTekster), varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}")
+                secureLog.error("KandidatInvitertTreffEndret varsel mangler data (endringsTekster), varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}, fnr=${minsideVarsel.mottakerFnr}")
+                throw IllegalStateException("KandidatInvitertTreffEndret krever at data er satt med displayTekster for endringene")
             }
-            val minsideTekst = mal.minsideTekst(malParametere)
-            val smsTekst = mal.smsTekst(malParametere)
-            val epostHtmlBody = mal.epostHtmlBody(malParametere)
+            val minsideTekst = mal.minsideTekst(endringsTekster)
+            val smsTekst = mal.smsTekst(endringsTekster)
+            val epostHtmlBody = mal.epostHtmlBody(endringsTekster)
             log.info("Genererte tekster for parametrisert varsel varselId=${minsideVarsel.varselId}: minside='$minsideTekst', sms='$smsTekst', email='$epostHtmlBody'")
             VarselTekster(
                 minsideTekst = minsideTekst,

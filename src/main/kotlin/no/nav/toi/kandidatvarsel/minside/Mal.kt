@@ -59,25 +59,18 @@ sealed interface RekrutteringstreffMal : Mal {
 }
 
 object Maler {
-    fun valueOf(name: String): Mal = when (name.substringBefore(":")) {
-        VurdertSomAktuell.name -> VurdertSomAktuell
-        PassendeStilling.name -> PassendeStilling
-        PassendeJobbarrangement.name -> PassendeJobbarrangement
-        KandidatInvitertTreff.name -> KandidatInvitertTreff
-        KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
-        else -> throw IllegalArgumentException("Ukjent Mal: $name")
-    }
-    
-    /** Parser mal-streng som kan inneholde parametere, f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED" */
-    fun parseValueOf(malStreng: String): Pair<Mal, List<MalParameter>?> {
-        val parts = malStreng.split(":", limit = 2)
-        val mal = valueOf(parts[0])
-        val malParametere = if (parts.size > 1 && parts[1].isNotEmpty()) {
-            parts[1].split(",").map { MalParameter.valueOf(it) }
-        } else {
-            null
+    fun valueOf(name: String): Mal {
+        // Håndterer gammelt kolonseparert format fra dev-miljø (f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:SVARFRIST,STED")
+        val malNavn = name.substringBefore(":")
+        
+        return when (malNavn) {
+            VurdertSomAktuell.name -> VurdertSomAktuell
+            PassendeStilling.name -> PassendeStilling
+            PassendeJobbarrangement.name -> PassendeJobbarrangement
+            KandidatInvitertTreff.name -> KandidatInvitertTreff
+            KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
+            else -> throw IllegalArgumentException("Ukjent Mal: $name")
         }
-        return Pair(mal, malParametere)
     }
 
     fun malerForVarselType(varselType: VarselType): List<String> = when (varselType) {
@@ -195,24 +188,28 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
         <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på et treff med arbeidsgivere som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
 
+    /** Genererer minside-tekst med endringsinformasjon fra data-feltet (displayTekster) */
+    fun minsideTekst(endringsTekster: List<String>) =
+        minsideTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
     
-    fun minsideTekst(malParametere: List<MalParameter>) =
-        minsideTekst().replace(PLACEHOLDER, formaterParametere(malParametere))
+    /** Genererer SMS-tekst med endringsinformasjon fra data-feltet (displayTekster) */
+    fun smsTekst(endringsTekster: List<String>) =
+        smsTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
     
-    fun smsTekst(malParametere: List<MalParameter>) =
-        smsTekst().replace(PLACEHOLDER, formaterParametere(malParametere))
+    /** Genererer epost HTML-body med endringsinformasjon fra data-feltet (displayTekster) */
+    fun epostHtmlBody(endringsTekster: List<String>) =
+        epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
     
-    fun epostHtmlBody(malParametere: List<MalParameter>) =
-        epostHtmlBody().replace(PLACEHOLDER, formaterParametere(malParametere))
-    
-    private fun formaterParametere(parametere: List<MalParameter>): String {
-        if (parametere.isEmpty()) {
+    /** Formaterer liste med endringsTekster til lesbar norsk tekst.
+     *  F.eks. ["tidspunkt", "sted"] -> "tidspunkt og sted" 
+     *  F.eks. ["navn", "tidspunkt", "sted"] -> "navn, tidspunkt og sted" */
+    private fun formaterEndringer(endringsTekster: List<String>): String {
+        if (endringsTekster.isEmpty()) {
             return "ukjente felter" // Fallback som ikke skal skje, men unngår exception
         }
-        val tekster = parametere.map { it.displayTekst }
-        return when (tekster.size) {
-            1 -> tekster.first()
-            else -> tekster.dropLast(1).joinToString(", ") + " og " + tekster.last()
+        return when (endringsTekster.size) {
+            1 -> endringsTekster.first()
+            else -> endringsTekster.dropLast(1).joinToString(", ") + " og " + endringsTekster.last()
         }
     }
 }

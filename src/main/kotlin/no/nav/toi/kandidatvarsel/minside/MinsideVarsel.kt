@@ -1,15 +1,20 @@
 package no.nav.toi.kandidatvarsel.minside
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.uuid.Generators
 import no.nav.toi.kandidatvarsel.EksternStatusDto
 import no.nav.toi.kandidatvarsel.MinsideStatusDto
 import no.nav.toi.kandidatvarsel.QueryRequestDto
 import no.nav.toi.kandidatvarsel.VarselResponseDto
+import org.postgresql.util.PGobject
 import org.springframework.jdbc.core.simple.JdbcClient
 import java.sql.ResultSet
 import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.jvm.optionals.getOrNull
+
+private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
 enum class MinsideStatus {
     OPPRETTET, INAKTIVERT, SLETTET
@@ -37,7 +42,9 @@ data class MinsideVarsel(
     val eksternStatus: EksternStatus?,
     val eksternKanal: Kanal?,
     val eksternFeilmelding: String?,
-    val malParametere: List<MalParameter>? = null,
+    /** JSON-flettedata med endringsinformasjon som flettes inn i meldingstekster (sms/epost/minside).
+     *  Inneholder liste med displayTekster for endrede felter, f.eks. ["tidspunkt", "sted"] */
+    val flettedata: List<String>? = null,
 ) {
     fun oppdaterFra(oppdatering: VarselOppdatering): MinsideVarsel = when (oppdatering) {
         is EksternVarselBestilt -> copy(eksternStatus = EksternStatus.BESTILLT)
@@ -55,15 +62,17 @@ data class MinsideVarsel(
     fun skalPubliseresPåRapid(): Boolean = 
         eksternStatus == EksternStatus.FERDIGSTILT || eksternStatus == EksternStatus.FEILET
 
-    /** Serialiserer mal-navnet med parametere for lagring i databasen.
-     * Format: "KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED" */
-    fun malMedParametere(): String {
-        return if (mal == KandidatInvitertTreffEndret && malParametere != null && malParametere.isNotEmpty()) {
-            "${mal.name}:${malParametere.joinToString(",") { it.name }}"
-        } else {
-            mal.name
+    /** Konverterer flettedata-listen til JSON for lagring i database */
+    fun flettedataAsJsonb(): PGobject? {
+        if (flettedata == null || flettedata.isEmpty()) return null
+        return PGobject().apply {
+            type = "jsonb"
+            value = objectMapper.writeValueAsString(flettedata)
         }
     }
+
+    /** Henter displayTekst-listen fra flettedata-feltet for bruk i meldinger */
+    fun hentEndringsTekster(): List<String> = flettedata ?: emptyList()
 
     fun toResponse() = VarselResponseDto(
         /* De gamle Altinn-varslene brukte dbid som id.
@@ -130,7 +139,8 @@ data class MinsideVarsel(
                 minside_status,
                 ekstern_status,
                 ekstern_kanal,
-                ekstern_feilmelding
+                ekstern_feilmelding,
+                flettedata
             ) values (
                 :opprettet,
                 :mottaker_fnr,
@@ -142,14 +152,15 @@ data class MinsideVarsel(
                 :minside_status,
                 :ekstern_status,
                 :ekstern_kanal,
-                :ekstern_feilmelding
+                :ekstern_feilmelding,
+                :flettedata
             )
         """.trimIndent())
             .param("opprettet", opprettet)
             .param("mottaker_fnr", mottakerFnr)
             .param("avsender_navident", avsenderNavIdent)
             .param("varsel_id", varselId)
-            .param("mal", malMedParametere())
+            .param("mal", mal.name)
 
             // TODO: Bytte feltnavn i databasen til avsender_referanse_id, avventer databaseendring for å ikke forkludre tilbakerullingsmuligheter
             .param("stilling_id", avsenderReferanseId)
@@ -158,6 +169,7 @@ data class MinsideVarsel(
             .param("ekstern_status", eksternStatus?.name)
             .param("ekstern_kanal", eksternKanal?.name)
             .param("ekstern_feilmelding", eksternFeilmelding)
+            .param("flettedata", flettedataAsJsonb())
             .update()
     }
 
@@ -170,7 +182,7 @@ data class MinsideVarsel(
             mottakerFnr: String,
             avsenderNavident: String,
             varselId: String? = null,
-            malParametere: List<MalParameter>? = null
+            flettedata: List<String>? = null
         ) = MinsideVarsel(
             dbid = null,
             mal = mal,
@@ -184,7 +196,7 @@ data class MinsideVarsel(
             eksternStatus = null,
             eksternKanal = null,
             eksternFeilmelding = null,
-            malParametere = malParametere
+            flettedata = flettedata
         )
 
         fun finnOgLåsUsendtVarsel(jdbcClient: JdbcClient): MinsideVarsel? =
@@ -237,12 +249,10 @@ data class MinsideVarsel(
          * Brukes kun av tester, rekrutteringstreff bruker ikke rest api polling.
          */
         fun hentVarslerForRekrutteringstreff(jdbcClient: JdbcClient, rekrutteringstreffId: String): List<MinsideVarsel> {
-            // Mal-feltet kan inneholde parameter-suffix (f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:NAVN,STED")
-            // Bruker starts_with som er effektivt med B-tree indeks på prefiks
             return jdbcClient.sql("""
                 select * from minside_varsel 
                 where stilling_id = :avsender_referanse_id 
-                and (starts_with(mal, 'KANDIDAT_INVITERT_TREFF_ENDRET') or mal = 'KANDIDAT_INVITERT_TREFF')
+                and mal in ('KANDIDAT_INVITERT_TREFF_ENDRET', 'KANDIDAT_INVITERT_TREFF')
             """.trimIndent())
                 .param("avsender_referanse_id", rekrutteringstreffId)
                 .query(RowMapper)
@@ -258,7 +268,19 @@ data class MinsideVarsel(
         object RowMapper: org.springframework.jdbc.core.RowMapper<MinsideVarsel> {
             override fun mapRow(rs: ResultSet, rowNum: Int): MinsideVarsel {
                 val malStreng = rs.getString("mal")
-                val (mal, malParametere) = Maler.parseValueOf(malStreng)
+                val mal = Maler.valueOf(malStreng)
+                
+                // Leser flettedata-feltet fra JSONB og parser som liste av strenger
+                val flettedataJson = rs.getString("flettedata")
+                val flettedata: List<String>? = if (flettedataJson != null) {
+                    try {
+                        objectMapper.readValue(flettedataJson, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
+                    } catch (e: Exception) {
+                        null
+                    }
+                } else {
+                    null
+                }
                 
                 return MinsideVarsel(
                     dbid = rs.getLong("dbid"),
@@ -273,7 +295,7 @@ data class MinsideVarsel(
                     eksternStatus = rs.getString("ekstern_status")?.let { EksternStatus.valueOf(it) },
                     eksternKanal = rs.getString("ekstern_kanal")?.let { Kanal.valueOf(it) },
                     eksternFeilmelding = rs.getString("ekstern_feilmelding"),
-                    malParametere = malParametere
+                    flettedata = flettedata
                 )
             }
         }

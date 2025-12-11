@@ -225,14 +225,11 @@ class RekrutteringstreffRapidTest {
     }
     
     @Test
-    fun `skal publisere melding med malParametere på rapid når endret rekrutteringstreff-varsel får FERDIGSTILT status`() {
+    fun `skal publisere melding med flettedata på rapid når endret rekrutteringstreff-varsel får FERDIGSTILT status`() {
         val varselId = UUID.randomUUID().toString()
-        val malParametere = listOf(
-            no.nav.toi.kandidatvarsel.minside.MalParameter.NAVN,
-            no.nav.toi.kandidatvarsel.minside.MalParameter.TIDSPUNKT
-        )
+        val endringsTekster = listOf("navn", "tidspunkt")
         
-        // Opprett varsel med malParametere
+        // Opprett varsel med flettedata (displayTekster for endringene)
         app.dataSource.transaction { tx ->
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
                 mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
@@ -240,7 +237,7 @@ class RekrutteringstreffRapidTest {
                 mottakerFnr = fnr,
                 avsenderNavident = navident,
                 varselId = varselId,
-                malParametere = malParametere
+                flettedata = endringsTekster
             ).insert(tx)
         }
 
@@ -257,11 +254,11 @@ class RekrutteringstreffRapidTest {
         assertEquals("KANDIDAT_INVITERT_TREFF_ENDRET", packet["mal"])
         assertEquals("FERDIGSTILT", packet["eksternStatus"])
         
-        // Verifiser at malParametere er med i meldingen
+        // Verifiser at flettedata er med i meldingen
         @Suppress("UNCHECKED_CAST")
-        val rapidMalParametere = packet["malParametere"] as? List<String>
-        assertNotNull(rapidMalParametere, "malParametere skal være med i rapid-meldingen")
-        assertEquals(listOf("NAVN", "TIDSPUNKT"), rapidMalParametere)
+        val rapidFlettedata = packet["flettedata"] as? List<String>
+        assertNotNull(rapidFlettedata, "flettedata skal være med i rapid-meldingen")
+        assertEquals(listOf("navn", "tidspunkt"), rapidFlettedata)
     }
 
     @Test
