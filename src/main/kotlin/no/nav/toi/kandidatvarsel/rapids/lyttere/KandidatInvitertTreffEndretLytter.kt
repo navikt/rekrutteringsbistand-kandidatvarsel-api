@@ -45,10 +45,16 @@ class KandidatInvitertTreffEndretLytter(
         
         val flettedataNode = packet["flettedata"]
         val flettedata: List<String> = if (flettedataNode.isArray && flettedataNode.size() > 0) {
-            flettedataNode.map { it.asText() }
+            flettedataNode.map { it.asText() }.filter { it.isNotBlank() }
         } else {
             log.error("Mangler eller tom flettedata-liste for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
             secureLog.error("Mangler eller tom flettedata-liste for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
+            return
+        }
+        
+        if (flettedata.isEmpty()) {
+            log.error("Flettedata-liste inneholder kun tomme elementer for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
+            secureLog.error("Flettedata-liste inneholder kun tomme elementer for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
             return
         }
 

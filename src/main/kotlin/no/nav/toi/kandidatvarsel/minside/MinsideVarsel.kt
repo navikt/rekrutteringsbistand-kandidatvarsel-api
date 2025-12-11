@@ -16,6 +16,16 @@ import kotlin.jvm.optionals.getOrNull
 
 private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
+/** Parser flettedata fra database JSON-streng til liste av strenger */
+private fun parseFlettedataFraDb(jsonString: String?, varselId: String): List<String>? {
+    if (jsonString == null) return null
+    return try {
+        objectMapper.readValue(jsonString, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
+    } catch (e: Exception) {
+        throw IllegalStateException("Kunne ikke parse flettedata for varsel_id=$varselId", e)
+    }
+}
+
 enum class MinsideStatus {
     OPPRETTET, INAKTIVERT, SLETTET
 }
@@ -43,7 +53,8 @@ data class MinsideVarsel(
     val eksternKanal: Kanal?,
     val eksternFeilmelding: String?,
     /** JSON-flettedata med endringsinformasjon som flettes inn i meldingstekster (sms/epost/minside).
-     *  Inneholder liste med displayTekster for endrede felter, f.eks. ["tidspunkt", "sted"] */
+     *  Inneholder liste med displayTekster (små bokstaver) for endrede felter, f.eks. ["tidspunkt", "sted"].
+     *  Merk: Dette er display-strenger, ikke enum-verdier fra MalParameter. */
     val flettedata: List<String>? = null,
 ) {
     fun oppdaterFra(oppdatering: VarselOppdatering): MinsideVarsel = when (oppdatering) {
@@ -249,12 +260,14 @@ data class MinsideVarsel(
          * Brukes kun av tester, rekrutteringstreff bruker ikke rest api polling.
          */
         fun hentVarslerForRekrutteringstreff(jdbcClient: JdbcClient, rekrutteringstreffId: String): List<MinsideVarsel> {
+            val rekrutteringstreffMaler = Maler.malerForVarselType(VarselType.REKRUTTERINGSTREFF)
             return jdbcClient.sql("""
                 select * from minside_varsel 
                 where stilling_id = :avsender_referanse_id 
-                and mal in ('KANDIDAT_INVITERT_TREFF_ENDRET', 'KANDIDAT_INVITERT_TREFF')
+                and mal = any(:maler)
             """.trimIndent())
                 .param("avsender_referanse_id", rekrutteringstreffId)
+                .param("maler", rekrutteringstreffMaler.toTypedArray())
                 .query(RowMapper)
                 .list()
         }
@@ -269,25 +282,18 @@ data class MinsideVarsel(
             override fun mapRow(rs: ResultSet, rowNum: Int): MinsideVarsel {
                 val malStreng = rs.getString("mal")
                 val mal = Maler.valueOf(malStreng)
+                val varselId = rs.getString("varsel_id")
                 
-                // Leser flettedata-feltet fra JSONB og parser som liste av strenger
+                // Leser flettedata-feltet fra JSONB som JSON-streng
                 val flettedataJson = rs.getString("flettedata")
-                val flettedata: List<String>? = if (flettedataJson != null) {
-                    try {
-                        objectMapper.readValue(flettedataJson, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
-                    } catch (e: Exception) {
-                        null
-                    }
-                } else {
-                    null
-                }
+                val flettedata: List<String>? = parseFlettedataFraDb(flettedataJson, varselId)
                 
                 return MinsideVarsel(
                     dbid = rs.getLong("dbid"),
                     opprettet = rs.getObject("opprettet", LocalDateTime::class.java),
                     mottakerFnr = rs.getString("mottaker_fnr"),
                     avsenderNavIdent = rs.getString("avsender_navident"),
-                    varselId = rs.getString("varsel_id"),
+                    varselId = varselId,
                     mal = mal,
                     avsenderReferanseId = rs.getString("stilling_id"),
                     bestilt = rs.getBoolean("bestilt"),

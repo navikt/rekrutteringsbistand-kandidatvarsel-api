@@ -12,13 +12,7 @@ enum class MalParameter(val displayTekst: String) {
     TIDSPUNKT("tidspunkt"),
     SVARFRIST("svarfrist"),
     STED("sted"),
-    INTRODUKSJON("introduksjon");
-
-    companion object {
-        fun fromString(value: String): MalParameter = 
-            entries.find { it.name == value.uppercase() }
-                ?: throw IllegalArgumentException("Ukjent MalParameter: $value")
-    }
+    INTRODUKSJON("introduksjon")
 }
 
 sealed interface Mal {

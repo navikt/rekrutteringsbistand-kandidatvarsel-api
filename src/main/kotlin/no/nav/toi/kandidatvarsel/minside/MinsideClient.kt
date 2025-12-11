@@ -80,7 +80,7 @@ private fun genererTekster(minsideVarsel: MinsideVarsel, mal: Rekrutteringstreff
             val minsideTekst = mal.minsideTekst(endringsTekster)
             val smsTekst = mal.smsTekst(endringsTekster)
             val epostHtmlBody = mal.epostHtmlBody(endringsTekster)
-            log.info("Genererte tekster for parametrisert varsel varselId=${minsideVarsel.varselId}: minside='$minsideTekst', sms='$smsTekst', email='$epostHtmlBody'")
+            log.info("Genererte tekster for parametrisert varsel varselId=${minsideVarsel.varselId}")
             VarselTekster(
                 minsideTekst = minsideTekst,
                 smsTekst = smsTekst,
