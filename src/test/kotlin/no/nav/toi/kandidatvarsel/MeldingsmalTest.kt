@@ -1,6 +1,7 @@
 package no.nav.toi.kandidatvarsel
 
 import no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate
+import no.nav.toi.kandidatvarsel.minside.sendBestilling
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -169,6 +170,50 @@ class MeldingsmalTest {
         // Verifiser at flettedata er bevart
         assertEquals(no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret, hentetVarsel.mal)
         assertEquals(originalFlettedata, hentetVarsel.flettedata)
+    }
+    
+    @Test
+    fun `sendBestilling kaster IllegalStateException for KandidatInvitertTreffEndret uten flettedata`() {
+        val varselUtenFlettedata = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+            mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+            avsenderReferanseId = "test-treff-id",
+            mottakerFnr = "12345678901",
+            avsenderNavident = "Z123456",
+            flettedata = emptyList()
+        )
+        
+        val mockProducer = org.apache.kafka.clients.producer.MockProducer<String, String>()
+        
+        val exception = org.junit.jupiter.api.assertThrows<IllegalStateException> {
+            mockProducer.sendBestilling(
+                varselUtenFlettedata,
+                no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+            )
+        }
+        
+        assertTrue(exception.message?.contains("KandidatInvitertTreffEndret krever at data er satt") == true)
+    }
+    
+    @Test
+    fun `sendBestilling kaster IllegalStateException for KandidatInvitertTreffEndret med null flettedata`() {
+        val varselMedNullFlettedata = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+            mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+            avsenderReferanseId = "test-treff-id",
+            mottakerFnr = "12345678901",
+            avsenderNavident = "Z123456",
+            flettedata = null
+        )
+        
+        val mockProducer = org.apache.kafka.clients.producer.MockProducer<String, String>()
+        
+        val exception = org.junit.jupiter.api.assertThrows<IllegalStateException> {
+            mockProducer.sendBestilling(
+                varselMedNullFlettedata,
+                no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+            )
+        }
+        
+        assertTrue(exception.message?.contains("KandidatInvitertTreffEndret krever at data er satt") == true)
     }
 
 
