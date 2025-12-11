@@ -26,8 +26,8 @@ class KandidatInvitertTreffEndretLytter(
                 it.requireValue("@event_name", "rekrutteringstreffoppdatering")
             }
             validate {
-                it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
-                it.interestedIn("endretAv", "flettedata")
+                it.requireKey("rekrutteringstreffId", "fnr", "hendelseId", "endredeFelter")
+                it.interestedIn("endretAv")
             }
         }.register(this)
     }
@@ -43,22 +43,28 @@ class KandidatInvitertTreffEndretLytter(
         val avsenderNavident = packet["endretAv"].asText("SYSTEM")
         val hendelseId = packet["hendelseId"].asText()
         
-        val flettedataNode = packet["flettedata"]
-        val flettedata: List<String> = if (flettedataNode.isArray && flettedataNode.size() > 0) {
-            flettedataNode.map { it.asText() }.filter { it.isNotBlank() }
+        // Leser endredeFelter fra rapid-meldingen og konverterer til flettedata for varsling
+        val endredeFelterNode = packet["endredeFelter"]
+        val flettedata: List<String> = if (endredeFelterNode.isArray && endredeFelterNode.size() > 0) {
+            endredeFelterNode.mapNotNull { node ->
+                try {
+                    EndringFlettedata.valueOf(node.asText()).displayTekst  // Konverter til displayTekst for varsling
+                } catch (e: IllegalArgumentException) {
+                    log.warn("Ukjent endredeFelter-verdi: ${node.asText()}, ignorerer")
+                    null
+                }
+            }
         } else {
-            log.error("Mangler eller tom flettedata-liste for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
-            secureLog.error("Mangler eller tom flettedata-liste for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
+            log.info("Ingen endredeFelter for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
             return
         }
         
         if (flettedata.isEmpty()) {
-            log.error("Flettedata-liste inneholder kun tomme elementer for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
-            secureLog.error("Flettedata-liste inneholder kun tomme elementer for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
+            log.info("endredeFelter inneholder kun ugyldige verdier for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
             return
         }
 
-        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId med flettedata=$flettedata")
+        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId med endredeFelter, konvertert til flettedata=$flettedata")
         secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, flettedata=$flettedata")
 
         try {

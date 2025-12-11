@@ -7,7 +7,7 @@ enum class VarselType {
     REKRUTTERINGSTREFF
 }
 
-enum class MalParameter(val displayTekst: String) {
+enum class EndringFlettedata(val displayTekst: String) {
     NAVN("navn"),
     TIDSPUNKT("tidspunkt"),
     SVARFRIST("svarfrist"),

@@ -97,7 +97,7 @@ fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
             epostTittel = kandidatInvitertTreffEndret.epostTittel(),
             epostHtmlBody = kandidatInvitertTreffEndret.epostHtmlBody(),
             placeholder = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret.PLACEHOLDER,
-            endringsFelt = MalParameter.entries.map { EndringsFeltDto(it.name, it.displayTekst) }
+            endringsFelt = EndringFlettedata.entries.map { EndringsFeltDto(it.name, it.displayTekst) }
         )
     )
 }

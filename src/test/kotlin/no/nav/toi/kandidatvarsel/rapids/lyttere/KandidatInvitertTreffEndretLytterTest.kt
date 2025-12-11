@@ -60,7 +60,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "flettedata": ["navn", "tidspunkt"]
+                "endredeFelter": ["NAVN", "TIDSPUNKT"]
             }
         """.trimIndent())
 
@@ -74,7 +74,7 @@ class KandidatInvitertTreffEndretLytterTest {
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
         assertEquals(hendelseId, varsler[0].varselId)
-        assertEquals(listOf("navn", "tidspunkt"), varsler[0].flettedata)
+        assertEquals(listOf("navn", "tidspunkt"), varsler[0].flettedata)  // Konvertert til displayTekst
     }
 
     @Test
@@ -89,7 +89,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
                 "hendelseId": "$hendelseId",
-                "flettedata": ["sted"]
+                "endredeFelter": ["STED"]
             }
         """.trimIndent())
 
@@ -111,7 +111,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "12345678901",
                 "endretAv": "Z123456",
                 "hendelseId": "87654321-4321-4321-4321-210987654321",
-                "flettedata": ["navn"]
+                "endredeFelter": ["NAVN"]
             }
         """.trimIndent())
 
@@ -131,7 +131,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "@event_name": "rekrutteringstreffoppdatering",
                 "varselId": "$varselId",
                 "avsenderNavident": "Z123456",
-                "flettedata": ["introduksjon"]
+                "endredeFelter": ["INTRODUKSJON"]
             }
         """.trimIndent())
 
@@ -143,7 +143,7 @@ class KandidatInvitertTreffEndretLytterTest {
     }
     
     @Test
-    fun `skal ikke opprette varsel når flettedata mangler`() {
+    fun `skal ikke opprette varsel når endredeFelter mangler`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
@@ -166,7 +166,7 @@ class KandidatInvitertTreffEndretLytterTest {
     }
     
     @Test
-    fun `skal ikke opprette varsel når flettedata er tom liste`() {
+    fun `skal ikke opprette varsel når endredeFelter er tom liste`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
@@ -178,7 +178,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "flettedata": []
+                "endredeFelter": []
             }
         """.trimIndent())
 
@@ -190,7 +190,7 @@ class KandidatInvitertTreffEndretLytterTest {
     }
     
     @Test
-    fun `skal ikke opprette varsel når flettedata kun inneholder tomme strenger`() {
+    fun `skal ikke opprette varsel når endredeFelter kun inneholder ugyldige verdier`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
@@ -202,7 +202,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "flettedata": ["", "  ", ""]
+                "endredeFelter": ["UGYLDIG", "FINNES_IKKE"]
             }
         """.trimIndent())
 
@@ -214,7 +214,7 @@ class KandidatInvitertTreffEndretLytterTest {
     }
     
     @Test
-    fun `skal filtrere ut tomme strenger fra flettedata`() {
+    fun `skal filtrere ut ugyldige endredeFelter-verdier`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
@@ -226,7 +226,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "flettedata": ["navn", "", "tidspunkt", "  "]
+                "endredeFelter": ["NAVN", "UGYLDIG", "TIDSPUNKT", "FINNES_IKKE"]
             }
         """.trimIndent())
 
@@ -235,11 +235,11 @@ class KandidatInvitertTreffEndretLytterTest {
         }
 
         assertEquals(1, varsler.size)
-        assertEquals(listOf("navn", "tidspunkt"), varsler[0].flettedata)
+        assertEquals(listOf("navn", "tidspunkt"), varsler[0].flettedata)  // Kun gyldige konverteres til displayTekst
     }
     
     @Test
-    fun `skal lagre alle flettedata elementer`() {
+    fun `skal konvertere alle gyldige endredeFelter-verdier til displayTekst`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
@@ -251,7 +251,7 @@ class KandidatInvitertTreffEndretLytterTest {
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "flettedata": ["navn", "tidspunkt", "svarfrist", "sted", "introduksjon"]
+                "endredeFelter": ["NAVN", "TIDSPUNKT", "SVARFRIST", "STED", "INTRODUKSJON"]
             }
         """.trimIndent())
 
@@ -261,7 +261,7 @@ class KandidatInvitertTreffEndretLytterTest {
 
         assertEquals(1, varsler.size)
         assertEquals(
-            listOf("navn", "tidspunkt", "svarfrist", "sted", "introduksjon"), 
+            listOf("navn", "tidspunkt", "svarfrist", "sted", "introduksjon"),  // Konvertert til displayTekst
             varsler[0].flettedata
         )
     }

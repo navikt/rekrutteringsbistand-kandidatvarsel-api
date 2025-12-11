@@ -54,7 +54,7 @@ data class MinsideVarsel(
     val eksternFeilmelding: String?,
     /** JSON-flettedata med endringsinformasjon som flettes inn i meldingstekster (sms/epost/minside).
      *  Inneholder liste med displayTekster (små bokstaver) for endrede felter, f.eks. ["tidspunkt", "sted"].
-     *  Merk: Dette er display-strenger, ikke enum-verdier fra MalParameter. */
+     *  Merk: Dette er display-strenger, ikke enum-verdier fra EndringFlettedata. */
     val flettedata: List<String>? = null,
 ) {
     fun oppdaterFra(oppdatering: VarselOppdatering): MinsideVarsel = when (oppdatering) {
