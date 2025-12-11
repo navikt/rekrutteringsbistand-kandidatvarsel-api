@@ -182,15 +182,12 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
         <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på et treff med arbeidsgivere som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
 
-    /** Genererer minside-tekst med endringsinformasjon fra data-feltet (displayTekster) */
     fun minsideTekst(endringsTekster: List<String>) =
         minsideTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
     
-    /** Genererer SMS-tekst med endringsinformasjon fra data-feltet (displayTekster) */
     fun smsTekst(endringsTekster: List<String>) =
         smsTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
     
-    /** Genererer epost HTML-body med endringsinformasjon fra data-feltet (displayTekster) */
     fun epostHtmlBody(endringsTekster: List<String>) =
         epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
     
