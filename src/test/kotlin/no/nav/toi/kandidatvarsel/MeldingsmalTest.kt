@@ -1,8 +1,12 @@
 package no.nav.toi.kandidatvarsel
 
 import no.nav.toi.kandidatvarsel.minside.Maler.epostHtmlBodyTemplate
+import no.nav.toi.kandidatvarsel.minside.sendBestilling
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -75,20 +79,142 @@ class MeldingsmalTest {
     @Test
     fun rekrutteringstreffMeldingsmal() {
         app.getRekrutteringstreffMeldingsmal(veileder1).also { meldingsmal ->
-            assertEquals(meldingsmal.kandidatInvitertTreff.smsTekst, "Hei! Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav")
-            assertEquals(meldingsmal.kandidatInvitertTreff.epostTittel, "Du er invitert til et treff")
+            assertEquals(meldingsmal.kandidatInvitertTreff.smsTekst, "Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav")
+            assertEquals(meldingsmal.kandidatInvitertTreff.epostTittel, "Invitasjon til å treffe arbeidsgivere")
             assertEquals(meldingsmal.kandidatInvitertTreff.epostHtmlBody,
-                epostHtmlBodyTemplate("""
-                    Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på.
-                """.trimIndent())
+                """
+                <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+                """.trimIndent()
             )
-            assertEquals(meldingsmal.kandidatInvitertTreffEndret.smsTekst, "Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav")
+            // Sjekk at KANDIDAT_INVITERT_TREFF_ENDRET har placeholder
+            assertEquals("{{ENDRINGER}}", meldingsmal.kandidatInvitertTreffEndret.placeholder)
+            assertTrue(meldingsmal.kandidatInvitertTreffEndret.smsTekst.contains("{{ENDRINGER}}"))
+            assertTrue(meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody.contains("{{ENDRINGER}}"))
             assertEquals(meldingsmal.kandidatInvitertTreffEndret.epostTittel, "Endringer på treff du er invitert til")
-            assertEquals(meldingsmal.kandidatInvitertTreffEndret.epostHtmlBody,
-                epostHtmlBodyTemplate("""
-                    Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon.
-                """.trimIndent())
-            )
+            
+            // Sjekk at alle endringsFelt er med
+            assertEquals(5, meldingsmal.kandidatInvitertTreffEndret.endringsFelt.size)
+            val feltKoder = meldingsmal.kandidatInvitertTreffEndret.endringsFelt.map { it.kode }
+            assertTrue(feltKoder.contains("NAVN"))
+            assertTrue(feltKoder.contains("TIDSPUNKT"))
+            assertTrue(feltKoder.contains("SVARFRIST"))
+            assertTrue(feltKoder.contains("STED"))
+            assertTrue(feltKoder.contains("INTRODUKSJON"))
         }
     }
+    
+    @Test
+    fun `KandidatInvitertTreffEndret formaterer endringsTekster korrekt`() {
+        val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+        
+        // Én endring
+        assertTrue(mal.smsTekst(listOf("navn"))
+            .contains("navn"))
+        
+        // To endringer - bruk "og"
+        assertTrue(mal.smsTekst(listOf("tidspunkt", "sted"))
+            .contains("tidspunkt og sted"))
+        
+        // Tre endringer - bruk komma og "og"
+        assertTrue(mal.smsTekst(listOf("navn", "tidspunkt", "sted"))
+            .contains("navn, tidspunkt og sted"))
+    }
+    
+    @Test
+    fun `KandidatInvitertTreffEndret minsideTekst inneholder placeholder`() {
+        val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+        
+        // Verifiser at minsideTekst() uten endringsTekster inneholder placeholder
+        assertTrue(mal.minsideTekst().contains("{{ENDRINGER}}"))
+        
+        // Verifiser at minsideTekst med endringsTekster erstatter placeholder
+        val minsideTekst = mal.minsideTekst(listOf("navn", "tidspunkt"))
+        assertFalse(minsideTekst.contains("{{ENDRINGER}}"))
+        assertTrue(minsideTekst.contains("navn og tidspunkt"))
+    }
+    
+    @Test
+    fun `KandidatInvitertTreffEndret epostHtmlBody inneholder placeholder og kan erstattes`() {
+        val mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+        
+        // Verifiser at epostHtmlBody() uten endringsTekster inneholder placeholder
+        assertTrue(mal.epostHtmlBody().contains("{{ENDRINGER}}"))
+        
+        // Verifiser at epostHtmlBody med endringsTekster erstatter placeholder
+        val epostBody = mal.epostHtmlBody(listOf("sted"))
+        assertFalse(epostBody.contains("{{ENDRINGER}}"))
+        assertTrue(epostBody.contains("sted"))
+    }
+    
+    @Test
+    fun `database round-trip for varsel med flettedata`() {
+        // Opprett varsel med flettedata (displayTekster for endringene)
+        val originalFlettedata = listOf("navn", "tidspunkt", "sted")
+        val rekrutteringstreffId = "test-roundtrip-${System.currentTimeMillis()}"
+        
+        app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+                avsenderReferanseId = rekrutteringstreffId,
+                mottakerFnr = "12345678901",
+                avsenderNavident = "Z123456",
+                flettedata = originalFlettedata
+            ).insert(tx)
+        }
+        
+        // Hent varselet tilbake fra databasen
+        val hentetVarsel = app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
+        }
+        
+        // Verifiser at flettedata er bevart
+        assertEquals(no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret, hentetVarsel.mal)
+        assertEquals(originalFlettedata, hentetVarsel.flettedata)
+    }
+    
+    @Test
+    fun `sendBestilling kaster IllegalStateException for KandidatInvitertTreffEndret uten flettedata`() {
+        val varselUtenFlettedata = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+            mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+            avsenderReferanseId = "test-treff-id",
+            mottakerFnr = "12345678901",
+            avsenderNavident = "Z123456",
+            flettedata = emptyList()
+        )
+        
+        val mockProducer = org.apache.kafka.clients.producer.MockProducer<String, String>()
+        
+        val exception = org.junit.jupiter.api.assertThrows<IllegalStateException> {
+            mockProducer.sendBestilling(
+                varselUtenFlettedata,
+                no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+            )
+        }
+        
+        assertTrue(exception.message?.contains("KandidatInvitertTreffEndret krever at data er satt") == true)
+    }
+    
+    @Test
+    fun `sendBestilling kaster IllegalStateException for KandidatInvitertTreffEndret med null flettedata`() {
+        val varselMedNullFlettedata = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+            mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+            avsenderReferanseId = "test-treff-id",
+            mottakerFnr = "12345678901",
+            avsenderNavident = "Z123456",
+            flettedata = null
+        )
+        
+        val mockProducer = org.apache.kafka.clients.producer.MockProducer<String, String>()
+        
+        val exception = org.junit.jupiter.api.assertThrows<IllegalStateException> {
+            mockProducer.sendBestilling(
+                varselMedNullFlettedata,
+                no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+            )
+        }
+        
+        assertTrue(exception.message?.contains("KandidatInvitertTreffEndret krever at data er satt") == true)
+    }
+
+
 }

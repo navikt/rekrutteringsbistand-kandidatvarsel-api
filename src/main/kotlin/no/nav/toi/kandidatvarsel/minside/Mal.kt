@@ -7,6 +7,14 @@ enum class VarselType {
     REKRUTTERINGSTREFF
 }
 
+enum class EndringFlettedata(val displayTekst: String) {
+    NAVN("navn"),
+    TIDSPUNKT("tidspunkt"),
+    SVARFRIST("svarfrist"),
+    STED("sted"),
+    INTRODUKSJON("introduksjon")
+}
+
 sealed interface Mal {
     val name: String
     val varselType: VarselType
@@ -45,13 +53,18 @@ sealed interface RekrutteringstreffMal : Mal {
 }
 
 object Maler {
-    fun valueOf(name: String): Mal = when (name) {
-        VurdertSomAktuell.name -> VurdertSomAktuell
-        PassendeStilling.name -> PassendeStilling
-        PassendeJobbarrangement.name -> PassendeJobbarrangement
-        KandidatInvitertTreff.name -> KandidatInvitertTreff
-        KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
-        else -> throw IllegalArgumentException("Ukjent Mal: $name")
+    fun valueOf(name: String): Mal {
+        // Håndterer gammelt kolonseparert format fra dev-miljø (f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:SVARFRIST,STED")
+        val malNavn = name.substringBefore(":")
+        
+        return when (malNavn) {
+            VurdertSomAktuell.name -> VurdertSomAktuell
+            PassendeStilling.name -> PassendeStilling
+            PassendeJobbarrangement.name -> PassendeJobbarrangement
+            KandidatInvitertTreff.name -> KandidatInvitertTreff
+            KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
+            else -> throw IllegalArgumentException("Ukjent Mal: $name")
+        }
     }
 
     fun malerForVarselType(varselType: VarselType): List<String> = when (varselType) {
@@ -136,38 +149,58 @@ data object KandidatInvitertTreff : RekrutteringstreffMal {
     override val name = "KANDIDAT_INVITERT_TREFF"
 
     override fun minsideTekst() =
-        "Du er invitert til et treff med arbeidsgivere. Du kan melde deg på inne på minside hos Nav."
+        "Du er invitert til et treff der du kan møte arbeidsgivere."
 
     override fun smsTekst() =
-        "Hei! Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav"
+        "Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav"
 
     override fun epostTittel() =
-        "Du er invitert til et treff"
+        "Invitasjon til å treffe arbeidsgivere"
 
     override fun epostHtmlBody() =
-        Maler.epostHtmlBodyTemplate(
-            """
-                    Du er invitert til et treff med arbeidsgivere. Logg inn på Nav for å melde deg på.
-                """.trimIndent()
-        )
+        """
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        """.trimIndent()
 }
 
 data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
     override val name = "KANDIDAT_INVITERT_TREFF_ENDRET"
+    
+    const val PLACEHOLDER = "{{ENDRINGER}}"
 
     override fun minsideTekst() =
-        "Det har skjedd endringer knyttet til et treff med arbeidsgivere som du er invitert til. Se mer her."
+        "Det har skjedd endringer i $PLACEHOLDER knyttet til et treff med arbeidsgivere som du er invitert til."
 
     override fun smsTekst() =
-        "Hei! Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
+        "Det har skjedd endringer på et treff med arbeidsgivere som du er invitert til:\n\n$PLACEHOLDER\n\nLogg inn på Nav for mer informasjon.\n\nVennlig hilsen Nav"
 
     override fun epostTittel() =
         "Endringer på treff du er invitert til"
 
     override fun epostHtmlBody() =
-        Maler.epostHtmlBodyTemplate(
-            """
-                    Det har skjedd endringer på et treff med arbeidsgivere du er invitert til. Logg inn på Nav for mer informasjon.
-                """.trimIndent()
-        )
+        """
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på et treff med arbeidsgivere som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        """.trimIndent()
+
+    fun minsideTekst(endringsTekster: List<String>) =
+        minsideTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
+    
+    fun smsTekst(endringsTekster: List<String>) =
+        smsTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
+    
+    fun epostHtmlBody(endringsTekster: List<String>) =
+        epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
+    
+    /** Formaterer liste med endringsTekster til lesbar norsk tekst.
+     *  F.eks. ["tidspunkt", "sted"] -> "tidspunkt og sted" 
+     *  F.eks. ["navn", "tidspunkt", "sted"] -> "navn, tidspunkt og sted" */
+    private fun formaterEndringer(endringsTekster: List<String>): String {
+        if (endringsTekster.isEmpty()) {
+            return ""
+        }
+        return when (endringsTekster.size) {
+            1 -> endringsTekster.first()
+            else -> endringsTekster.dropLast(1).joinToString(", ") + " og " + endringsTekster.last()
+        }
+    }
 }

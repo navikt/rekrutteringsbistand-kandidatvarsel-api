@@ -14,7 +14,10 @@ object VarselService {
         fnrList: List<String>,
         mal: Mal,
         avsenderNavident: String,
-        varselId: String? = null
+        varselId: String? = null,
+        /** Flettedata med endringsinformasjon som flettes inn i meldingstekster.
+         *  Inneholder liste med displayTekster for endrede felter, f.eks. ["tidspunkt", "sted"] */
+        flettedata: List<String>? = null
     ) {
         if (varselId != null && fnrList.size > 1) {
             throw IllegalArgumentException("Kan ikke opprette varsler med samme varselId for flere mottakere")
@@ -31,7 +34,8 @@ object VarselService {
                     avsenderReferanseId = rekrutteringstreffId,
                     mottakerFnr = fnr,
                     avsenderNavident = avsenderNavident,
-                    varselId = varselId
+                    varselId = varselId,
+                    flettedata = flettedata
                 ).insert(tx)
             }
         }

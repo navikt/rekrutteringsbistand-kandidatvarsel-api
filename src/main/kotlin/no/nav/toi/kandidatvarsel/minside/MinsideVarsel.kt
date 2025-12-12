@@ -1,15 +1,30 @@
 package no.nav.toi.kandidatvarsel.minside
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.uuid.Generators
 import no.nav.toi.kandidatvarsel.EksternStatusDto
 import no.nav.toi.kandidatvarsel.MinsideStatusDto
 import no.nav.toi.kandidatvarsel.QueryRequestDto
 import no.nav.toi.kandidatvarsel.VarselResponseDto
+import org.postgresql.util.PGobject
 import org.springframework.jdbc.core.simple.JdbcClient
 import java.sql.ResultSet
 import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.jvm.optionals.getOrNull
+
+private val objectMapper: ObjectMapper = jacksonObjectMapper()
+
+/** Parser flettedata fra database JSON-streng til liste av strenger */
+private fun parseFlettedataFraDb(jsonString: String?, varselId: String): List<String>? {
+    if (jsonString == null) return null
+    return try {
+        objectMapper.readValue(jsonString, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
+    } catch (e: Exception) {
+        throw IllegalStateException("Kunne ikke parse flettedata for varsel_id=$varselId", e)
+    }
+}
 
 enum class MinsideStatus {
     OPPRETTET, INAKTIVERT, SLETTET
@@ -37,6 +52,10 @@ data class MinsideVarsel(
     val eksternStatus: EksternStatus?,
     val eksternKanal: Kanal?,
     val eksternFeilmelding: String?,
+    /** JSON-flettedata med endringsinformasjon som flettes inn i meldingstekster (sms/epost/minside).
+     *  Inneholder liste med displayTekster (små bokstaver) for endrede felter, f.eks. ["tidspunkt", "sted"].
+     *  Merk: Dette er display-strenger, ikke enum-verdier fra EndringFlettedata. */
+    val flettedata: List<String>? = null,
 ) {
     fun oppdaterFra(oppdatering: VarselOppdatering): MinsideVarsel = when (oppdatering) {
         is EksternVarselBestilt -> copy(eksternStatus = EksternStatus.BESTILLT)
@@ -53,6 +72,18 @@ data class MinsideVarsel(
     /** Sjekker om varselet har en endelig ekstern status som skal publiseres på rapid */
     fun skalPubliseresPåRapid(): Boolean = 
         eksternStatus == EksternStatus.FERDIGSTILT || eksternStatus == EksternStatus.FEILET
+
+    /** Konverterer flettedata-listen til JSON for lagring i database */
+    fun flettedataAsJsonb(): PGobject? {
+        if (flettedata == null || flettedata.isEmpty()) return null
+        return PGobject().apply {
+            type = "jsonb"
+            value = objectMapper.writeValueAsString(flettedata)
+        }
+    }
+
+    /** Henter displayTekst-listen fra flettedata-feltet for bruk i meldinger */
+    fun hentEndringsTekster(): List<String> = flettedata ?: emptyList()
 
     fun toResponse() = VarselResponseDto(
         /* De gamle Altinn-varslene brukte dbid som id.
@@ -119,7 +150,8 @@ data class MinsideVarsel(
                 minside_status,
                 ekstern_status,
                 ekstern_kanal,
-                ekstern_feilmelding
+                ekstern_feilmelding,
+                flettedata
             ) values (
                 :opprettet,
                 :mottaker_fnr,
@@ -131,7 +163,8 @@ data class MinsideVarsel(
                 :minside_status,
                 :ekstern_status,
                 :ekstern_kanal,
-                :ekstern_feilmelding
+                :ekstern_feilmelding,
+                :flettedata
             )
         """.trimIndent())
             .param("opprettet", opprettet)
@@ -147,6 +180,7 @@ data class MinsideVarsel(
             .param("ekstern_status", eksternStatus?.name)
             .param("ekstern_kanal", eksternKanal?.name)
             .param("ekstern_feilmelding", eksternFeilmelding)
+            .param("flettedata", flettedataAsJsonb())
             .update()
     }
 
@@ -158,7 +192,8 @@ data class MinsideVarsel(
             avsenderReferanseId: String,
             mottakerFnr: String,
             avsenderNavident: String,
-            varselId: String? = null
+            varselId: String? = null,
+            flettedata: List<String>? = null
         ) = MinsideVarsel(
             dbid = null,
             mal = mal,
@@ -171,7 +206,8 @@ data class MinsideVarsel(
             minsideStatus = null,
             eksternStatus = null,
             eksternKanal = null,
-            eksternFeilmelding = null
+            eksternFeilmelding = null,
+            flettedata = flettedata
         )
 
         fun finnOgLåsUsendtVarsel(jdbcClient: JdbcClient): MinsideVarsel? =
@@ -219,6 +255,10 @@ data class MinsideVarsel(
                 .list()
         }
 
+        /**
+         * Henter varsler for en gitt rekrutteringstreff-ID.
+         * Brukes kun av tester, rekrutteringstreff bruker ikke rest api polling.
+         */
         fun hentVarslerForRekrutteringstreff(jdbcClient: JdbcClient, rekrutteringstreffId: String): List<MinsideVarsel> {
             val rekrutteringstreffMaler = Maler.malerForVarselType(VarselType.REKRUTTERINGSTREFF)
             return jdbcClient.sql("""
@@ -239,22 +279,31 @@ data class MinsideVarsel(
                 .list()
 
         object RowMapper: org.springframework.jdbc.core.RowMapper<MinsideVarsel> {
-            override fun mapRow(rs: ResultSet, rowNum: Int) = MinsideVarsel(
-                dbid = rs.getLong("dbid"),
-                opprettet = rs.getObject("opprettet", LocalDateTime::class.java),
-                mottakerFnr = rs.getString("mottaker_fnr"),
-                avsenderNavIdent = rs.getString("avsender_navident"),
-                varselId = rs.getString("varsel_id"),
-                mal = Maler.valueOf(rs.getString("mal")),
-                avsenderReferanseId = rs.getString("stilling_id"),
-                bestilt = rs.getBoolean("bestilt"),
-                minsideStatus = rs.getString("minside_status")?.let { MinsideStatus.valueOf(it) },
-                eksternStatus = rs.getString("ekstern_status")?.let { EksternStatus.valueOf(it) },
-                eksternKanal = rs.getString("ekstern_kanal")?.let { Kanal.valueOf(it) },
-                eksternFeilmelding = rs.getString("ekstern_feilmelding"),
-            )
+            override fun mapRow(rs: ResultSet, rowNum: Int): MinsideVarsel {
+                val malStreng = rs.getString("mal")
+                val mal = Maler.valueOf(malStreng)
+                val varselId = rs.getString("varsel_id")
+                
+                // Leser flettedata-feltet fra JSONB som JSON-streng
+                val flettedataJson = rs.getString("flettedata")
+                val flettedata: List<String>? = parseFlettedataFraDb(flettedataJson, varselId)
+                
+                return MinsideVarsel(
+                    dbid = rs.getLong("dbid"),
+                    opprettet = rs.getObject("opprettet", LocalDateTime::class.java),
+                    mottakerFnr = rs.getString("mottaker_fnr"),
+                    avsenderNavIdent = rs.getString("avsender_navident"),
+                    varselId = varselId,
+                    mal = mal,
+                    avsenderReferanseId = rs.getString("stilling_id"),
+                    bestilt = rs.getBoolean("bestilt"),
+                    minsideStatus = rs.getString("minside_status")?.let { MinsideStatus.valueOf(it) },
+                    eksternStatus = rs.getString("ekstern_status")?.let { EksternStatus.valueOf(it) },
+                    eksternKanal = rs.getString("ekstern_kanal")?.let { Kanal.valueOf(it) },
+                    eksternFeilmelding = rs.getString("ekstern_feilmelding"),
+                    flettedata = flettedata
+                )
+            }
         }
     }
 }
-
-

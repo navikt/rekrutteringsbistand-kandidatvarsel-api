@@ -26,7 +26,7 @@ class KandidatInvitertTreffEndretLytter(
                 it.requireValue("@event_name", "rekrutteringstreffoppdatering")
             }
             validate {
-                it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
+                it.requireKey("rekrutteringstreffId", "fnr", "hendelseId", "endredeFelter")
                 it.interestedIn("endretAv")
             }
         }.register(this)
@@ -42,9 +42,30 @@ class KandidatInvitertTreffEndretLytter(
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["endretAv"].asText("SYSTEM")
         val hendelseId = packet["hendelseId"].asText()
+        
+        // Leser endredeFelter fra rapid-meldingen og konverterer til flettedata for varsling
+        val endredeFelterNode = packet["endredeFelter"]
+        val flettedata: List<String> = if (endredeFelterNode.isArray && endredeFelterNode.size() > 0) {
+            endredeFelterNode.mapNotNull { node ->
+                try {
+                    EndringFlettedata.valueOf(node.asText()).displayTekst  // Konverter til displayTekst for varsling
+                } catch (e: IllegalArgumentException) {
+                    log.warn("Ukjent endredeFelter-verdi: ${node.asText()}, ignorerer")
+                    null
+                }
+            }
+        } else {
+            log.info("Ingen endredeFelter for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
+            return
+        }
+        
+        if (flettedata.isEmpty()) {
+            log.info("endredeFelter inneholder kun ugyldige verdier for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
+            return
+        }
 
-        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
-        secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId")
+        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId med endredeFelter, konvertert til flettedata=$flettedata")
+        secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, flettedata=$flettedata")
 
         try {
             VarselService.opprettVarsler(
@@ -53,7 +74,8 @@ class KandidatInvitertTreffEndretLytter(
                 fnrList = listOf(fnr),
                 mal = KandidatInvitertTreffEndret,
                 avsenderNavident = avsenderNavident,
-                varselId = hendelseId
+                varselId = hendelseId,
+                flettedata = flettedata
             )
             log.info("Behandlet rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
         } catch (e: Exception) {
