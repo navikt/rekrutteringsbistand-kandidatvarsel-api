@@ -196,7 +196,7 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
      *  F.eks. ["navn", "tidspunkt", "sted"] -> "navn, tidspunkt og sted" */
     private fun formaterEndringer(endringsTekster: List<String>): String {
         if (endringsTekster.isEmpty()) {
-            return "ukjente felter" // Fallback som ikke skal skje, men unngår exception
+            return ""
         }
         return when (endringsTekster.size) {
             1 -> endringsTekster.first()
