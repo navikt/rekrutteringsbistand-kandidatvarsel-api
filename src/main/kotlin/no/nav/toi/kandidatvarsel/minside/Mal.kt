@@ -172,7 +172,7 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
         "Det har skjedd endringer i $PLACEHOLDER knyttet til et treff med arbeidsgivere som du er invitert til."
 
     override fun smsTekst() =
-        "Det har skjedd endringer på et treff med arbeidsgivere som du er invitert til:\n\n$PLACEHOLDER\n\nLogg inn på Nav for mer informasjon.\n\nVennlig hilsen Nav"
+        "Det er endringer i et treff du er invitert til: $PLACEHOLDER. Logg inn på Nav for å se detaljer."
 
     override fun epostTittel() =
         "Endringer på treff du er invitert til"
