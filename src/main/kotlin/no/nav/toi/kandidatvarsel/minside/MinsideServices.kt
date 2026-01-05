@@ -100,7 +100,7 @@ private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConn
         "varselId" to responseDto.id,
         "avsenderReferanseId" to responseDto.stillingId,
         "fnr" to responseDto.mottakerFnr,
-        "eksternStatus" to responseDto.eksternStatus,
+        "eksternStatus" to varsel.eksternStatus?.name,
         "minsideStatus" to responseDto.minsideStatus,
         "opprettet" to opprettetZoned.format(java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME),
         "avsenderNavident" to responseDto.avsenderNavident,

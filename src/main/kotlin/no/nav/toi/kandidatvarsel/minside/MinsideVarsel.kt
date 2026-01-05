@@ -69,9 +69,10 @@ data class MinsideVarsel(
 
     fun markerBestilt() = copy(bestilt = true)
 
-    /** Sjekker om varselet har en endelig ekstern status som skal publiseres på rapid */
+    /** Sjekker om varselet har en status som skal publiseres på rapid */
     fun skalPubliseresPåRapid(): Boolean = 
-        eksternStatus == EksternStatus.FERDIGSTILT || eksternStatus == EksternStatus.FEILET
+        eksternStatus == EksternStatus.SENDT || 
+        eksternStatus == EksternStatus.FEILET
 
     /** Konverterer flettedata-listen til JSON for lagring i database */
     fun flettedataAsJsonb(): PGobject? {
