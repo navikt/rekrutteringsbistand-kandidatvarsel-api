@@ -23,7 +23,9 @@ class KandidatTreffAvlystLytter(
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "rekrutteringstreffavlysning")
+                it.requireValue("@event_name", "rekrutteringstreffSvarOgStatus")
+                it.requireValue("svar", true)
+                it.requireValue("treffstatus", "avlyst")
             }
             validate {
                 it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
@@ -41,8 +43,8 @@ class KandidatTreffAvlystLytter(
         val fnr = packet["fnr"].asText()
         val hendelseId = packet["hendelseId"].asText()
 
-        log.info("Mottok rekrutteringstreffavlysning-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
-        secureLog.info("Mottok rekrutteringstreffavlysning-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
+        log.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId")
+        secureLog.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
 
         try {
             VarselService.opprettVarsler(
@@ -53,16 +55,16 @@ class KandidatTreffAvlystLytter(
                 avsenderNavident = "SYSTEM",
                 varselId = hendelseId
             )
-            log.info("Behandlet rekrutteringstreffavlysning-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
+            log.info("Behandlet avlysningsvarsel for rekrutteringstreffId=$rekrutteringstreffId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av rekrutteringstreffavlysning-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
-            secureLog.error("Feil ved behandling av rekrutteringstreffavlysning-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
+            log.error("Feil ved behandling av avlysningsvarsel for rekrutteringstreffId=$rekrutteringstreffId", e)
+            secureLog.error("Feil ved behandling av avlysningsvarsel for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av rekrutteringstreffavlysning-melding: <se secure log>")
-        secureLog.error("Feil ved parsing av rekrutteringstreffavlysning-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av rekrutteringstreffSvarOgStatus-melding for avlysning: <se secure log>")
+        secureLog.error("Feil ved parsing av rekrutteringstreffSvarOgStatus-melding for avlysning: ${problems.toExtendedReport()}")
     }
 }

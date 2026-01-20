@@ -48,18 +48,21 @@ class KandidatTreffAvlystLytterTest {
     }
 
     @Test
-    fun `skal opprette varsel når rekrutteringstreffavlysning melding mottas`() {
+    fun `skal opprette varsel når rekrutteringstreffSvarOgStatus med svar=true og treffstatus=avlyst mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "rekrutteringstreffavlysning",
+                "@event_name": "rekrutteringstreffSvarOgStatus",
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
                 "hendelseId": "$hendelseId",
-                "tittel": "Jobbtreff hos bedrift AS"
+                "svar": true,
+                "treffstatus": "avlyst",
+                "endretAv": "12345678901",
+                "endretAvPersonbruker": false
             }
         """.trimIndent())
 
@@ -76,13 +79,39 @@ class KandidatTreffAvlystLytterTest {
     }
 
     @Test
-    fun `skal ikke opprette varsel uten påkrevde felt`() {
-        // Mangler fnr
+    fun `skal ikke opprette varsel når svar er false selv om treffstatus er avlyst`() {
         testRapid.sendTestMessage("""
             {
-                "@event_name": "rekrutteringstreffavlysning",
+                "@event_name": "rekrutteringstreffSvarOgStatus",
                 "rekrutteringstreffId": "12345678-1234-1234-1234-123456789012",
-                "hendelseId": "87654321-4321-4321-4321-210987654321"
+                "fnr": "12345678901",
+                "hendelseId": "87654321-4321-4321-4321-210987654321",
+                "svar": false,
+                "treffstatus": "avlyst",
+                "endretAv": "12345678901",
+                "endretAvPersonbruker": false
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, "12345678-1234-1234-1234-123456789012")
+        }
+
+        assertEquals(0, varsler.size)
+    }
+
+    @Test
+    fun `skal ikke opprette varsel når treffstatus ikke er avlyst`() {
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "rekrutteringstreffSvarOgStatus",
+                "rekrutteringstreffId": "12345678-1234-1234-1234-123456789012",
+                "fnr": "12345678901",
+                "hendelseId": "87654321-4321-4321-4321-210987654321",
+                "svar": true,
+                "treffstatus": "fullført",
+                "endretAv": "12345678901",
+                "endretAvPersonbruker": false
             }
         """.trimIndent())
 
