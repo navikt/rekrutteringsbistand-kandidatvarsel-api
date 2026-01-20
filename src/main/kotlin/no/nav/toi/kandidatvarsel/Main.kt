@@ -12,6 +12,7 @@ import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertTreffEndretLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertLytter
+import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatTreffAvlystLytter
 import org.flywaydb.core.api.output.MigrateResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -135,6 +136,7 @@ private fun registrerRapidsLyttere(rapidsConnection: RapidsConnection, dataSourc
     try {
         KandidatInvitertLytter(rapidsConnection, dataSource)
         KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource)
+        KandidatTreffAvlystLytter(rapidsConnection, dataSource)
     } catch (e: Exception) {
         log.error("Feil ved oppstart av RapidApplication (se securelog)")
         secureLog.error("Feil ved oppstart av RapidApplication", e)
