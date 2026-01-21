@@ -121,4 +121,25 @@ class KandidatTreffAvlystLytterTest {
 
         assertEquals(0, varsler.size)
     }
+
+    @Test
+    fun `skal ignorere melding som mangler hendelseId`() {
+        val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
+
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "rekrutteringstreffSvarOgStatus",
+                "rekrutteringstreffId": "$rekrutteringstreffId",
+                "fnr": "12345678901",
+                "svar": true,
+                "treffstatus": "avlyst"
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId)
+        }
+
+        assertEquals(0, varsler.size)
+    }
 }
