@@ -211,16 +211,16 @@ data object KandidatInvitertTreffAvlyst : RekrutteringstreffMal {
     override val name = "KANDIDAT_INVITERT_TREFF_AVLYST"
 
     override fun minsideTekst() =
-        "Treffet du hadde takket ja til er dessverre avlyst."
+        "Treffet du er invitert til er dessverre avlyst."
 
     override fun smsTekst() =
-        "Hei! Treffet du hadde takket ja til er dessverre avlyst. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
+        "Hei! Treffet du er invitert til er dessverre avlyst. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
 
     override fun epostTittel() =
         "Treffet er avlyst"
 
     override fun epostHtmlBody() =
         """
-        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Treffet du hadde takket ja til er dessverre avlyst. Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Treffet du er invitert til er dessverre avlyst. Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
 }
