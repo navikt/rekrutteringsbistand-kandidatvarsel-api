@@ -28,7 +28,8 @@ class KandidatTreffAvlystLytter(
                 it.requireValue("treffstatus", "avlyst")
             }
             validate {
-                it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
+                it.requireKey("rekrutteringstreffId", "fnr")
+                it.interestedIn("hendelseId")
             }
         }.register(this)
     }
@@ -41,7 +42,7 @@ class KandidatTreffAvlystLytter(
     ) {
         val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
         val fnr = packet["fnr"].asText()
-        val hendelseId = packet["hendelseId"].asText()
+        val hendelseId = packet["hendelseId"].asText().takeIf { it.isNotEmpty() } ?: packet.id
 
         log.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId")
         secureLog.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
