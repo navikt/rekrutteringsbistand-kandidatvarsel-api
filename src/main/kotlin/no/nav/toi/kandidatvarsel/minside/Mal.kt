@@ -63,6 +63,7 @@ object Maler {
             PassendeJobbarrangement.name -> PassendeJobbarrangement
             KandidatInvitertTreff.name -> KandidatInvitertTreff
             KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
+            KandidatInvitertTreffAvlyst.name -> KandidatInvitertTreffAvlyst
             else -> throw IllegalArgumentException("Ukjent Mal: $name")
         }
     }
@@ -76,7 +77,8 @@ object Maler {
 
         VarselType.REKRUTTERINGSTREFF -> listOf(
             KandidatInvitertTreff.name,
-            KandidatInvitertTreffEndret.name
+            KandidatInvitertTreffEndret.name,
+            KandidatInvitertTreffAvlyst.name
         )
     }
 
@@ -203,4 +205,22 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
             else -> endringsTekster.dropLast(1).joinToString(", ") + " og " + endringsTekster.last()
         }
     }
+}
+
+data object KandidatInvitertTreffAvlyst : RekrutteringstreffMal {
+    override val name = "KANDIDAT_INVITERT_TREFF_AVLYST"
+
+    override fun minsideTekst() =
+        "Treffet du er invitert til er dessverre avlyst."
+
+    override fun smsTekst() =
+        "Hei! Treffet du er invitert til er dessverre avlyst. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
+
+    override fun epostTittel() =
+        "Treffet er avlyst"
+
+    override fun epostHtmlBody() =
+        """
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Treffet du er invitert til er dessverre avlyst. Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        """.trimIndent()
 }

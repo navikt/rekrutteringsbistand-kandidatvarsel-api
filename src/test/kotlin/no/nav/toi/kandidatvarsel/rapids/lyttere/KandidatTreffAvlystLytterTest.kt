@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.testcontainers.containers.PostgreSQLContainer
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class KandidatInvitertLytterTest {
+class KandidatTreffAvlystLytterTest {
 
     private val postgres = PostgreSQLContainer("postgres:15").apply { start() }
     private val dataSource = DatabaseConfig(
@@ -30,7 +30,7 @@ class KandidatInvitertLytterTest {
             .load()
             .migrate()
             
-        KandidatInvitertLytter(testRapid, dataSource)
+        KandidatTreffAvlystLytter(testRapid, dataSource)
     }
 
     @BeforeEach
@@ -48,18 +48,21 @@ class KandidatInvitertLytterTest {
     }
 
     @Test
-    fun `skal opprette varsel når kandidat invitert melding mottas`() {
+    fun `skal opprette varsel når rekrutteringstreffSvarOgStatus med svar=true og treffstatus=avlyst mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "rekrutteringstreffinvitasjon",
+                "@event_name": "rekrutteringstreffSvarOgStatus",
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
-                "opprettetAv": "Z123456",
-                "hendelseId": "$hendelseId"
+                "hendelseId": "$hendelseId",
+                "svar": true,
+                "treffstatus": "avlyst",
+                "endretAv": "12345678901",
+                "endretAvPersonbruker": false
             }
         """.trimIndent())
 
@@ -68,68 +71,75 @@ class KandidatInvitertLytterTest {
         }
 
         assertEquals(1, varsler.size)
-        assertEquals(KandidatInvitertTreff.name, varsler[0].mal.name)
+        assertEquals(KandidatInvitertTreffAvlyst.name, varsler[0].mal.name)
         assertEquals(rekrutteringstreffId, varsler[0].avsenderReferanseId)
-        assertEquals("Z123456", varsler[0].avsenderNavIdent)
+        assertEquals("SYSTEM", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
         assertEquals(hendelseId, varsler[0].varselId)
     }
-    
+
     @Test
-    fun `skal ikke opprette varsel når rekrutteringstreffId mangler`() {
-        val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        
+    fun `skal ikke opprette varsel når svar er false selv om treffstatus er avlyst`() {
         testRapid.sendTestMessage("""
             {
-                "@event_name": "rekrutteringstreffinvitasjon",
+                "@event_name": "rekrutteringstreffSvarOgStatus",
+                "rekrutteringstreffId": "12345678-1234-1234-1234-123456789012",
                 "fnr": "12345678901",
-                "opprettetAv": "Z123456",
-                "hendelseId": "87654321-4321-4321-4321-210987654321"
+                "hendelseId": "87654321-4321-4321-4321-210987654321",
+                "svar": false,
+                "treffstatus": "avlyst",
+                "endretAv": "12345678901",
+                "endretAvPersonbruker": false
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, "12345678-1234-1234-1234-123456789012")
+        }
+
+        assertEquals(0, varsler.size)
+    }
+
+    @Test
+    fun `skal ikke opprette varsel når treffstatus ikke er avlyst`() {
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "rekrutteringstreffSvarOgStatus",
+                "rekrutteringstreffId": "12345678-1234-1234-1234-123456789012",
+                "fnr": "12345678901",
+                "hendelseId": "87654321-4321-4321-4321-210987654321",
+                "svar": true,
+                "treffstatus": "fullført",
+                "endretAv": "12345678901",
+                "endretAvPersonbruker": false
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, "12345678-1234-1234-1234-123456789012")
+        }
+
+        assertEquals(0, varsler.size)
+    }
+
+    @Test
+    fun `skal ignorere melding som mangler hendelseId`() {
+        val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
+
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "rekrutteringstreffSvarOgStatus",
+                "rekrutteringstreffId": "$rekrutteringstreffId",
+                "fnr": "12345678901",
+                "svar": true,
+                "treffstatus": "avlyst"
             }
         """.trimIndent())
 
         val varsler = dataSource.transaction { tx ->
             MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId)
         }
-        
-        assertEquals(0, varsler.size)
-    }
-    
-    @Test
-    fun `skal ikke opprette varsel når fnr mangler`() {
-        val varselId = "12345678-1234-1234-1234-123456789012"
-        
-        testRapid.sendTestMessage("""
-            {
-                "@event_name": "rekrutteringstreffinvitasjon",
-                "varselId": "$varselId",
-                "avsenderNavident": "Z123456"
-            }
-        """.trimIndent())
 
-        val varsler = dataSource.transaction { tx ->
-            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, varselId)
-        }
-        
-        assertEquals(0, varsler.size)
-    }
-    
-    @Test
-    fun `skal ikke opprette varsel når avsenderNavident mangler`() {
-        val varselId = "12345678-1234-1234-1234-123456789012"
-        
-        testRapid.sendTestMessage("""
-            {
-                "@event_name": "kandidatInvitert",
-                "varselId": "$varselId",
-                "fnr": "12345678901"
-            }
-        """.trimIndent())
-
-        val varsler = dataSource.transaction { tx ->
-            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, varselId)
-        }
-        
         assertEquals(0, varsler.size)
     }
 }
