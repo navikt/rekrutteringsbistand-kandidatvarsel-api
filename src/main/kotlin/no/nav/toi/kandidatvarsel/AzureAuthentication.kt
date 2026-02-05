@@ -152,6 +152,8 @@ fun Context.authenticatedUser() = attribute<UserPrincipal>("principal")
  */
 fun Javalin.azureAdAuthentication(azureAdConfig: AzureAdConfig): Javalin {
     return beforeMatched { ctx ->
+        val secureLog = SecureLog(log)
+
         val token = ctx.hentToken() ?: run {
             if (UNPROTECTED in ctx.routeRoles()) {
                 return@beforeMatched
