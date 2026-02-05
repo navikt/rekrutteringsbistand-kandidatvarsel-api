@@ -15,12 +15,6 @@ spec:
     path: /internal/alive
   readiness:
     path: /internal/ready
-  secureLogs:
-    enabled: true
-  observability:
-    autoInstrumentation:
-      enabled: true
-      runtime: java
   azure:
     application:
       enabled: true
@@ -35,12 +29,13 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: rekrutteringsbistand
         - application: rekrutteringsbistand-frontend
     outbound:
       rules:
         - application: rekrutteringsbistand-stilling-api
         - application: rekrutteringsbistand-kandidatsok-api
+        - application: logging
+          namespace: nais-system
   env:
     - name: KAFKA_RAPID_TOPIC
       value: toi.rapid-1
@@ -76,3 +71,6 @@ spec:
         - id: loki
         - id: elastic
       enabled: true
+    autoInstrumentation:
+      enabled: true
+      runtime: java

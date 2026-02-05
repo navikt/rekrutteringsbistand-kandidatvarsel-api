@@ -5,12 +5,10 @@ import no.nav.common.audit_log.cef.CefMessage
 import no.nav.common.audit_log.cef.CefMessageEvent
 import no.nav.common.audit_log.log.AuditLogger
 import no.nav.common.audit_log.log.AuditLoggerImpl
-import org.slf4j.LoggerFactory
-
-val secureLog = LoggerFactory.getLogger("secureLog")!!
 
 object AuditLogg {
     private val auditLogger: AuditLogger = AuditLoggerImpl()
+    val secureLog = SecureLog(log)
 
     fun logCefMessage(navIdent: String, userid: String, msg: String, tilgang: Boolean) {
         val message = CefMessage.builder()

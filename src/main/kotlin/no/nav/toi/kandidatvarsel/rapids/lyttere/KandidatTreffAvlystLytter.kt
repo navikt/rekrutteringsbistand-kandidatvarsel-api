@@ -7,6 +7,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.toi.kandidatvarsel.SecureLog
 import no.nav.toi.kandidatvarsel.VarselService
 import no.nav.toi.kandidatvarsel.minside.*
 import org.slf4j.LoggerFactory
@@ -18,7 +19,7 @@ class KandidatTreffAvlystLytter(
 ) : River.PacketListener {
 
     private val log = LoggerFactory.getLogger(KandidatTreffAvlystLytter::class.java)
-    private val secureLog = LoggerFactory.getLogger("secureLog")
+    private val secureLog = SecureLog(log)
 
     init {
         River(rapidsConnection).apply {

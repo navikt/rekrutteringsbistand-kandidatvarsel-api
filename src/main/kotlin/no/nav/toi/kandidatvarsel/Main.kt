@@ -26,9 +26,11 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.Main")!!
+val secureLog = SecureLog(log)
 
 fun main() {
     log.info("Starter applikasjon")
+    secureLog.info("Starter applikasjon. Dette er ment å logges til Securelogs. Hvis du ser dette i den ordinære apploggen er noe galt, og sensitive data kan havne i feil logg.")
     
     try {
         val aivenConfig = AivenConfig.default

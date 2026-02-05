@@ -6,7 +6,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
-import no.nav.toi.kandidatvarsel.secureLog
+import no.nav.toi.kandidatvarsel.SecureLog
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -20,6 +20,8 @@ import kotlin.time.toJavaDuration
 
 const val BESTILLING_TOPIC = "min-side.aapen-brukervarsel-v1"
 const val OPPDATERING_TOPIC = "min-side.aapen-varsel-hendelse-v1"
+
+private val secureLog = SecureLog(LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.MinsideClient"))
 
 fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: StillingMal, tittel: String, arbeidsgiver: String) {
     val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.MinsideClient")!!
