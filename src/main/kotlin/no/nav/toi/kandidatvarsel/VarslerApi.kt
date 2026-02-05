@@ -83,6 +83,7 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
             val stillingId = ctx.pathParam("stillingId")
+            log.info("Mottok request for å hente varsler for $stillingId")
             val varsler = dataSource.transaction { tx ->
                 val minsideVarsler = MinsideVarsel.hentVarslerForStilling(tx, stillingId)
                     .map { it.toResponse() }
@@ -100,6 +101,7 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
             val stillingId = ctx.pathParam("stillingId")
+            log.info("Mottok request for å lage varsel for stilling $stillingId")
             val nyeVarslerRequestDto = ctx.bodyAsClass<NyeVarslerRequestDto>()
             dataSource.transaction { tx ->
                 for (fnr in nyeVarslerRequestDto.fnr) {
@@ -123,6 +125,7 @@ fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: Kandidat
     post(
         "/api/varsler/query",
         { ctx ->
+            log.info("Mottok request for å hente varsler for en bruker")
             val queryRequestDto = ctx.bodyAsClass<QueryRequestDto>()
             val navident = ctx.authenticatedUser().navident
             val fnr = queryRequestDto.fnr
