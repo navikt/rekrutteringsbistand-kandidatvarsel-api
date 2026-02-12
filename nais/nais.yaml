@@ -30,6 +30,7 @@ spec:
     inbound:
       rules:
         - application: rekrutteringsbistand-frontend
+        - application: rekrutteringsbistand-frontend2
     outbound:
       rules:
         - application: rekrutteringsbistand-stilling-api
