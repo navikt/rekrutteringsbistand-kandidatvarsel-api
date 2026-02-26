@@ -34,7 +34,7 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
     implementation("com.github.kittinunf.fuel:fuel-jackson:$fuelVersion")
 
-    implementation("org.apache.kafka:kafka-clients:4.1.0")
+    implementation("org.apache.kafka:kafka-clients:4.2.0")
     implementation("no.nav.tms.varsel:kotlin-builder:1.0.0")
 
     implementation("com.zaxxer:HikariCP:6.3.0")
