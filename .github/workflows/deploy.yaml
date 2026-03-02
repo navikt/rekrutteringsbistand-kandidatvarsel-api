@@ -6,7 +6,7 @@ jobs:
     uses: navikt/toi-github-actions-workflows/.github/workflows/build-and-deploy.yaml@v1
     with:
       java-version: "21"
-      deploy-to-dev-if-branch-name-is: "fiks_team_log_og_alerts"
+      deploy-to-dev-if-branch-name-is: "oppdater_dependencies"
     permissions:
       contents: read
       id-token: write
