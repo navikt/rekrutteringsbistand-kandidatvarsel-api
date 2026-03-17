@@ -44,7 +44,7 @@
     </appender>
 
     <logger name="team-logs-logger" level="INFO" additivity="false">
-        <appender-ref ref="team-logs" />
+        <appender-ref ref="team-logs-OTEL" />
     </logger>
 
     <root level="INFO">
