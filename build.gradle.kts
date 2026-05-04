@@ -9,6 +9,7 @@ version = "1.0-SNAPSHOT"
 val mockOAuth2ServerVersion = "2.2.1"
 val fuelVersion = "2.3.1"
 val javalinVersion = "6.7.0"
+val opentelemetryLogbackMdcVersion = "2.26.0-alpha"
 
 application {
     mainClass.set("no.nav.toi.kandidatvarsel.MainKt")
@@ -42,6 +43,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.flywaydb:flyway-core:10.10.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.10.0")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0:${opentelemetryLogbackMdcVersion}")
     
     // Rapids and rivers fra tbd-libs (uten Ktor)
     val tbdLibsVersion = "2024.11.25-10.59-6f263a10"
@@ -58,7 +60,7 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.wiremock:wiremock:3.3.1")
     testImplementation("org.skyscreamer:jsonassert:1.5.1")
-    testImplementation("org.testcontainers:postgresql:1.21.3")
+    testImplementation("org.testcontainers:postgresql:1.21.4")
     testImplementation("io.mockk:mockk:1.14.6")
 }
 

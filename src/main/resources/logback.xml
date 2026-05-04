@@ -1,4 +1,7 @@
 <configuration>
+    <!-- Log detailed information about the Logback initialization process at application startup. -->
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
+
     <appender name="loggIJsonFormatTilKibana" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
@@ -29,14 +32,23 @@
                 </filter>
             </appender>
 
-            <logger name="team-logs-logger" level="INFO" additivity="false">
-                <appender-ref ref="team-logs" />
-            </logger>
         </then>
     </if>
 
-    <root level="INFO">
-        <appender-ref ref="loggIJsonFormatTilKibana"/>
+    <appender name="loggIJsonFormatTilKibana-OTEL" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
+        <appender-ref ref="loggIJsonFormatTilKibana" />
+    </appender>
+
+    <appender name="team-logs-OTEL" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
         <appender-ref ref="team-logs" />
+    </appender>
+
+    <logger name="team-logs-logger" level="INFO" additivity="false">
+        <appender-ref ref="team-logs-OTEL" />
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="loggIJsonFormatTilKibana-OTEL"/>
+        <appender-ref ref="team-logs-OTEL" />
     </root>
 </configuration>
