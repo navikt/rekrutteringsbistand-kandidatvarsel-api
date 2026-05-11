@@ -1,14 +1,14 @@
 package no.nav.toi.kandidatvarsel
 
-import io.javalin.Javalin
 import io.javalin.http.Handler
 import io.javalin.http.HttpStatus
+import io.javalin.router.JavalinDefaultRoutingApi
 import no.nav.toi.kandidatvarsel.Rolle.UNPROTECTED
 import org.flywaydb.core.api.output.MigrateResult
 import java.util.concurrent.atomic.AtomicReference
 import javax.sql.DataSource
 
-fun Javalin.handleHealth(
+fun JavalinDefaultRoutingApi.handleHealth(
     dataSource: DataSource,
     migrationResult: AtomicReference<MigrateResult>,
     isRapidRunning: () -> Boolean
