@@ -7,8 +7,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.github.navikt.tbd_libs.kafka.AivenConfig
 import com.github.navikt.tbd_libs.kafka.ConsumerProducerFactory
 import com.zaxxer.hikari.HikariDataSource
-import io.javalin.http.HttpStatus
-import io.javalin.validation.ValidationException
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer

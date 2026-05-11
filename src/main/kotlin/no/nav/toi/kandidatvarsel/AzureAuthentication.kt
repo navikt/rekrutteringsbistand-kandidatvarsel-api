@@ -11,8 +11,6 @@ import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.RSAKeyProvider
-import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.beforeMatched
 import io.javalin.http.*
 import io.javalin.router.JavalinDefaultRoutingApi
 import io.javalin.security.RouteRole
