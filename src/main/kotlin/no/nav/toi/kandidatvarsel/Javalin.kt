@@ -32,6 +32,11 @@ fun startJavalin(
         it.startup.showJavalinBanner = false
 
         with(it.routes) {
+            azureAdAuthentication(azureAdConfig)
+            handleHealth(dataSource, migrateResult, isRapidRunning)
+            handleVarsler(dataSource, kandidatsokApiKlient)
+            handleMeldingsmal()
+
             exception(ValidationException::class.java) { e, ctx ->
                 log.info("Returnerer 400 Bad Request på grunn av: ${e.errors}", e)
                 ctx.json(e.errors).status(HttpStatus.BAD_REQUEST)
@@ -40,10 +45,6 @@ fun startJavalin(
                 log.error("uhåndtert exception i javalin: {}", e.message, e)
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
             }
-            azureAdAuthentication(azureAdConfig)
-            handleHealth(dataSource, migrateResult, isRapidRunning)
-            handleVarsler(dataSource, kandidatsokApiKlient)
-            handleMeldingsmal()
         }
 
         it.requestLogger.http { ctx, ms ->
