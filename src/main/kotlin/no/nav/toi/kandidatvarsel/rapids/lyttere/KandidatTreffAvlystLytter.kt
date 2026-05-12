@@ -9,16 +9,14 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.toi.kandidatvarsel.SecureLog
 import no.nav.toi.kandidatvarsel.VarselService
+import no.nav.toi.kandidatvarsel.log
 import no.nav.toi.kandidatvarsel.minside.*
-import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 class KandidatTreffAvlystLytter(
     rapidsConnection: RapidsConnection,
     private val dataSource: DataSource
 ) : River.PacketListener {
-
-    private val log = LoggerFactory.getLogger(KandidatTreffAvlystLytter::class.java)
     private val secureLog = SecureLog(log)
 
     init {

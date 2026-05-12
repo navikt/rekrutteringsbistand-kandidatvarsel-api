@@ -2,11 +2,9 @@ package no.nav.toi.kandidatvarsel
 
 import no.nav.toi.kandidatvarsel.minside.Mal
 import no.nav.toi.kandidatvarsel.minside.MinsideVarsel
-import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 object VarselService {
-    private val log = LoggerFactory.getLogger(VarselService::class.java)
 
     fun opprettVarsler(
         dataSource: DataSource,

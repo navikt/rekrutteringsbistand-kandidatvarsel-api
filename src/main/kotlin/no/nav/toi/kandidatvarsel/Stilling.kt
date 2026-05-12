@@ -3,7 +3,6 @@ package no.nav.toi.kandidatvarsel
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.kittinunf.result.getOrElse
-import org.slf4j.LoggerFactory
 import java.util.*
 
 data class Stilling(
@@ -18,7 +17,6 @@ interface StillingClient {
 class StillingClientImpl(
     private val azureTokenClient: AzureTokenClient,
 ): StillingClient {
-    private val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.Stilling")!!
 
     private val baseUrl = "http://rekrutteringsbistand-stilling-api.toi.svc.cluster.local"
 
