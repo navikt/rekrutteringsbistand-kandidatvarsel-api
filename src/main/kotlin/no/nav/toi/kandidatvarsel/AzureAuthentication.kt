@@ -11,8 +11,8 @@ import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.RSAKeyProvider
-import io.javalin.Javalin
 import io.javalin.http.*
+import io.javalin.router.JavalinDefaultRoutingApi
 import io.javalin.security.RouteRole
 import no.nav.toi.kandidatvarsel.Rolle.UNPROTECTED
 import org.eclipse.jetty.http.HttpHeader
@@ -150,7 +150,7 @@ fun Context.authenticatedUser() = attribute<UserPrincipal>("principal")
 /**
  * Setter opp token-verifisering på en path på Javalin-serveren
  */
-fun Javalin.azureAdAuthentication(azureAdConfig: AzureAdConfig): Javalin {
+fun JavalinDefaultRoutingApi.azureAdAuthentication(azureAdConfig: AzureAdConfig): JavalinDefaultRoutingApi {
     return beforeMatched { ctx ->
         val secureLog = SecureLog(log)
 

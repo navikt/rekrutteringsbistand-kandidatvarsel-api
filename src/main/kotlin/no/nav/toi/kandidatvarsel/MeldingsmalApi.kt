@@ -1,5 +1,5 @@
 package no.nav.toi.kandidatvarsel
-import io.javalin.Javalin
+import io.javalin.router.JavalinDefaultRoutingApi
 import no.nav.toi.kandidatvarsel.minside.*
 
 data class VurdertSomAktuell(
@@ -111,7 +111,7 @@ fun hentMeldingsmal(): Meldingsmal {
     )
 }
 
-fun Javalin.handleMeldingsmal() {
+fun JavalinDefaultRoutingApi.handleMeldingsmal() {
     get(
         "/api/meldingsmal",
         { ctx ->

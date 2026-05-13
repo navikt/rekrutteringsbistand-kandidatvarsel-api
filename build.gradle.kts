@@ -8,7 +8,7 @@ version = "1.0-SNAPSHOT"
 
 val mockOAuth2ServerVersion = "2.2.1"
 val fuelVersion = "2.3.1"
-val javalinVersion = "6.7.0"
+val javalinVersion = "7.2.0"
 val opentelemetryLogbackMdcVersion = "2.26.0-alpha"
 
 application {
@@ -58,9 +58,9 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:3.23.1")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
-    testImplementation("org.wiremock:wiremock:3.3.1")
+    testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     testImplementation("org.skyscreamer:jsonassert:1.5.1")
-    testImplementation("org.testcontainers:postgresql:1.21.4")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
     testImplementation("io.mockk:mockk:1.14.6")
 }
 

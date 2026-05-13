@@ -14,7 +14,7 @@ import no.nav.toi.kandidatvarsel.util.TestRapid
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest

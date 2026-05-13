@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.tms.varsel.action.*
 import no.nav.tms.varsel.builder.VarselActionBuilder
 import no.nav.toi.kandidatvarsel.SecureLog
+import no.nav.toi.kandidatvarsel.log
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -24,7 +25,6 @@ const val OPPDATERING_TOPIC = "min-side.aapen-varsel-hendelse-v1"
 private val secureLog = SecureLog(LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.MinsideClient"))
 
 fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: StillingMal, tittel: String, arbeidsgiver: String) {
-    val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.MinsideClient")!!
     val clusterName = System.getenv("NAIS_CLUSTER_NAME") ?: "local"
     val isProd = clusterName == "prod-gcp"
     
@@ -100,7 +100,6 @@ private fun genererTekster(minsideVarsel: MinsideVarsel, mal: Rekrutteringstreff
 }
 
 fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: RekrutteringstreffMal) {
-    val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.MinsideClient")!!
     val clusterName = System.getenv("NAIS_CLUSTER_NAME") ?: "local"
     val isProd = clusterName == "prod-gcp"
     

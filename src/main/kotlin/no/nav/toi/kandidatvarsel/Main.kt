@@ -25,7 +25,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-private val log = LoggerFactory.getLogger("no.nav.toi.kandidatvarsel.Main")!!
+private val log = noClassLogger()
 val secureLog = SecureLog(log)
 
 fun main() {
@@ -190,3 +190,8 @@ val Any.log: Logger
 
 fun getenvOrThrow(name: String): String = 
     getenv(name) ?: throw IllegalStateException("Mangler miljøvariabel '$name'")
+
+fun noClassLogger(): Logger {
+    val callerClassName = Throwable().stackTrace[1].className
+    return LoggerFactory.getLogger(callerClassName)
+}

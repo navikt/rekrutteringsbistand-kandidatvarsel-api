@@ -4,7 +4,6 @@ import no.nav.toi.kandidatvarsel.minside.OPPDATERING_TOPIC
 import no.nav.toi.kandidatvarsel.minside.pollOppdateringer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.MockConsumer
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.common.TopicPartition
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -100,7 +99,7 @@ class VarselOppdateringClientTest {
         assertEquals(1, consumer.committed())
     }
 
-    private fun createMockConsumer() = MockConsumer<String, String>(OffsetResetStrategy.EARLIEST).apply {
+    private fun createMockConsumer() = MockConsumer<String, String>("earliest").apply {
         assign(topicPartitionSet)
         updateBeginningOffsets(mapOf(topicPartition to 0L))
         updateEndOffsets(mapOf(topicPartition to 0L))

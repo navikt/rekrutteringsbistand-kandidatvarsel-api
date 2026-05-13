@@ -4,14 +4,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.toi.kandidatvarsel.StillingClient
+import no.nav.toi.kandidatvarsel.noClassLogger
 import no.nav.toi.kandidatvarsel.transaction
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
-import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
 
 private val objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+private val log = noClassLogger()
 
 /** Finn neste varsel som er klar for bestilling, og bestill det hos minside.
  *
@@ -46,7 +47,6 @@ fun sjekkVarselOppdateringer(
     kafkaConsumer: Consumer<String, String>,
     rapidsConnection: RapidsConnection
 ) {
-    val log = LoggerFactory.getLogger(Any::class.java)
 
     kafkaConsumer.pollOppdateringer { oppdateringerSeq ->
         val oppdateringer = oppdateringerSeq.toList()

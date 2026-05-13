@@ -1,9 +1,9 @@
 package no.nav.toi.kandidatvarsel
 
 import auth.obo.KandidatsokApiKlient
-import io.javalin.Javalin
 import io.javalin.http.HttpStatus
 import io.javalin.http.bodyAsClass
+import io.javalin.router.JavalinDefaultRoutingApi
 import no.nav.toi.kandidatvarsel.Rolle.*
 import no.nav.toi.kandidatvarsel.altinnsms.AltinnVarsel
 import no.nav.toi.kandidatvarsel.minside.*
@@ -78,7 +78,7 @@ data class VarselResponseDto(
     val eksternKanal: Kanal?,
 )
 
-fun Javalin.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: KandidatsokApiKlient) {
+fun JavalinDefaultRoutingApi.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: KandidatsokApiKlient) {
     get(
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
