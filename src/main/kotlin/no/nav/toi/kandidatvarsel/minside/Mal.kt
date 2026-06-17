@@ -154,7 +154,7 @@ data object KandidatInvitertTreff : RekrutteringstreffMal {
         "Du er invitert til et treff der du kan møte arbeidsgivere."
 
     override fun smsTekst() =
-        "Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å svare JA eller NEI på om du planlegger å delta. Åpne kortet for å lese om rekrutteringstreffet og svarfristen. Vennlig hilsen Nav"
+        "Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å svare JA eller NEI på om du planlegger å delta. Vennlig hilsen Nav"
 
     override fun epostTittel() =
         "Invitasjon til å treffe arbeidsgivere"
