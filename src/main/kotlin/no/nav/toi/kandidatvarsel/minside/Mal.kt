@@ -56,7 +56,7 @@ object Maler {
     fun valueOf(name: String): Mal {
         // Håndterer gammelt kolonseparert format fra dev-miljø (f.eks. "KANDIDAT_INVITERT_TREFF_ENDRET:SVARFRIST,STED")
         val malNavn = name.substringBefore(":")
-        
+
         return when (malNavn) {
             VurdertSomAktuell.name -> VurdertSomAktuell
             PassendeStilling.name -> PassendeStilling
@@ -154,20 +154,20 @@ data object KandidatInvitertTreff : RekrutteringstreffMal {
         "Du er invitert til et treff der du kan møte arbeidsgivere."
 
     override fun smsTekst() =
-        "Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på. Vennlig hilsen Nav"
+        "Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å svare JA eller NEI på om du planlegger å delta. Vennlig hilsen Nav"
 
     override fun epostTittel() =
         "Invitasjon til å treffe arbeidsgivere"
 
     override fun epostHtmlBody() =
         """
-        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å melde deg på.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Du er invitert til et treff der du kan møte arbeidsgivere. Logg inn på Nav for å svare JA eller NEI på om du planlegger å delta. Åpne kortet for å lese om rekrutteringstreffet og svarfristen.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
 }
 
 data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
     override val name = "KANDIDAT_INVITERT_TREFF_ENDRET"
-    
+
     const val PLACEHOLDER = "{{ENDRINGER}}"
 
     override fun minsideTekst() =
@@ -186,15 +186,15 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
 
     fun minsideTekst(endringsTekster: List<String>) =
         minsideTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
-    
+
     fun smsTekst(endringsTekster: List<String>) =
         smsTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
-    
+
     fun epostHtmlBody(endringsTekster: List<String>) =
         epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
-    
+
     /** Formaterer liste med endringsTekster til lesbar norsk tekst.
-     *  F.eks. ["tidspunkt", "sted"] -> "tidspunkt og sted" 
+     *  F.eks. ["tidspunkt", "sted"] -> "tidspunkt og sted"
      *  F.eks. ["navn", "tidspunkt", "sted"] -> "navn, tidspunkt og sted" */
     private fun formaterEndringer(endringsTekster: List<String>): String {
         if (endringsTekster.isEmpty()) {
