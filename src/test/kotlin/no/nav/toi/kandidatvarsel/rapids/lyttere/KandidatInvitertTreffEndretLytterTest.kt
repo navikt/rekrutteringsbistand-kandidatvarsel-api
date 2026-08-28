@@ -30,7 +30,8 @@ class KandidatInvitertTreffEndretLytterTest {
             .load()
             .migrate()
             
-        KandidatInvitertTreffEndretLytter(testRapid, dataSource)
+        KandidatInvitertTreffEndretLytter(testRapid, dataSource, "rekrutteringstreffoppdatering", KandidatInvitertTreffEndret)
+        KandidatInvitertTreffEndretLytter(testRapid, dataSource, "workopoppdatering", KandidatInvitertWorkOpEndret)
     }
 
     @BeforeEach
@@ -78,20 +79,19 @@ class KandidatInvitertTreffEndretLytterTest {
     }
 
     @Test
-    fun `skal opprette WorkOp-varsel når endringsmelding har kategori WORKOP`() {
+    fun `skal opprette workop-varsel når kandidat invitert workop endret melding mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "rekrutteringstreffoppdatering",
+                "@event_name": "workopoppdatering",
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
                 "endretAv": "Z123456",
                 "hendelseId": "$hendelseId",
-                "endredeFelter": ["STED"],
-                "kategori": "WORKOP"
+                "endredeFelter": ["NAVN", "TIDSPUNKT"]
             }
         """.trimIndent())
 
@@ -105,7 +105,7 @@ class KandidatInvitertTreffEndretLytterTest {
         assertEquals("Z123456", varsler[0].avsenderNavIdent)
         assertEquals(fnr, varsler[0].mottakerFnr)
         assertEquals(hendelseId, varsler[0].varselId)
-        assertEquals(listOf("sted"), varsler[0].flettedata)
+        assertEquals(listOf("navn", "tidspunkt"), varsler[0].flettedata)
     }
 
     @Test

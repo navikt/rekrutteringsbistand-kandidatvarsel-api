@@ -30,7 +30,8 @@ class KandidatTreffAvlystLytterTest {
             .load()
             .migrate()
             
-        KandidatTreffAvlystLytter(testRapid, dataSource)
+        KandidatTreffAvlystLytter(testRapid, dataSource, "rekrutteringstreffSvarOgStatus", KandidatInvitertTreffAvlyst)
+        KandidatTreffAvlystLytter(testRapid, dataSource, "workopSvarOgStatus", KandidatInvitertWorkOpAvlyst)
     }
 
     @BeforeEach
@@ -79,22 +80,21 @@ class KandidatTreffAvlystLytterTest {
     }
 
     @Test
-    fun `skal opprette WorkOp-varsel når avlyst melding har kategori WORKOP`() {
+    fun `skal opprette workop-varsel når workopSvarOgStatus med svar=true og treffstatus=avlyst mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "rekrutteringstreffSvarOgStatus",
+                "@event_name": "workopSvarOgStatus",
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
                 "hendelseId": "$hendelseId",
                 "svar": true,
                 "treffstatus": "avlyst",
                 "endretAv": "12345678901",
-                "endretAvPersonbruker": false,
-                "kategori": "WORKOP"
+                "endretAvPersonbruker": false
             }
         """.trimIndent())
 

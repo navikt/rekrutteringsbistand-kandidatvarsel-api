@@ -30,7 +30,8 @@ class KandidatInvitertLytterTest {
             .load()
             .migrate()
             
-        KandidatInvitertLytter(testRapid, dataSource)
+        KandidatInvitertLytter(testRapid, dataSource, "rekrutteringstreffinvitasjon", KandidatInvitertTreff)
+        KandidatInvitertLytter(testRapid, dataSource, "workopinvitasjon", KandidatInvitertWorkOp)
     }
 
     @BeforeEach
@@ -76,19 +77,18 @@ class KandidatInvitertLytterTest {
     }
 
     @Test
-    fun `skal opprette WorkOp-varsel når kandidat invitert melding har kategori WORKOP`() {
+    fun `skal opprette workop-varsel når workopinvitasjon melding mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
             {
-                "@event_name": "rekrutteringstreffinvitasjon",
+                "@event_name": "workopinvitasjon",
                 "rekrutteringstreffId": "$rekrutteringstreffId",
                 "fnr": "$fnr",
                 "opprettetAv": "Z123456",
-                "hendelseId": "$hendelseId",
-                "kategori": "WORKOP"
+                "hendelseId": "$hendelseId"
             }
         """.trimIndent())
 

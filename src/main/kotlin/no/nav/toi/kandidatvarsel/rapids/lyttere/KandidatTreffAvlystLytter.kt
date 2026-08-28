@@ -15,20 +15,21 @@ import javax.sql.DataSource
 
 class KandidatTreffAvlystLytter(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val eventName: String = "rekrutteringstreffSvarOgStatus",
+    private val mal: Mal = KandidatInvitertTreffAvlyst
 ) : River.PacketListener {
     private val secureLog = SecureLog(log)
 
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "rekrutteringstreffSvarOgStatus")
+                it.requireValue("@event_name", eventName)
                 it.requireValue("svar", true)
                 it.requireValue("treffstatus", "avlyst")
             }
             validate {
                 it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
-                it.interestedIn("kategori")
             }
         }.register(this)
     }
@@ -42,11 +43,9 @@ class KandidatTreffAvlystLytter(
         val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
         val fnr = packet["fnr"].asText()
         val hendelseId = packet["hendelseId"].asText()
-        val kategori = RekrutteringstreffKategori.fraTekst(packet["kategori"].takeIf { !it.isMissingNode && !it.isNull }?.asText())
-        val mal = kategori.avlystmal()
 
-        log.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId, mal=${mal.name}")
-        secureLog.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId, mal=${mal.name}")
+        log.info("Mottok $eventName med avlysning for rekrutteringstreffId=$rekrutteringstreffId, mal=${mal.name}")
+        secureLog.info("Mottok $eventName med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId, mal=${mal.name}")
 
         try {
             VarselService.opprettVarsler(
@@ -66,7 +65,7 @@ class KandidatTreffAvlystLytter(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av rekrutteringstreffSvarOgStatus-melding for avlysning: <se secure log>")
-        secureLog.error("Feil ved parsing av rekrutteringstreffSvarOgStatus-melding for avlysning: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av $eventName-melding for avlysning: <se secure log>")
+        secureLog.error("Feil ved parsing av $eventName-melding for avlysning: ${problems.toExtendedReport()}")
     }
 }

@@ -8,8 +8,7 @@ import com.github.navikt.tbd_libs.kafka.AivenConfig
 import com.github.navikt.tbd_libs.kafka.ConsumerProducerFactory
 import com.zaxxer.hikari.HikariDataSource
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import no.nav.toi.kandidatvarsel.minside.bestillVarsel
-import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
+import no.nav.toi.kandidatvarsel.minside.*
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertTreffEndretLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatTreffAvlystLytter
@@ -136,9 +135,12 @@ private fun opprettOnBehalfOfTokenClient() = OnBehalfOfTokenClient(
 
 private fun registrerRapidsLyttere(rapidsConnection: RapidsConnection, dataSource: HikariDataSource) {
     try {
-        KandidatInvitertLytter(rapidsConnection, dataSource)
-        KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource)
-        KandidatTreffAvlystLytter(rapidsConnection, dataSource)
+        KandidatInvitertLytter(rapidsConnection, dataSource, "rekrutteringstreffinvitasjon", KandidatInvitertTreff)
+        KandidatInvitertLytter(rapidsConnection, dataSource, "workopinvitasjon", KandidatInvitertWorkOp)
+        KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource, "rekrutteringstreffoppdatering", KandidatInvitertTreffEndret)
+        KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource, "workopoppdatering", KandidatInvitertWorkOpEndret)
+        KandidatTreffAvlystLytter(rapidsConnection, dataSource, "rekrutteringstreffSvarOgStatus", KandidatInvitertTreffAvlyst)
+        KandidatTreffAvlystLytter(rapidsConnection, dataSource, "workopSvarOgStatus", KandidatInvitertWorkOpAvlyst)
     } catch (e: Exception) {
         log.error("Feil ved oppstart av RapidApplication (se securelog)")
         secureLog.error("Feil ved oppstart av RapidApplication", e)

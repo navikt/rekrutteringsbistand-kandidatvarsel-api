@@ -15,19 +15,20 @@ import javax.sql.DataSource
 
 class KandidatInvitertTreffEndretLytter(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val eventName: String = "rekrutteringstreffoppdatering",
+    private val mal: Mal = KandidatInvitertTreffEndret
 ) : River.PacketListener {
     private val secureLog = SecureLog(log)
 
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "rekrutteringstreffoppdatering")
+                it.requireValue("@event_name", eventName)
             }
             validate {
                 it.requireKey("rekrutteringstreffId", "fnr", "hendelseId", "endredeFelter")
                 it.interestedIn("endretAv")
-                it.interestedIn("kategori")
             }
         }.register(this)
     }
@@ -42,8 +43,6 @@ class KandidatInvitertTreffEndretLytter(
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["endretAv"].asText("SYSTEM")
         val hendelseId = packet["hendelseId"].asText()
-        val kategori = RekrutteringstreffKategori.fraTekst(packet["kategori"].takeIf { !it.isMissingNode && !it.isNull }?.asText())
-        val mal = kategori.endretmal()
         
         // Leser endredeFelter fra rapid-meldingen og konverterer til flettedata for varsling
         val endredeFelterNode = packet["endredeFelter"]
@@ -66,8 +65,8 @@ class KandidatInvitertTreffEndretLytter(
             return
         }
 
-        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId med endredeFelter, konvertert til flettedata=$flettedata, mal=${mal.name}")
-        secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, flettedata=$flettedata, mal=${mal.name}")
+        log.info("Mottok $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId med endredeFelter, konvertert til flettedata=$flettedata, mal=${mal.name}")
+        secureLog.info("Mottok $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, flettedata=$flettedata, mal=${mal.name}")
 
         try {
             VarselService.opprettVarsler(
@@ -79,16 +78,16 @@ class KandidatInvitertTreffEndretLytter(
                 varselId = hendelseId,
                 flettedata = flettedata
             )
-            log.info("Behandlet rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
+            log.info("Behandlet $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
-            secureLog.error("Feil ved behandling av rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
+            log.error("Feil ved behandling av $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
+            secureLog.error("Feil ved behandling av $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av rekrutteringstreffoppdatering-melding: <se secure log>")
-        secureLog.error("Feil ved parsing av rekrutteringstreffoppdatering-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av $eventName-melding: <se secure log>")
+        secureLog.error("Feil ved parsing av $eventName-melding: ${problems.toExtendedReport()}")
     }
 }
