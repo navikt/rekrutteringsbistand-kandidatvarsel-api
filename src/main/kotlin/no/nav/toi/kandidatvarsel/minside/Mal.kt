@@ -7,35 +7,6 @@ enum class VarselType {
     REKRUTTERINGSTREFF
 }
 
-enum class RekrutteringstreffKategori {
-    REKRUTTERINGSTREFF,
-    WORKOP;
-
-    val erWorkOp: Boolean get() = this == WORKOP
-
-    fun invitasjonsmal(): RekrutteringstreffMal = when (this) {
-        WORKOP -> KandidatInvitertWorkOp
-        REKRUTTERINGSTREFF -> KandidatInvitertTreff
-    }
-
-    fun endretmal(): ParametrisertRekrutteringstreffMal = when (this) {
-        WORKOP -> KandidatInvitertWorkOpEndret
-        REKRUTTERINGSTREFF -> KandidatInvitertTreffEndret
-    }
-
-    fun avlystmal(): RekrutteringstreffMal = when (this) {
-        WORKOP -> KandidatInvitertWorkOpAvlyst
-        REKRUTTERINGSTREFF -> KandidatInvitertTreffAvlyst
-    }
-
-    companion object {
-        fun fraTekst(tekst: String?): RekrutteringstreffKategori = when {
-            tekst.equals("WORKOP", ignoreCase = true) -> WORKOP
-            else -> REKRUTTERINGSTREFF
-        }
-    }
-}
-
 enum class EndringFlettedata(val displayTekst: String) {
     NAVN("navn"),
     TIDSPUNKT("tidspunkt"),
