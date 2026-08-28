@@ -28,6 +28,7 @@ class KandidatTreffAvlystLytter(
             }
             validate {
                 it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
+                it.interestedIn("kategori")
             }
         }.register(this)
     }
@@ -41,16 +42,22 @@ class KandidatTreffAvlystLytter(
         val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
         val fnr = packet["fnr"].asText()
         val hendelseId = packet["hendelseId"].asText()
+        val kategori = packet["kategori"].takeIf { !it.isMissingNode && !it.isNull }?.asText()
+        val mal = if (kategori?.equals("WORKOP", ignoreCase = true) == true) {
+            KandidatInvitertWorkOpAvlyst
+        } else {
+            KandidatInvitertTreffAvlyst
+        }
 
-        log.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId")
-        secureLog.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
+        log.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId, mal=${mal.name}")
+        secureLog.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId, mal=${mal.name}")
 
         try {
             VarselService.opprettVarsler(
                 dataSource = dataSource,
                 rekrutteringstreffId = rekrutteringstreffId,
                 fnrList = listOf(fnr),
-                mal = KandidatInvitertTreffAvlyst,
+                mal = mal,
                 avsenderNavident = "SYSTEM",
                 varselId = hendelseId
             )

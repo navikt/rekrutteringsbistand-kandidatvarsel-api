@@ -89,6 +89,23 @@ private fun genererTekster(minsideVarsel: MinsideVarsel, mal: Rekrutteringstreff
                 epostHtmlBody = epostHtmlBody
             )
         }
+        is KandidatInvitertWorkOpEndret -> {
+            val endringsTekster = minsideVarsel.hentEndringsTekster()
+            if (endringsTekster.isEmpty()) {
+                log.error("KandidatInvitertWorkOpEndret varsel mangler data (endringsTekster), varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}")
+                secureLog.error("KandidatInvitertWorkOpEndret varsel mangler data (endringsTekster), varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}, fnr=${minsideVarsel.mottakerFnr}")
+                throw IllegalStateException("KandidatInvitertWorkOpEndret krever at data er satt med displayTekster for endringene")
+            }
+            val minsideTekst = mal.minsideTekst(endringsTekster)
+            val smsTekst = mal.smsTekst(endringsTekster)
+            val epostHtmlBody = mal.epostHtmlBody(endringsTekster)
+            log.info("Genererte tekster for parametrisert varsel varselId=${minsideVarsel.varselId}")
+            VarselTekster(
+                minsideTekst = minsideTekst,
+                smsTekst = smsTekst,
+                epostHtmlBody = epostHtmlBody
+            )
+        }
         else -> {
             VarselTekster(
                 minsideTekst = mal.minsideTekst(),

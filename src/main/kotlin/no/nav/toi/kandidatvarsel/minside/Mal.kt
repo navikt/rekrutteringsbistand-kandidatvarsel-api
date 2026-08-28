@@ -48,8 +48,18 @@ sealed interface StillingMal : Mal {
 
 sealed interface RekrutteringstreffMal : Mal {
     override val varselType: VarselType get() = VarselType.REKRUTTERINGSTREFF
-    fun minsideTekst(): String
     override fun brukerRapid() = true
+    fun minsideTekst(): String
+}
+
+internal fun formaterEndringer(endringsTekster: List<String>): String {
+    if (endringsTekster.isEmpty()) {
+        return ""
+    }
+    return when (endringsTekster.size) {
+        1 -> endringsTekster.first()
+        else -> endringsTekster.dropLast(1).joinToString(", ") + " og " + endringsTekster.last()
+    }
 }
 
 object Maler {
@@ -62,8 +72,11 @@ object Maler {
             PassendeStilling.name -> PassendeStilling
             PassendeJobbarrangement.name -> PassendeJobbarrangement
             KandidatInvitertTreff.name -> KandidatInvitertTreff
+            KandidatInvitertWorkOp.name -> KandidatInvitertWorkOp
             KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
+            KandidatInvitertWorkOpEndret.name -> KandidatInvitertWorkOpEndret
             KandidatInvitertTreffAvlyst.name -> KandidatInvitertTreffAvlyst
+            KandidatInvitertWorkOpAvlyst.name -> KandidatInvitertWorkOpAvlyst
             else -> throw IllegalArgumentException("Ukjent Mal: $name")
         }
     }
@@ -77,8 +90,11 @@ object Maler {
 
         VarselType.REKRUTTERINGSTREFF -> listOf(
             KandidatInvitertTreff.name,
+            KandidatInvitertWorkOp.name,
             KandidatInvitertTreffEndret.name,
-            KandidatInvitertTreffAvlyst.name
+            KandidatInvitertWorkOpEndret.name,
+            KandidatInvitertTreffAvlyst.name,
+            KandidatInvitertWorkOpAvlyst.name
         )
     }
 
@@ -165,6 +181,24 @@ data object KandidatInvitertTreff : RekrutteringstreffMal {
         """.trimIndent()
 }
 
+data object KandidatInvitertWorkOp : RekrutteringstreffMal {
+    override val name = "KANDIDAT_INVITERT_WORKOP"
+
+    override fun minsideTekst() =
+        "Du er invitert til en WorkOp der du kan møte arbeidsgivere."
+
+    override fun smsTekst() =
+        "Hei! Du er invitert til en WorkOp der du kan møte arbeidsgivere. Logg inn på Nav for å svare JA eller NEI på om du planlegger å delta. Vennlig hilsen Nav"
+
+    override fun epostTittel() =
+        "Invitasjon til å treffe arbeidsgivere"
+
+    override fun epostHtmlBody() =
+        """
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Du er invitert til en WorkOp der du kan møte arbeidsgivere. Logg inn på Nav for å svare JA eller NEI på om du planlegger å delta. Åpne kortet for å lese om WorkOp-en og svarfristen.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        """.trimIndent()
+}
+
 data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
     override val name = "KANDIDAT_INVITERT_TREFF_ENDRET"
 
@@ -192,19 +226,35 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
 
     fun epostHtmlBody(endringsTekster: List<String>) =
         epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
+}
 
-    /** Formaterer liste med endringsTekster til lesbar norsk tekst.
-     *  F.eks. ["tidspunkt", "sted"] -> "tidspunkt og sted"
-     *  F.eks. ["navn", "tidspunkt", "sted"] -> "navn, tidspunkt og sted" */
-    private fun formaterEndringer(endringsTekster: List<String>): String {
-        if (endringsTekster.isEmpty()) {
-            return ""
-        }
-        return when (endringsTekster.size) {
-            1 -> endringsTekster.first()
-            else -> endringsTekster.dropLast(1).joinToString(", ") + " og " + endringsTekster.last()
-        }
-    }
+data object KandidatInvitertWorkOpEndret : RekrutteringstreffMal {
+    override val name = "KANDIDAT_INVITERT_WORKOP_ENDRET"
+
+    const val PLACEHOLDER = "{{ENDRINGER}}"
+
+    override fun minsideTekst() =
+        "Det har skjedd endringer i $PLACEHOLDER knyttet til en WorkOp med arbeidsgivere som du er invitert til."
+
+    override fun smsTekst() =
+        "Det er endringer i en WorkOp du er invitert til: $PLACEHOLDER. Logg inn på Nav for å se detaljer."
+
+    override fun epostTittel() =
+        "Endringer på WorkOp du er invitert til"
+
+    override fun epostHtmlBody() =
+        """
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på en WorkOp med arbeidsgivere som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        """.trimIndent()
+
+    fun minsideTekst(endringsTekster: List<String>) =
+        minsideTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
+
+    fun smsTekst(endringsTekster: List<String>) =
+        smsTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
+
+    fun epostHtmlBody(endringsTekster: List<String>) =
+        epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
 }
 
 data object KandidatInvitertTreffAvlyst : RekrutteringstreffMal {
@@ -222,5 +272,23 @@ data object KandidatInvitertTreffAvlyst : RekrutteringstreffMal {
     override fun epostHtmlBody() =
         """
         <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! Treffet du er invitert til er dessverre avlyst. Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
+        """.trimIndent()
+}
+
+data object KandidatInvitertWorkOpAvlyst : RekrutteringstreffMal {
+    override val name = "KANDIDAT_INVITERT_WORKOP_AVLYST"
+
+    override fun minsideTekst() =
+        "WorkOp-en du er invitert til er dessverre avlyst."
+
+    override fun smsTekst() =
+        "Hei! WorkOp-en du er invitert til er dessverre avlyst. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav"
+
+    override fun epostTittel() =
+        "WorkOp-en er avlyst"
+
+    override fun epostHtmlBody() =
+        """
+        <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Hei! WorkOp-en du er invitert til er dessverre avlyst. Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
 }

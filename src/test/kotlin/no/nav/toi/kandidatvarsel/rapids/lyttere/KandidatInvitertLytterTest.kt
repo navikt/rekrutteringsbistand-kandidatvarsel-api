@@ -74,6 +74,35 @@ class KandidatInvitertLytterTest {
         assertEquals(fnr, varsler[0].mottakerFnr)
         assertEquals(hendelseId, varsler[0].varselId)
     }
+
+    @Test
+    fun `skal opprette WorkOp-varsel når kandidat invitert melding har kategori WORKOP`() {
+        val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
+        val fnr = "12345678901"
+        val hendelseId = "87654321-4321-4321-4321-210987654321"
+
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "rekrutteringstreffinvitasjon",
+                "rekrutteringstreffId": "$rekrutteringstreffId",
+                "fnr": "$fnr",
+                "opprettetAv": "Z123456",
+                "hendelseId": "$hendelseId",
+                "kategori": "WORKOP"
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId)
+        }
+
+        assertEquals(1, varsler.size)
+        assertEquals(KandidatInvitertWorkOp.name, varsler[0].mal.name)
+        assertEquals(rekrutteringstreffId, varsler[0].avsenderReferanseId)
+        assertEquals("Z123456", varsler[0].avsenderNavIdent)
+        assertEquals(fnr, varsler[0].mottakerFnr)
+        assertEquals(hendelseId, varsler[0].varselId)
+    }
     
     @Test
     fun `skal ikke opprette varsel når rekrutteringstreffId mangler`() {

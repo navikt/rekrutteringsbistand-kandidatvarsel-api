@@ -27,6 +27,7 @@ class KandidatInvitertTreffEndretLytter(
             validate {
                 it.requireKey("rekrutteringstreffId", "fnr", "hendelseId", "endredeFelter")
                 it.interestedIn("endretAv")
+                it.interestedIn("kategori")
             }
         }.register(this)
     }
@@ -41,6 +42,12 @@ class KandidatInvitertTreffEndretLytter(
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["endretAv"].asText("SYSTEM")
         val hendelseId = packet["hendelseId"].asText()
+        val kategori = packet["kategori"].takeIf { !it.isMissingNode && !it.isNull }?.asText()
+        val mal = if (kategori?.equals("WORKOP", ignoreCase = true) == true) {
+            KandidatInvitertWorkOpEndret
+        } else {
+            KandidatInvitertTreffEndret
+        }
         
         // Leser endredeFelter fra rapid-meldingen og konverterer til flettedata for varsling
         val endredeFelterNode = packet["endredeFelter"]
@@ -63,15 +70,15 @@ class KandidatInvitertTreffEndretLytter(
             return
         }
 
-        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId med endredeFelter, konvertert til flettedata=$flettedata")
-        secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, flettedata=$flettedata")
+        log.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId med endredeFelter, konvertert til flettedata=$flettedata, mal=${mal.name}")
+        secureLog.info("Mottok rekrutteringstreffoppdatering-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, flettedata=$flettedata, mal=${mal.name}")
 
         try {
             VarselService.opprettVarsler(
                 dataSource = dataSource,
                 rekrutteringstreffId = rekrutteringstreffId,
                 fnrList = listOf(fnr),
-                mal = KandidatInvitertTreffEndret,
+                mal = mal,
                 avsenderNavident = avsenderNavident,
                 varselId = hendelseId,
                 flettedata = flettedata
