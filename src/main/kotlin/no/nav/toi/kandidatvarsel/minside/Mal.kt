@@ -7,6 +7,35 @@ enum class VarselType {
     REKRUTTERINGSTREFF
 }
 
+enum class RekrutteringstreffKategori {
+    REKRUTTERINGSTREFF,
+    WORKOP;
+
+    val erWorkOp: Boolean get() = this == WORKOP
+
+    fun invitasjonsmal(): RekrutteringstreffMal = when (this) {
+        WORKOP -> KandidatInvitertWorkOp
+        REKRUTTERINGSTREFF -> KandidatInvitertTreff
+    }
+
+    fun endretmal(): ParametrisertRekrutteringstreffMal = when (this) {
+        WORKOP -> KandidatInvitertWorkOpEndret
+        REKRUTTERINGSTREFF -> KandidatInvitertTreffEndret
+    }
+
+    fun avlystmal(): RekrutteringstreffMal = when (this) {
+        WORKOP -> KandidatInvitertWorkOpAvlyst
+        REKRUTTERINGSTREFF -> KandidatInvitertTreffAvlyst
+    }
+
+    companion object {
+        fun fraTekst(tekst: String?): RekrutteringstreffKategori = when {
+            tekst.equals("WORKOP", ignoreCase = true) -> WORKOP
+            else -> REKRUTTERINGSTREFF
+        }
+    }
+}
+
 enum class EndringFlettedata(val displayTekst: String) {
     NAVN("navn"),
     TIDSPUNKT("tidspunkt"),
@@ -50,6 +79,27 @@ sealed interface RekrutteringstreffMal : Mal {
     override val varselType: VarselType get() = VarselType.REKRUTTERINGSTREFF
     override fun brukerRapid() = true
     fun minsideTekst(): String
+}
+
+sealed interface ParametrisertRekrutteringstreffMal : RekrutteringstreffMal {
+    fun minsideTekst(endringsTekster: List<String>): String
+    fun smsTekst(endringsTekster: List<String>): String
+    fun epostHtmlBody(endringsTekster: List<String>): String
+}
+
+abstract class EndretRekrutteringstreffMal : ParametrisertRekrutteringstreffMal {
+    companion object {
+        const val PLACEHOLDER = "{{ENDRINGER}}"
+    }
+
+    override fun minsideTekst(endringsTekster: List<String>): String =
+        minsideTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
+
+    override fun smsTekst(endringsTekster: List<String>): String =
+        smsTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
+
+    override fun epostHtmlBody(endringsTekster: List<String>): String =
+        epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
 }
 
 internal fun formaterEndringer(endringsTekster: List<String>): String {
@@ -199,10 +249,8 @@ data object KandidatInvitertWorkOp : RekrutteringstreffMal {
         """.trimIndent()
 }
 
-data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
+data object KandidatInvitertTreffEndret : EndretRekrutteringstreffMal() {
     override val name = "KANDIDAT_INVITERT_TREFF_ENDRET"
-
-    const val PLACEHOLDER = "{{ENDRINGER}}"
 
     override fun minsideTekst() =
         "Det har skjedd endringer i $PLACEHOLDER knyttet til et treff med arbeidsgivere som du er invitert til."
@@ -217,21 +265,10 @@ data object KandidatInvitertTreffEndret : RekrutteringstreffMal {
         """
         <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på et treff med arbeidsgivere som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
-
-    fun minsideTekst(endringsTekster: List<String>) =
-        minsideTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
-
-    fun smsTekst(endringsTekster: List<String>) =
-        smsTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
-
-    fun epostHtmlBody(endringsTekster: List<String>) =
-        epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
 }
 
-data object KandidatInvitertWorkOpEndret : RekrutteringstreffMal {
+data object KandidatInvitertWorkOpEndret : EndretRekrutteringstreffMal() {
     override val name = "KANDIDAT_INVITERT_WORKOP_ENDRET"
-
-    const val PLACEHOLDER = "{{ENDRINGER}}"
 
     override fun minsideTekst() =
         "Det har skjedd endringer i $PLACEHOLDER knyttet til en WorkOp med arbeidsgivere som du er invitert til."
@@ -246,15 +283,6 @@ data object KandidatInvitertWorkOpEndret : RekrutteringstreffMal {
         """
         <!DOCTYPE html><html><head><title>Melding</title></head><body><p>Det har skjedd endringer på en WorkOp med arbeidsgivere som du er invitert til:</p><p>$PLACEHOLDER</p><p>Logg inn på Nav for mer informasjon.</p><p>Vennlig hilsen</p><p>Nav</p></body></html>
         """.trimIndent()
-
-    fun minsideTekst(endringsTekster: List<String>) =
-        minsideTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
-
-    fun smsTekst(endringsTekster: List<String>) =
-        smsTekst().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
-
-    fun epostHtmlBody(endringsTekster: List<String>) =
-        epostHtmlBody().replace(PLACEHOLDER, formaterEndringer(endringsTekster))
 }
 
 data object KandidatInvitertTreffAvlyst : RekrutteringstreffMal {

@@ -41,12 +41,8 @@ class KandidatInvitertLytter(
         val fnr = packet["fnr"].asText()
         val avsenderNavident = packet["opprettetAv"].asText()
         val hendelseId = packet["hendelseId"].asText()
-        val kategori = packet["kategori"].takeIf { !it.isMissingNode && !it.isNull }?.asText()
-        val mal = if (kategori?.equals("WORKOP", ignoreCase = true) == true) {
-            KandidatInvitertWorkOp
-        } else {
-            KandidatInvitertTreff
-        }
+        val kategori = RekrutteringstreffKategori.fraTekst(packet["kategori"].takeIf { !it.isMissingNode && !it.isNull }?.asText())
+        val mal = kategori.invitasjonsmal()
 
         log.info("Mottok rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId, mal=${mal.name}")
         secureLog.info("Mottok rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, mal=${mal.name}")
