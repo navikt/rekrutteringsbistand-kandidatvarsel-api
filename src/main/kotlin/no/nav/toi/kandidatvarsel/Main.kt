@@ -45,7 +45,8 @@ fun main() {
         
         startOppApplikasjon(
             kafkaRapid = kafkaRapid,
-            dataSource = dataSource
+            dataSource = dataSource,
+            workOpLyttereAktivert = skalRegistrereWorkOpLyttere(getenv("NAIS_CLUSTER_NAME")),
         )
     } catch (e: Exception) {
         secureLog.error("Uhåndtert exception, stanser applikasjonen", e)
@@ -56,7 +57,8 @@ fun main() {
 
 fun startOppApplikasjon(
     kafkaRapid: KafkaRapid,
-    dataSource: HikariDataSource
+    dataSource: HikariDataSource,
+    workOpLyttereAktivert: Boolean,
 ) {
     val migreringsResultat = AtomicReference<MigrateResult>()
     val avsluttSignal = AtomicBoolean(false)
@@ -91,7 +93,7 @@ fun startOppApplikasjon(
         isRapidRunning = kafkaRapid::isRunning
     )
 
-    registrerRapidsLyttere(kafkaRapid, dataSource)
+    registrerRapidsLyttere(kafkaRapid, dataSource, workOpLyttereAktivert)
     
     val kafkaRapidThread = backgroundThread(navn = "kafka-rapid", timeoutvarighet = 30.seconds, avsluttSignal = avsluttSignal) {
         kafkaRapid.start()
@@ -133,20 +135,32 @@ private fun opprettOnBehalfOfTokenClient() = OnBehalfOfTokenClient(
     issuernavn = getenvOrThrow("AZURE_OPENID_CONFIG_ISSUER")
 )
 
-private fun registrerRapidsLyttere(rapidsConnection: RapidsConnection, dataSource: HikariDataSource) {
+private fun registrerRapidsLyttere(
+    rapidsConnection: RapidsConnection,
+    dataSource: HikariDataSource,
+    workOpLyttereAktivert: Boolean,
+) {
     try {
         KandidatInvitertLytter(rapidsConnection, dataSource, "rekrutteringstreffinvitasjon", KandidatInvitertTreff)
-        KandidatInvitertLytter(rapidsConnection, dataSource, "workopinvitasjon", KandidatInvitertWorkOp)
         KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource, "rekrutteringstreffoppdatering", KandidatInvitertTreffEndret)
-        KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource, "workopoppdatering", KandidatInvitertWorkOpEndret)
         KandidatTreffAvlystLytter(rapidsConnection, dataSource, "rekrutteringstreffSvarOgStatus", KandidatInvitertTreffAvlyst)
-        KandidatTreffAvlystLytter(rapidsConnection, dataSource, "workopSvarOgStatus", KandidatInvitertWorkOpAvlyst)
+
+        if (workOpLyttereAktivert) {
+            KandidatInvitertLytter(rapidsConnection, dataSource, "workopinvitasjon", KandidatInvitertWorkOp)
+            KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource, "workopoppdatering", KandidatInvitertWorkOpEndret)
+            KandidatTreffAvlystLytter(rapidsConnection, dataSource, "workopSvarOgStatus", KandidatInvitertWorkOpAvlyst)
+        } else {
+            log.info("WorkOp-lyttere er deaktivert i dette miljøet")
+        }
     } catch (e: Exception) {
         log.error("Feil ved oppstart av RapidApplication (se securelog)")
         secureLog.error("Feil ved oppstart av RapidApplication", e)
         throw e
     }
 }
+
+internal fun skalRegistrereWorkOpLyttere(clusterNavn: String?): Boolean =
+    clusterNavn.isNullOrBlank() || clusterNavn == "local" || clusterNavn == "lokalt" || clusterNavn == "dev-gcp"
 
 private fun registrerShutdownHook(
     avsluttSignal: AtomicBoolean,
