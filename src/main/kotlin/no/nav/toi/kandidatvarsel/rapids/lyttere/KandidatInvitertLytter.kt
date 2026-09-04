@@ -15,14 +15,16 @@ import javax.sql.DataSource
 
 class KandidatInvitertLytter(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val eventName: String = "rekrutteringstreffinvitasjon",
+    private val mal: Mal = KandidatInvitertTreff
 ) : River.PacketListener {
     private val secureLog = SecureLog(log)
 
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "rekrutteringstreffinvitasjon")
+                it.requireValue("@event_name", eventName)
             }
             validate {
                 it.requireKey("rekrutteringstreffId", "fnr", "opprettetAv", "hendelseId")
@@ -41,28 +43,28 @@ class KandidatInvitertLytter(
         val avsenderNavident = packet["opprettetAv"].asText()
         val hendelseId = packet["hendelseId"].asText()
 
-        log.info("Mottok rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
-        secureLog.info("Mottok rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId")
+        log.info("Mottok $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId, mal=${mal.name}")
+        secureLog.info("Mottok $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, mal=${mal.name}")
 
         try {
             VarselService.opprettVarsler(
                 dataSource = dataSource,
                 rekrutteringstreffId = rekrutteringstreffId,
                 fnrList = listOf(fnr),
-                mal = KandidatInvitertTreff,
+                mal = mal,
                 avsenderNavident = avsenderNavident,
                 varselId = hendelseId
             )
-            log.info("Behandlet rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
+            log.info("Behandlet $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
-            secureLog.error("Feil ved behandling av rekrutteringstreffinvitasjon-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
+            log.error("Feil ved behandling av $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId", e)
+            secureLog.error("Feil ved behandling av $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr", e)
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av rekrutteringstreffinvitasjon-melding: <se secure log>")
-        secureLog.error("Feil ved parsing av rekrutteringstreffinvitasjon-melding: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av $eventName-melding: <se secure log>")
+        secureLog.error("Feil ved parsing av $eventName-melding: ${problems.toExtendedReport()}")
     }
 }

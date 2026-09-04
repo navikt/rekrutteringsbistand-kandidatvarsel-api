@@ -72,12 +72,13 @@ private data class VarselTekster(
 /** Genererer tekster for rekrutteringstreff-maler, håndterer parametriserte maler */
 private fun genererTekster(minsideVarsel: MinsideVarsel, mal: RekrutteringstreffMal, log: org.slf4j.Logger): VarselTekster {
     return when (mal) {
-        is KandidatInvitertTreffEndret -> {
+        is ParametrisertRekrutteringstreffMal -> {
             val endringsTekster = minsideVarsel.hentEndringsTekster()
+            val malNavn = mal::class.simpleName ?: mal.name
             if (endringsTekster.isEmpty()) {
-                log.error("KandidatInvitertTreffEndret varsel mangler data (endringsTekster), varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}")
-                secureLog.error("KandidatInvitertTreffEndret varsel mangler data (endringsTekster), varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}, fnr=${minsideVarsel.mottakerFnr}")
-                throw IllegalStateException("KandidatInvitertTreffEndret krever at data er satt med displayTekster for endringene")
+                log.error("$malNavn varsel mangler data (endringsTekster), varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}")
+                secureLog.error("$malNavn varsel mangler data (endringsTekster), varselId=${minsideVarsel.varselId}, avsenderReferanseId=${minsideVarsel.avsenderReferanseId}, fnr=${minsideVarsel.mottakerFnr}")
+                throw IllegalStateException("$malNavn krever at data er satt med displayTekster for endringene")
             }
             val minsideTekst = mal.minsideTekst(endringsTekster)
             val smsTekst = mal.smsTekst(endringsTekster)

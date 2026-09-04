@@ -15,14 +15,16 @@ import javax.sql.DataSource
 
 class KandidatTreffAvlystLytter(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val eventName: String = "rekrutteringstreffSvarOgStatus",
+    private val mal: Mal = KandidatInvitertTreffAvlyst
 ) : River.PacketListener {
     private val secureLog = SecureLog(log)
 
     init {
         River(rapidsConnection).apply {
             precondition {
-                it.requireValue("@event_name", "rekrutteringstreffSvarOgStatus")
+                it.requireValue("@event_name", eventName)
                 it.requireValue("svar", true)
                 it.requireValue("treffstatus", "avlyst")
             }
@@ -42,15 +44,15 @@ class KandidatTreffAvlystLytter(
         val fnr = packet["fnr"].asText()
         val hendelseId = packet["hendelseId"].asText()
 
-        log.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId")
-        secureLog.info("Mottok rekrutteringstreffSvarOgStatus med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId")
+        log.info("Mottok $eventName med avlysning for rekrutteringstreffId=$rekrutteringstreffId, mal=${mal.name}")
+        secureLog.info("Mottok $eventName med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId, mal=${mal.name}")
 
         try {
             VarselService.opprettVarsler(
                 dataSource = dataSource,
                 rekrutteringstreffId = rekrutteringstreffId,
                 fnrList = listOf(fnr),
-                mal = KandidatInvitertTreffAvlyst,
+                mal = mal,
                 avsenderNavident = "SYSTEM",
                 varselId = hendelseId
             )
@@ -63,7 +65,7 @@ class KandidatTreffAvlystLytter(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Feil ved parsing av rekrutteringstreffSvarOgStatus-melding for avlysning: <se secure log>")
-        secureLog.error("Feil ved parsing av rekrutteringstreffSvarOgStatus-melding for avlysning: ${problems.toExtendedReport()}")
+        log.error("Feil ved parsing av $eventName-melding for avlysning: <se secure log>")
+        secureLog.error("Feil ved parsing av $eventName-melding for avlysning: ${problems.toExtendedReport()}")
     }
 }

@@ -96,7 +96,7 @@ fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
             smsTekst = kandidatInvitertTreffEndret.smsTekst(),
             epostTittel = kandidatInvitertTreffEndret.epostTittel(),
             epostHtmlBody = kandidatInvitertTreffEndret.epostHtmlBody(),
-            placeholder = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret.PLACEHOLDER,
+            placeholder = no.nav.toi.kandidatvarsel.minside.EndretRekrutteringstreffMal.PLACEHOLDER,
             endringsFelt = EndringFlettedata.entries.map { EndringsFeltDto(it.name, it.displayTekst) }
         )
     )

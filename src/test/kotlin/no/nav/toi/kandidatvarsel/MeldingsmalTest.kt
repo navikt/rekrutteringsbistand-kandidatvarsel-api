@@ -294,5 +294,42 @@ class MeldingsmalTest {
         assertTrue(exception.message?.contains("KandidatInvitertTreffEndret krever at data er satt") == true)
     }
 
+    @Test
+    fun `WorkOp-malene har korrekte tekster og holder seg innenfor 160 tegn for SMS`() {
+        val workopInvitert = no.nav.toi.kandidatvarsel.minside.KandidatInvitertWorkOp
+        val workopEndret = no.nav.toi.kandidatvarsel.minside.KandidatInvitertWorkOpEndret
+        val workopAvlyst = no.nav.toi.kandidatvarsel.minside.KandidatInvitertWorkOpAvlyst
+
+        assertEquals(
+            "Du er invitert til en WorkOp der du kan møte arbeidsgivere.",
+            workopInvitert.minsideTekst()
+        )
+        assertEquals(
+            "Hei! Du er invitert til en WorkOp der du kan møte arbeidsgivere. Logg inn på Nav for å svare JA eller NEI på om du planlegger å delta. Vennlig hilsen Nav",
+            workopInvitert.smsTekst()
+        )
+        assertTrue(workopInvitert.smsTekst().length <= 160)
+
+        val alleEndringer = listOf("navn", "tidspunkt", "svarfrist", "sted", "introduksjon")
+        assertEquals(
+            "Det er endringer i en WorkOp du er invitert til: navn, tidspunkt, svarfrist, sted og introduksjon. Logg inn på Nav for å se detaljer.",
+            workopEndret.smsTekst(alleEndringer)
+        )
+        assertTrue(workopEndret.smsTekst(alleEndringer).length <= 160)
+        assertEquals(
+            "Det har skjedd endringer i sted knyttet til en WorkOp med arbeidsgivere som du er invitert til.",
+            workopEndret.minsideTekst(listOf("sted"))
+        )
+
+        assertEquals(
+            "WorkOp-en du er invitert til er dessverre avlyst.",
+            workopAvlyst.minsideTekst()
+        )
+        assertEquals(
+            "Hei! WorkOp-en du er invitert til er dessverre avlyst. Logg inn på Nav for mer informasjon. Vennlig hilsen Nav",
+            workopAvlyst.smsTekst()
+        )
+        assertTrue(workopAvlyst.smsTekst().length <= 160)
+    }
 
 }
