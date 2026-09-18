@@ -6,7 +6,7 @@ jobs:
     uses: navikt/toi-github-actions-workflows/.github/workflows/build-and-deploy.yaml@v15
     with:
       java-version: "21"
-      deploy-to-dev-if-branch-name-is: "endre-påmeldingstekst"
+      deploy-to-dev-if-branch-name-is: "endre_til_chainguard"
     permissions:
       contents: read
       id-token: write
