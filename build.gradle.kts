@@ -39,7 +39,7 @@ dependencies {
     implementation("no.nav.tms.varsel:kotlin-builder:1.0.0")
 
     implementation("com.zaxxer:HikariCP:6.3.0")
-    implementation("org.springframework:spring-jdbc:6.1.5")
+    implementation("org.springframework:spring-jdbc:7.0.9")
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.flywaydb:flyway-core:10.10.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.10.0")
