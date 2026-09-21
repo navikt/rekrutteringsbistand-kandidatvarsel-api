@@ -5,8 +5,8 @@ jobs:
   call-build-and-deploy:
     uses: navikt/toi-github-actions-workflows/.github/workflows/build-and-deploy.yaml@v15
     with:
-      java-version: "21"
-      deploy-to-dev-if-branch-name-is: "endre-påmeldingstekst"
+      java-version: "25"
+      deploy-to-dev-if-branch-name-is: "bump-dep"
     permissions:
       contents: read
       id-token: write
