@@ -1,6 +1,6 @@
 plugins {
     application
-    kotlin("jvm") version "2.2.21"
+    kotlin("jvm") version "2.4.20"
 }
 
 group = "no.nav"
@@ -39,14 +39,14 @@ dependencies {
     implementation("no.nav.tms.varsel:kotlin-builder:1.0.0")
 
     implementation("com.zaxxer:HikariCP:6.3.0")
-    implementation("org.springframework:spring-jdbc:6.1.5")
-    implementation("org.postgresql:postgresql:42.7.3")
+    implementation("org.springframework:spring-jdbc:7.0.9")
+    implementation("org.postgresql:postgresql:42.7.13")
     implementation("org.flywaydb:flyway-core:10.10.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.10.0")
     implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0:${opentelemetryLogbackMdcVersion}")
     
     // Rapids and rivers fra tbd-libs (uten Ktor)
-    val tbdLibsVersion = "2024.11.25-10.59-6f263a10"
+    val tbdLibsVersion = "20260917.2152"
     implementation("com.github.navikt.tbd-libs:rapids-and-rivers:$tbdLibsVersion")
     implementation("com.github.navikt.tbd-libs:rapids-and-rivers-api:$tbdLibsVersion")
     implementation("com.github.navikt.tbd-libs:kafka:$tbdLibsVersion")
@@ -69,5 +69,5 @@ tasks.test {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }

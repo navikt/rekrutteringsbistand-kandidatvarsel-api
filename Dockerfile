@@ -1,3 +1,5 @@
-FROM gcr.io/distroless/java21-debian12:nonroot
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
+ENV TZ="Europe/Oslo"
 ADD build/distributions/rekrutteringsbistand-kandidatvarsel-api-1.0-SNAPSHOT.tar /
-ENTRYPOINT ["java", "-cp", "/rekrutteringsbistand-kandidatvarsel-api-1.0-SNAPSHOT/lib/*", "no.nav.toi.kandidatvarsel.MainKt"]
+EXPOSE 8080
+ENTRYPOINT ["java", "-Duser.timezone=Europe/Oslo", "-cp", "/rekrutteringsbistand-kandidatvarsel-api-1.0-SNAPSHOT/lib/*", "no.nav.toi.kandidatvarsel.MainKt"]
