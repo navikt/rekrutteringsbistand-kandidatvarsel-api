@@ -49,6 +49,7 @@ enum class MinsideStatusDto {
 enum class MalDto(val mal: Mal) {
     VURDERT_SOM_AKTUELL(VurdertSomAktuell),
     PASSENDE_STILLING(PassendeStilling),
+    DEL_CV(DelCv),
     PASSENDE_JOBBARRANGEMENT(PassendeJobbarrangement),
     KANDIDAT_INVITERT_TREFF(KandidatInvitertTreff),
     KANDIDAT_INVITERT_TREFF_ENDRET(KandidatInvitertTreffEndret),

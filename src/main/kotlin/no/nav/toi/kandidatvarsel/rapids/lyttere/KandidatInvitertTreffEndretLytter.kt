@@ -71,7 +71,7 @@ class KandidatInvitertTreffEndretLytter(
         try {
             VarselService.opprettVarsler(
                 dataSource = dataSource,
-                rekrutteringstreffId = rekrutteringstreffId,
+                avsenderReferanseId = rekrutteringstreffId,
                 fnrList = listOf(fnr),
                 mal = mal,
                 avsenderNavident = avsenderNavident,
