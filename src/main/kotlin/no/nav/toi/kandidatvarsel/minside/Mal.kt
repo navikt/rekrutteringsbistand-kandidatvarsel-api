@@ -170,18 +170,18 @@ data object DelCv : StillingMal {
     override val name = "DEL_CV"
 
     override fun minsideTekst(tittel: String, arbeidsgiver: String) =
-        "Du har blitt spurt om Nav kan dele CV-en din med en arbeidsgiver for stillingen «$tittel» hos «$arbeidsgiver». Logg inn på Nav for å svare."
+        "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
 
     override fun smsTekst() =
-        "Hei! Du har blitt spurt om Nav kan dele CV-en din med en arbeidsgiver. Logg inn på Nav for å svare. Vennlig hilsen Nav"
+        "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
 
     override fun epostTittel() =
-        "Forespørsel om å dele CV-en din"
+        "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
 
     override fun epostHtmlBody() =
         Maler.epostHtmlBodyTemplate(
             """
-                Du har blitt spurt om Nav kan dele CV-en din med en arbeidsgiver. Logg inn på Nav for å svare.
+                Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?
             """.trimIndent()
         )
 }
