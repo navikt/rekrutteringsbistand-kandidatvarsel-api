@@ -38,12 +38,12 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: S
             spraakkode = "nb",
         )
         link = mal.lenkeurl(minsideVarsel.avsenderReferanseId, isProd)
-        eksternVarsling = EksternVarslingBestilling(
-            prefererteKanaler = listOf(EksternKanal.SMS),
-            epostVarslingstittel = mal.epostTittel(),
-            epostVarslingstekst = mal.epostHtmlBody(),
-            smsVarslingstekst = mal.smsTekst(),
-        )
+        eksternVarsling {
+            preferertKanal = EksternKanal.SMS
+            epostVarslingstittel = mal.epostTittel()
+            epostVarslingstekst = mal.epostHtmlBody()
+            smsVarslingstekst = mal.smsTekst()
+        }
         aktivFremTil = ZonedDateTime.now(ZoneId.of("Z")).plusWeeks(10)
         sensitivitet = Sensitivitet.Substantial
         produsent = Produsent(
@@ -116,12 +116,12 @@ fun Producer<String, String>.sendBestilling(minsideVarsel: MinsideVarsel, mal: R
             spraakkode = "nb",
         )
         link = mal.lenkeurl(minsideVarsel.avsenderReferanseId, isProd)
-        eksternVarsling = EksternVarslingBestilling(
-            prefererteKanaler = listOf(EksternKanal.SMS),
-            epostVarslingstittel = mal.epostTittel(),
-            epostVarslingstekst = genererteTekster.epostHtmlBody,
-            smsVarslingstekst = genererteTekster.smsTekst,
-        )
+        eksternVarsling {
+            preferertKanal = EksternKanal.SMS
+            epostVarslingstittel = mal.epostTittel()
+            epostVarslingstekst = genererteTekster.epostHtmlBody
+            smsVarslingstekst = genererteTekster.smsTekst
+        }
         aktivFremTil = ZonedDateTime.now(ZoneId.of("Z")).plusWeeks(10)
         sensitivitet = Sensitivitet.Substantial
         produsent = Produsent(
