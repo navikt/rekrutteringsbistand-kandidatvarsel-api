@@ -13,7 +13,6 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
-// Samme tidsavbrudd som Fuel brukte som standard. HttpClient har ingen tidsavbrudd med mindre det settes.
 private val tidsavbrudd = Duration.ofSeconds(15)
 
 val standardHttpClient: HttpClient = HttpClient.newBuilder()

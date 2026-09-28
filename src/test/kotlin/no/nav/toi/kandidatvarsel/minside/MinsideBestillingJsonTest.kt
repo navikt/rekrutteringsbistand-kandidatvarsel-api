@@ -13,7 +13,7 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
 /**
- * Karakteriseringstest av JSON-en som tms-varsel-builderen legger på min-side.aapen-brukervarsel-v1.
+ * Test av JSON-en som tms-varsel-builderen legger på min-side.aapen-brukervarsel-v1.
  * Låser formatet slik at en oppgradering av no.nav.tms.varsel:kotlin-builder ikke endrer meldingen ubemerket.
  */
 class MinsideBestillingJsonTest {
