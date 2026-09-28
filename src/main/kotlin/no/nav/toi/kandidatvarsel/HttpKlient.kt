@@ -12,7 +12,11 @@ import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.net.http.HttpTimeoutException
 import java.time.Duration
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 private val tidsavbrudd = Duration.ofSeconds(15)
 
@@ -27,16 +31,32 @@ internal fun httpRequest(url: String): HttpRequest.Builder =
     HttpRequest.newBuilder(URI.create(url)).timeout(tidsavbrudd)
 
 /**
- * Som [HttpClient.send], men avbrudd gjøres om til [InterruptedIOException] etter at interrupt-flagget er satt
- * tilbake. Da holder det at kallere håndterer [IOException].
+ * Som [HttpClient.send], men med én tidsfrist for hele kallet, også lesingen av body.
+ * [HttpRequest.Builder.timeout] gjelder bare til status og headere er mottatt.
+ *
+ * Tidsavbrudd og avbrudd blir [IOException], så kallere trenger bare å håndtere den.
+ * Ved avbrudd settes interrupt-flagget tilbake.
  */
-internal fun HttpClient.sendOgHentTekst(request: HttpRequest): HttpResponse<String> =
+internal fun HttpClient.sendOgHentTekst(
+    request: HttpRequest,
+    tidsfrist: Duration = tidsavbrudd,
+): HttpResponse<String> {
+    val svar = sendAsync(request, HttpResponse.BodyHandlers.ofString())
     try {
-        send(request, HttpResponse.BodyHandlers.ofString())
+        return svar.get(tidsfrist.toMillis(), TimeUnit.MILLISECONDS)
+    } catch (e: TimeoutException) {
+        svar.cancel(true)
+        throw HttpTimeoutException("Kall til ${request.uri().host} tok mer enn ${tidsfrist.toMillis()} ms")
+            .apply { initCause(e) }
     } catch (e: InterruptedException) {
+        svar.cancel(true)
         Thread.currentThread().interrupt()
         throw InterruptedIOException("Kall til ${request.uri().host} ble avbrutt").apply { initCause(e) }
+    } catch (e: ExecutionException) {
+        val årsak = e.cause ?: e
+        throw if (årsak is IOException || årsak is RuntimeException || årsak is Error) årsak else IOException(årsak)
     }
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 internal data class TokenResponse(
