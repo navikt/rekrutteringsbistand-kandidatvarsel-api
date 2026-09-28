@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.IOException
 import java.net.http.HttpClient
-import java.net.http.HttpResponse
 import java.util.*
 
 data class Stilling(
@@ -29,7 +28,7 @@ class StillingClientImpl(
             .build()
 
         val response = try {
-            httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+            httpClient.sendOgHentTekst(request)
         } catch (e: IOException) {
             log.error("getStilling({}) feilet", stillingId, e)
             return null

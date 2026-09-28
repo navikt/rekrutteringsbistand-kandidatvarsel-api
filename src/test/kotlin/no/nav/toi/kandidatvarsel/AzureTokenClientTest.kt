@@ -88,6 +88,18 @@ class AzureTokenClientTest {
     }
 
     @Test
+    fun `kaster RuntimeException og beholder interrupt-flagget når tråden avbrytes`(wm: WireMockRuntimeInfo) {
+        stubFor(post(urlEqualTo("/token")).willReturn(aResponse().withFixedDelay(2000)))
+
+        val (resultat, fortsattAvbrutt) = kjørAvbrutt { klient("${wm.httpBaseUrl}/token").authToken() }
+
+        assertThat(fortsattAvbrutt).isTrue
+        assertThat(resultat.exceptionOrNull())
+            .isInstanceOf(RuntimeException::class.java)
+            .hasMessageStartingWith("Failed to get token")
+    }
+
+    @Test
     fun `kaster RuntimeException når token-endepunktet ikke svarer`() {
         assertThatThrownBy { klient("http://localhost:${ledigPort()}/token").authToken() }
             .isInstanceOf(RuntimeException::class.java)
@@ -102,3 +114,10 @@ internal fun formParametre(body: String): Map<String, String> =
     }
 
 internal fun ledigPort(): Int = ServerSocket(0).use { it.localPort }
+
+/** Kjører [block] på en avbrutt tråd og returnerer om interrupt-flagget fortsatt var satt etterpå. */
+internal fun <T> kjørAvbrutt(block: () -> T): Pair<Result<T>, Boolean> {
+    Thread.currentThread().interrupt()
+    val resultat = runCatching(block)
+    return resultat to Thread.interrupted()
+}

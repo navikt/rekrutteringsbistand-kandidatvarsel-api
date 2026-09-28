@@ -17,6 +17,7 @@ import io.javalin.http.Context
 import io.javalin.http.HttpResponseException
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.toi.kandidatvarsel.kjørAvbrutt
 import no.nav.toi.kandidatvarsel.ledigPort
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
@@ -61,6 +62,16 @@ class KandidatsokApiKlientTest {
         val feil = catchThrowableOfType(HttpResponseException::class.java) { verifiser(wm.httpBaseUrl) }
 
         assertThat(feil.status).isEqualTo(forventetStatus)
+    }
+
+    @Test
+    fun `gir 500 og beholder interrupt-flagget når tråden avbrytes`(wm: WireMockRuntimeInfo) {
+        stubFor(post(urlEqualTo("/api/brukertilgang")).willReturn(aResponse().withFixedDelay(2000)))
+
+        val (resultat, fortsattAvbrutt) = kjørAvbrutt { verifiser(wm.httpBaseUrl) }
+
+        assertThat(fortsattAvbrutt).isTrue
+        assertThat((resultat.exceptionOrNull() as HttpResponseException).status).isEqualTo(500)
     }
 
     @Test

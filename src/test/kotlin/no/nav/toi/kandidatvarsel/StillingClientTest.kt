@@ -70,6 +70,17 @@ class StillingClientTest {
     }
 
     @Test
+    fun `returnerer null og beholder interrupt-flagget når tråden avbrytes`(wm: WireMockRuntimeInfo) {
+        stubFor(get(urlEqualTo(stillingPath)).willReturn(aResponse().withFixedDelay(2000)))
+        val klient = klient(wm).also { it.getStilling(UUID.randomUUID()) } // henter token før avbruddet
+
+        val (resultat, fortsattAvbrutt) = kjørAvbrutt { klient.getStilling(stillingId) }
+
+        assertThat(fortsattAvbrutt).isTrue
+        assertThat(resultat.getOrThrow()).isNull()
+    }
+
+    @Test
     fun `returnerer null når stilling-api ikke svarer`(wm: WireMockRuntimeInfo) {
         assertThat(klient(wm, baseUrl = "http://localhost:${ledigPort()}").getStilling(stillingId)).isNull()
     }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -24,6 +25,18 @@ internal val httpObjectMapper = jacksonObjectMapper()
 
 internal fun httpRequest(url: String): HttpRequest.Builder =
     HttpRequest.newBuilder(URI.create(url)).timeout(tidsavbrudd)
+
+/**
+ * Som [HttpClient.send], men avbrudd gjøres om til [InterruptedIOException] etter at interrupt-flagget er satt
+ * tilbake. Da holder det at kallere håndterer [IOException].
+ */
+internal fun HttpClient.sendOgHentTekst(request: HttpRequest): HttpResponse<String> =
+    try {
+        send(request, HttpResponse.BodyHandlers.ofString())
+    } catch (e: InterruptedException) {
+        Thread.currentThread().interrupt()
+        throw InterruptedIOException("Kall til ${request.uri().host} ble avbrutt").apply { initCause(e) }
+    }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 internal data class TokenResponse(
@@ -45,7 +58,7 @@ internal fun hentTokenFraAzure(
         .build()
 
     val response = try {
-        httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        httpClient.sendOgHentTekst(request)
     } catch (e: IOException) {
         throw RuntimeException("Failed to get token: ${e.javaClass.simpleName}", e)
     }

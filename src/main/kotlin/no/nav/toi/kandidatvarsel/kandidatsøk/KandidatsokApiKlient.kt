@@ -5,12 +5,12 @@ import io.javalin.http.Context
 import io.javalin.http.HttpResponseException
 import no.nav.toi.kandidatvarsel.httpRequest
 import no.nav.toi.kandidatvarsel.log
+import no.nav.toi.kandidatvarsel.sendOgHentTekst
 import no.nav.toi.kandidatvarsel.standardHttpClient
 import org.eclipse.jetty.http.HttpStatus
 import java.io.IOException
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 
 class KandidatsokApiKlient(
     private val onBehalfOfTokenClient: OnBehalfOfTokenClient,
@@ -30,7 +30,7 @@ class KandidatsokApiKlient(
             .build()
 
         val response = try {
-            httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+            httpClient.sendOgHentTekst(request)
         } catch (e: IOException) {
             log.error("Kan ikke verifisere tilgang mot bruker, kallet mot kandidatsøket feilet", e)
             throw HttpResponseException(HttpStatus.INTERNAL_SERVER_ERROR_500, "Feil ved verifisering av tilgang")
