@@ -13,7 +13,10 @@
         </filter>
     </appender>
 
-    <if condition='isDefined("NAIS_CLUSTER_NAME")'>
+    <condition class="ch.qos.logback.core.boolex.IsPropertyDefinedCondition">
+        <key>NAIS_CLUSTER_NAME</key>
+    </condition>
+    <if>
         <then>
             <include resource="no/nav/common/audit_log/logback-naudit.xml"/>
 
