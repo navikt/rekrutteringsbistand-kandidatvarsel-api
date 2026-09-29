@@ -122,7 +122,9 @@ fun JavalinDefaultRoutingApi.handleVarsler(dataSource: DataSource, kandidatsokAp
 
     )
 
-    post(
+   /* TODO: Ser ikke ut som om denne lenger brukes. Lar den stå utkommentert nå, men når vi er
+       Helst sikre brtyr det at vi kan fjerne mye relatert kode.
+   post(
         "/api/varsler/query",
         { ctx ->
             log.info("Mottok request for å hente varsler for en bruker")
@@ -158,6 +160,6 @@ fun JavalinDefaultRoutingApi.handleVarsler(dataSource: DataSource, kandidatsokAp
         REKBIS_UTVIKLER,
         REKBIS_JOBBSØKERRETTET,
         REKBIS_ARBEIDSGIVERRETTET,
-    )
+    )*/
 }
 

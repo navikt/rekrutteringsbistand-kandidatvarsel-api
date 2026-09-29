@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.toi.kandidatvarsel.util.TestRapid
@@ -172,19 +170,6 @@ class LocalApp() {
         return arrayNode.toList().associateBy { it["mottakerFnr"].asText() }
     }
 
-    fun getVarselFnr(fnr: String, token: SignedJWT): Map<String, JsonNode> {
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:${javalin.port()}/api/varsler/query"))
-            .header("Authorization", "Bearer ${token.serialize()}")
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString("""{"fnr":"$fnr"}"""))
-            .build()
-
-        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
-        assertEquals(200, response.statusCode())
-        val arrayNode = objectMapper.readValue<ArrayNode>(response.body())
-        return arrayNode.toList().associateBy { it["stillingId"].asText() }
-    }
     // TODO: Deprecated,kan fjernes når vi har tatt i bruk stillingsmeldingsmal
     fun getMeldingsmal(token: SignedJWT): Meldingsmal {
         val request = HttpRequest.newBuilder()
@@ -271,22 +256,4 @@ class HttpRequestBuilder(
         val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
         return Triple(request, response, Unit)
     }
-}
-
-fun WireMockRuntimeInfo.brukertilgangOk() {
-    wireMock.register(
-        WireMock.post("/api/brukertilgang")
-            .willReturn(
-                WireMock.ok()
-            )
-    )
-}
-
-fun WireMockRuntimeInfo.brukertilgangForbidden() {
-    wireMock.register(
-        WireMock.post("/api/brukertilgang")
-            .willReturn(
-                WireMock.forbidden()
-            )
-    )
 }

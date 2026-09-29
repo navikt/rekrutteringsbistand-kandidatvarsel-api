@@ -3,7 +3,6 @@ package no.nav.toi.kandidatvarsel
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jwt.SignedJWT
 import no.nav.toi.kandidatvarsel.minside.bestillVarsel
@@ -145,42 +144,6 @@ class VarslerApiTest {
         
         val varsler: List<Map<String, Any?>> = objectMapper.readValue(getResponse.body())
         assertEquals(2, varsler.size)
-    }
-
-    @Test
-    fun `POST query endepunkt returnerer varsler for fnr`(wmRuntimeInfo: WireMockRuntimeInfo) {
-        wmRuntimeInfo.brukertilgangOk()
-        val stillingId = UUID.randomUUID().toString()
-        
-        // Opprett varsel
-        app.postVarselStilling(
-            stillingId = stillingId,
-            fnr = listOf(fnr1),
-            mal = "VURDERT_SOM_AKTUELL",
-            token = token,
-        )
-
-        // Query varsler for fnr
-        val body = objectMapper.writeValueAsString(mapOf("fnr" to fnr1))
-        val response = httpPost("/api/varsler/query", body, token)
-        
-        assertEquals(200, response.statusCode())
-        val varsler: List<Map<String, Any?>> = objectMapper.readValue(response.body())
-        assertEquals(1, varsler.size)
-        assertEquals(fnr1, varsler[0]["mottakerFnr"])
-    }
-
-    @Test
-    fun `POST query endepunkt returnerer tomt array når ingen varsler finnes for fnr`(wmRuntimeInfo: WireMockRuntimeInfo) {
-        wmRuntimeInfo.brukertilgangOk()
-        
-        // Query varsler for fnr som ikke har varsler
-        val body = objectMapper.writeValueAsString(mapOf("fnr" to fnr1))
-        val response = httpPost("/api/varsler/query", body, token)
-        
-        assertEquals(200, response.statusCode())
-        val varsler: List<Map<String, Any?>> = objectMapper.readValue(response.body())
-        assertEquals(0, varsler.size)
     }
 
     @Test
@@ -478,51 +441,6 @@ class VarslerApiTest {
                     fnr3 to stillingId2
                 ),
                 varsler.map { (fnr, varsel) -> fnr to varsel["stillingId"].asText() }.toSet()
-            )
-        }
-    }
-
-    @Test
-    fun henterVarslerForFnr(wmRuntimeInfo: WireMockRuntimeInfo) {
-        wmRuntimeInfo.brukertilgangOk()
-        app.postVarselStilling(
-            stillingId = stillingId1,
-            fnr = listOf(fnr1, fnr2),
-            mal = "VURDERT_SOM_AKTUELL",
-            token = token,
-        )
-        app.postVarselStilling(
-            stillingId = stillingId2,
-            fnr = listOf(fnr2, fnr3),
-            mal = "VURDERT_SOM_AKTUELL",
-            token = token,
-        )
-
-        app.getVarselFnr(fnr1, token).also { varsler ->
-            assertEquals(
-                setOf(
-                    stillingId1 to fnr1,
-                ),
-                varsler.map { (stillingId, varsel) -> stillingId to varsel["mottakerFnr"].asText() }.toSet()
-            )
-        }
-
-        app.getVarselFnr(fnr2, token).also { varsler ->
-            assertEquals(
-                setOf(
-                    stillingId1 to fnr2,
-                    stillingId2 to fnr2,
-                ),
-                varsler.map { (stillingId, varsel) -> stillingId to varsel["mottakerFnr"].asText() }.toSet()
-            )
-        }
-
-        app.getVarselFnr(fnr3, token).also { varsler ->
-            assertEquals(
-                setOf(
-                    stillingId2 to fnr3,
-                ),
-                varsler.map { (stillingId, varsel) -> stillingId to varsel["mottakerFnr"].asText() }.toSet()
             )
         }
     }
