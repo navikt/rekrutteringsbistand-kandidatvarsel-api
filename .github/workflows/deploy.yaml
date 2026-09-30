@@ -6,7 +6,7 @@ jobs:
     uses: navikt/toi-github-actions-workflows/.github/workflows/build-and-deploy.yaml@v15
     with:
       java-version: "25"
-      deploy-to-dev-if-branch-name-is: "oppgrader-versjoner"
+      deploy-to-dev-if-branch-name-is: "workop-gjennomgang"
     permissions:
       contents: read
       id-token: write

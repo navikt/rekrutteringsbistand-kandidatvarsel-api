@@ -191,6 +191,8 @@ class MeldingsmalApiTest {
         // Verifiser at alle rekrutteringstreffmaler er med
         assertTrue(meldingsmal.containsKey("kandidatInvitertTreff"))
         assertTrue(meldingsmal.containsKey("kandidatInvitertTreffEndret"))
+        assertTrue(meldingsmal.containsKey("kandidatInvitertWorkOp"))
+        assertTrue(meldingsmal.containsKey("kandidatInvitertWorkOpEndret"))
 
         // Verifiser struktur for en av malene
         val kandidatInvitertTreff = meldingsmal["kandidatInvitertTreff"] as Map<*, *>

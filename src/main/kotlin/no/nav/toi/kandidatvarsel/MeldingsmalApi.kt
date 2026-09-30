@@ -55,9 +55,12 @@ data class StillingMeldingsmal(
     val passendeJobbarrangement: PassendeJobbarrangement
 )
 
+/** WorkOp har egne maler. De har samme felter som treffmalene. */
 data class RekrutteringstreffMeldingsmal(
     val kandidatInvitertTreff: KandidatInvitertTreff,
-    val kandidatInvitertTreffEndret: KandidatInvitertTreffEndret
+    val kandidatInvitertTreffEndret: KandidatInvitertTreffEndret,
+    val kandidatInvitertWorkOp: KandidatInvitertTreff,
+    val kandidatInvitertWorkOpEndret: KandidatInvitertTreffEndret,
 )
 
 fun hentStillingMeldingsmal(): StillingMeldingsmal {
@@ -83,24 +86,26 @@ fun hentStillingMeldingsmal(): StillingMeldingsmal {
     )
 }
 
-fun hentRekrutteringstreffMeldingsmal(): RekrutteringstreffMeldingsmal {
-    val kandidatInvitertTreff = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff
-    val kandidatInvitertTreffEndret = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
-    return RekrutteringstreffMeldingsmal(
-        kandidatInvitertTreff = KandidatInvitertTreff(
-            smsTekst = kandidatInvitertTreff.smsTekst(),
-            epostTittel = kandidatInvitertTreff.epostTittel(),
-            epostHtmlBody = kandidatInvitertTreff.epostHtmlBody()
-        ),
-        kandidatInvitertTreffEndret = KandidatInvitertTreffEndret(
-            smsTekst = kandidatInvitertTreffEndret.smsTekst(),
-            epostTittel = kandidatInvitertTreffEndret.epostTittel(),
-            epostHtmlBody = kandidatInvitertTreffEndret.epostHtmlBody(),
-            placeholder = no.nav.toi.kandidatvarsel.minside.EndretRekrutteringstreffMal.PLACEHOLDER,
-            endringsFelt = EndringFlettedata.entries.map { EndringsFeltDto(it.name, it.displayTekst) }
-        )
-    )
-}
+fun hentRekrutteringstreffMeldingsmal() = RekrutteringstreffMeldingsmal(
+    kandidatInvitertTreff = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff.tilInvitertDto(),
+    kandidatInvitertTreffEndret = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret.tilEndretDto(),
+    kandidatInvitertWorkOp = KandidatInvitertWorkOp.tilInvitertDto(),
+    kandidatInvitertWorkOpEndret = KandidatInvitertWorkOpEndret.tilEndretDto(),
+)
+
+private fun RekrutteringstreffMal.tilInvitertDto() = KandidatInvitertTreff(
+    smsTekst = smsTekst(),
+    epostTittel = epostTittel(),
+    epostHtmlBody = epostHtmlBody(),
+)
+
+private fun EndretRekrutteringstreffMal.tilEndretDto() = KandidatInvitertTreffEndret(
+    smsTekst = smsTekst(),
+    epostTittel = epostTittel(),
+    epostHtmlBody = epostHtmlBody(),
+    placeholder = EndretRekrutteringstreffMal.PLACEHOLDER,
+    endringsFelt = EndringFlettedata.entries.map { EndringsFeltDto(it.name, it.displayTekst) },
+)
 
 fun hentMeldingsmal(): Meldingsmal {
     val stillingMeldingsmal = hentStillingMeldingsmal()
