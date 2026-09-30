@@ -91,6 +91,7 @@ object Maler {
         return when (malNavn) {
             VurdertSomAktuell.name -> VurdertSomAktuell
             PassendeStilling.name -> PassendeStilling
+            DelCv.name -> DelCv
             PassendeJobbarrangement.name -> PassendeJobbarrangement
             KandidatInvitertTreff.name -> KandidatInvitertTreff
             KandidatInvitertWorkOp.name -> KandidatInvitertWorkOp
@@ -106,6 +107,7 @@ object Maler {
         VarselType.STILLING -> listOf(
             VurdertSomAktuell.name,
             PassendeStilling.name,
+            DelCv.name,
             PassendeJobbarrangement.name
         )
 
@@ -161,6 +163,26 @@ data object PassendeStilling : StillingMal {
             """
                     Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på Nav for å se stillingen.
                 """.trimIndent()
+        )
+}
+
+data object DelCv : StillingMal {
+    override val name = "DEL_CV"
+
+    override fun minsideTekst(tittel: String, arbeidsgiver: String) =
+        "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
+
+    override fun smsTekst() =
+        "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
+
+    override fun epostTittel() =
+        "Stilling som kan passe for deg?"
+
+    override fun epostHtmlBody() =
+        Maler.epostHtmlBodyTemplate(
+            """
+                Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?
+            """.trimIndent()
         )
 }
 
