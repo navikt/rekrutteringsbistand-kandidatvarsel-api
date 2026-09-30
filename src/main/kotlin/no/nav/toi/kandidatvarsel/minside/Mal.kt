@@ -176,7 +176,7 @@ data object DelCv : StillingMal {
         "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
 
     override fun epostTittel() =
-        "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
+        "Stilling som kan passe for deg?"
 
     override fun epostHtmlBody() =
         Maler.epostHtmlBodyTemplate(
