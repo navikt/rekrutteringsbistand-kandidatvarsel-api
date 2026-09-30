@@ -1,8 +1,9 @@
 package no.nav.toi.kandidatvarsel
 
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.jackson.responseObject
-import com.github.kittinunf.result.getOrElse
+import com.fasterxml.jackson.core.JacksonException
+import com.fasterxml.jackson.module.kotlin.readValue
+import java.io.IOException
+import java.net.http.HttpClient
 import java.util.*
 
 data class Stilling(
@@ -16,22 +17,32 @@ interface StillingClient {
 
 class StillingClientImpl(
     private val azureTokenClient: AzureTokenClient,
+    private val baseUrl: String = "http://rekrutteringsbistand-stilling-api.toi.svc.cluster.local",
+    private val httpClient: HttpClient = standardHttpClient,
 ): StillingClient {
 
-    private val baseUrl = "http://rekrutteringsbistand-stilling-api.toi.svc.cluster.local"
-
     override fun getStilling(stillingId: UUID): Stilling? {
-        val (_, response, result) = Fuel.get("$baseUrl/rekrutteringsbistand/ekstern/api/v1/stilling/${stillingId}")
+        val request = httpRequest("$baseUrl/rekrutteringsbistand/ekstern/api/v1/stilling/${stillingId}")
             .header("Authorization", "Bearer ${azureTokenClient.authToken()}")
-            .responseObject<Stilling>()
+            .GET()
+            .build()
 
-        if (response.statusCode != 200) {
-            log.error("getStilling({}) feilet med http status {}", stillingId, response.statusCode)
+        val response = try {
+            httpClient.sendOgHentTekst(request)
+        } catch (e: IOException) {
+            log.error("getStilling({}) feilet", stillingId, e)
             return null
         }
 
-        return result.getOrElse {
-            log.error("getStilling({}) feilet", stillingId)
+        if (response.statusCode() != 200) {
+            log.error("getStilling({}) feilet med http status {}", stillingId, response.statusCode())
+            return null
+        }
+
+        return try {
+            httpObjectMapper.readValue<Stilling>(response.body())
+        } catch (e: JacksonException) {
+            log.error("getStilling({}) feilet", stillingId, e)
             null
         }
     }

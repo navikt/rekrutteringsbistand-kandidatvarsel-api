@@ -8,6 +8,7 @@ import no.nav.common.audit_log.log.AuditLoggerImpl
 
 object AuditLogg {
     private val auditLogger: AuditLogger = AuditLoggerImpl()
+    /* TODO: Brukes ikke kan fjernes når det bekreftes at api som kaller denne ikke lenger trengs.
     val secureLog = SecureLog(log)
 
     fun logCefMessage(navIdent: String, userid: String, msg: String, tilgang: Boolean) {
@@ -25,5 +26,5 @@ object AuditLogg {
         val ekstraSpaceSidenAuditloggerInnimellomKutterSisteTegn = " "
         auditLogger.log("$message" + ekstraSpaceSidenAuditloggerInnimellomKutterSisteTegn)
         secureLog.info("auditlogger: {}", "$message" + ekstraSpaceSidenAuditloggerInnimellomKutterSisteTegn)
-    }
+    }*/
 }
