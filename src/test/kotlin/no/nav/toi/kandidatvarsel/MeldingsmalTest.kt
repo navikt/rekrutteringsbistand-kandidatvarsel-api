@@ -114,6 +114,21 @@ class MeldingsmalTest {
             assertTrue(feltKoder.contains("SVARFRIST"))
             assertTrue(feltKoder.contains("STED"))
             assertTrue(feltKoder.contains("INTRODUKSJON"))
+
+            // WorkOp har egne tekster, slik at forhåndsvisningen viser meldingen som faktisk sendes
+            assertEquals(
+                "Hei! Du er invitert til en WorkOp der du kan møte arbeidsgivere. Logg inn på Nav for å svare JA eller NEI på om du planlegger å delta. Vennlig hilsen Nav",
+                meldingsmal.kandidatInvitertWorkOp.smsTekst
+            )
+            assertEquals("Invitasjon til å treffe arbeidsgivere", meldingsmal.kandidatInvitertWorkOp.epostTittel)
+            assertTrue(meldingsmal.kandidatInvitertWorkOp.epostHtmlBody.contains("WorkOp"))
+            assertEquals(
+                "Det er endringer i en WorkOp du er invitert til: {{ENDRINGER}}. Logg inn på Nav for å se detaljer.",
+                meldingsmal.kandidatInvitertWorkOpEndret.smsTekst
+            )
+            assertEquals("Endringer på WorkOp du er invitert til", meldingsmal.kandidatInvitertWorkOpEndret.epostTittel)
+            assertEquals("{{ENDRINGER}}", meldingsmal.kandidatInvitertWorkOpEndret.placeholder)
+            assertEquals(meldingsmal.kandidatInvitertTreffEndret.endringsFelt, meldingsmal.kandidatInvitertWorkOpEndret.endringsFelt)
         }
     }
 
