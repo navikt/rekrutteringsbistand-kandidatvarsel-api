@@ -7,6 +7,8 @@ import no.nav.toi.kandidatvarsel.transaction
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.testcontainers.postgresql.PostgreSQLContainer
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -104,6 +106,71 @@ class KandidatInvitertLytterTest {
         assertEquals(hendelseId, varsler[0].varselId)
     }
     
+    @ParameterizedTest
+    @CsvSource(
+        "rekrutteringstreffinvitasjon, KANDIDAT_INVITERT_TREFF",
+        "workopinvitasjon, KANDIDAT_INVITERT_WORKOP"
+    )
+    fun `skal beholde ett uendret varsel når samme invitasjon mottas på nytt`(eventName: String, mal: String) {
+        val referanseId = "12345678-1234-1234-1234-123456789012"
+        val hendelseId = "87654321-4321-4321-4321-210987654321"
+        val melding = invitasjonMelding(eventName, referanseId, hendelseId)
+
+        testRapid.sendTestMessage(melding)
+        val før = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, referanseId)
+        }
+        assertEquals(1, før.size)
+        assertEquals(mal, før.single().mal.name)
+        assertEquals(hendelseId, før.single().varselId)
+        assertEquals(referanseId, før.single().avsenderReferanseId)
+        assertEquals("12345678901", før.single().mottakerFnr)
+        assertEquals("Z123456", før.single().avsenderNavIdent)
+
+        testRapid.sendTestMessage(melding)
+        val etter = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, referanseId)
+        }
+        assertEquals(1, etter.size)
+        assertEquals(før.single(), etter.single())
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "rekrutteringstreffinvitasjon, KANDIDAT_INVITERT_TREFF",
+        "workopinvitasjon, KANDIDAT_INVITERT_WORKOP"
+    )
+    fun `skal opprette separate varsler for invitasjoner med ulike hendelseId`(eventName: String, mal: String) {
+        val referanseId = "12345678-1234-1234-1234-123456789012"
+        val hendelseIder = listOf(
+            "87654321-4321-4321-4321-210987654321",
+            "87654321-4321-4321-4321-210987654322"
+        )
+
+        hendelseIder.forEach { testRapid.sendTestMessage(invitasjonMelding(eventName, referanseId, it)) }
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, referanseId)
+        }
+        assertEquals(2, varsler.size)
+        assertEquals(hendelseIder.toSet(), varsler.map { it.varselId }.toSet())
+        varsler.forEach {
+            assertEquals(mal, it.mal.name)
+            assertEquals(referanseId, it.avsenderReferanseId)
+            assertEquals("12345678901", it.mottakerFnr)
+            assertEquals("Z123456", it.avsenderNavIdent)
+        }
+    }
+
+    private fun invitasjonMelding(eventName: String, referanseId: String, hendelseId: String) = """
+        {
+            "@event_name": "$eventName",
+            "rekrutteringstreffId": "$referanseId",
+            "fnr": "12345678901",
+            "opprettetAv": "Z123456",
+            "hendelseId": "$hendelseId"
+        }
+    """.trimIndent()
+
     @Test
     fun `skal ikke opprette varsel når rekrutteringstreffId mangler`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"

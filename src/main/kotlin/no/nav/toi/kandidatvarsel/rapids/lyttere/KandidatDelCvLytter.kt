@@ -25,7 +25,7 @@ class KandidatDelCvLytter(
         River(rapidsConnection).apply {
             precondition {
                 it.requireValue("@event_name", EVENT_NAME)
-                it.forbid("aktivitetskortuuid")
+                it.requireKey("aktivitetskortuuid")
             }
             validate {
                 it.requireKey(
@@ -35,6 +35,7 @@ class KandidatDelCvLytter(
                     "svarfrist",
                     "forespurtAvIdent",
                     "forespurtTidspunkt",
+                    "hendelseId",
                 )
                 it.require("stillingsId") { node -> UUID.fromString(node.asString()) }
                 it.require("svarfrist") { node -> ZonedDateTime.parse(node.asString()) }
@@ -52,6 +53,7 @@ class KandidatDelCvLytter(
         val fnr = packet["fnr"].asString()
         val stillingId = packet["stillingsId"].asString()
         val avsenderNavident = packet["forespurtAvIdent"].asString()
+        val hendelseId = packet["hendelseId"].asString()
 
         log.info("Mottok $EVENT_NAME for stillingId=$stillingId <se secure log>")
         secureLog.info("Mottok $EVENT_NAME for stillingId=$stillingId, fnr=$fnr, avsenderNavident=$avsenderNavident")
@@ -63,6 +65,7 @@ class KandidatDelCvLytter(
                 fnrList = listOf(fnr),
                 mal = DelCv,
                 avsenderNavident = avsenderNavident,
+                varselId = hendelseId,
             )
             log.info("Behandlet $EVENT_NAME for stillingId=$stillingId")
         } catch (e: Exception) {
