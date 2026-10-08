@@ -1,5 +1,10 @@
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
+ARG BASE_IMAGE_DIGEST_PINNED_REF
+FROM ${BASE_IMAGE_DIGEST_PINNED_REF}
+
 ENV TZ="Europe/Oslo"
+
 ADD build/distributions/rekrutteringsbistand-kandidatvarsel-api-1.0-SNAPSHOT.tar /
-EXPOSE 8080
+
 ENTRYPOINT ["java", "-Duser.timezone=Europe/Oslo", "-cp", "/rekrutteringsbistand-kandidatvarsel-api-1.0-SNAPSHOT/lib/*", "no.nav.toi.kandidatvarsel.MainKt"]
+
+EXPOSE 8080
