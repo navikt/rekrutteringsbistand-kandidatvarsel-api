@@ -47,7 +47,6 @@ fun main() {
         startOppApplikasjon(
             kafkaRapid = kafkaRapid,
             dataSource = dataSource,
-            workOpLyttereAktivert = skalRegistrereWorkOpLyttere(getenv("NAIS_CLUSTER_NAME")),
             delCvLytterAktivert = skalRegistrereDelCvLytter(getenv("NAIS_CLUSTER_NAME"))
         )
     } catch (e: Exception) {
@@ -60,7 +59,6 @@ fun main() {
 fun startOppApplikasjon(
     kafkaRapid: KafkaRapid,
     dataSource: HikariDataSource,
-    workOpLyttereAktivert: Boolean,
     delCvLytterAktivert: Boolean
 ) {
     val migreringsResultat = AtomicReference<MigrateResult>()
@@ -96,7 +94,7 @@ fun startOppApplikasjon(
         isRapidRunning = kafkaRapid::isRunning
     )
 
-    registrerRapidsLyttere(kafkaRapid, dataSource, workOpLyttereAktivert, delCvLytterAktivert)
+    registrerRapidsLyttere(kafkaRapid, dataSource, delCvLytterAktivert)
     
     val kafkaRapidThread = backgroundThread(navn = "kafka-rapid", timeoutvarighet = 30.seconds, avsluttSignal = avsluttSignal) {
         kafkaRapid.start()
@@ -141,7 +139,6 @@ private fun opprettOnBehalfOfTokenClient() = OnBehalfOfTokenClient(
 private fun registrerRapidsLyttere(
     rapidsConnection: RapidsConnection,
     dataSource: HikariDataSource,
-    workOpLyttereAktivert: Boolean,
     delCvLytterAktivert: Boolean
 ) {
     try {
@@ -155,22 +152,15 @@ private fun registrerRapidsLyttere(
             log.info("DelCv-lyttere er deaktivert i dette miljøet")
         }
 
-        if (workOpLyttereAktivert) {
-            KandidatInvitertLytter(rapidsConnection, dataSource, "workopinvitasjon", KandidatInvitertWorkOp)
-            KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource, "workopoppdatering", KandidatInvitertWorkOpEndret)
-            KandidatTreffAvlystLytter(rapidsConnection, dataSource, "workopSvarOgStatus", KandidatInvitertWorkOpAvlyst)
-        } else {
-            log.info("WorkOp-lyttere er deaktivert i dette miljøet")
-        }
+        KandidatInvitertLytter(rapidsConnection, dataSource, "workopinvitasjon", KandidatInvitertWorkOp)
+        KandidatInvitertTreffEndretLytter(rapidsConnection, dataSource, "workopoppdatering", KandidatInvitertWorkOpEndret)
+        KandidatTreffAvlystLytter(rapidsConnection, dataSource, "workopSvarOgStatus", KandidatInvitertWorkOpAvlyst)
     } catch (e: Exception) {
         log.error("Feil ved oppstart av RapidApplication (se securelog)")
         secureLog.error("Feil ved oppstart av RapidApplication", e)
         throw e
     }
 }
-
-internal fun skalRegistrereWorkOpLyttere(clusterNavn: String?): Boolean =
-    clusterNavn.isNullOrBlank() || clusterNavn == "local" || clusterNavn == "lokalt" || clusterNavn == "dev-gcp"
 
 internal fun skalRegistrereDelCvLytter(clusterNavn: String?): Boolean =
     clusterNavn.isNullOrBlank() || clusterNavn == "local" || clusterNavn == "lokalt" || clusterNavn == "dev-gcp"
