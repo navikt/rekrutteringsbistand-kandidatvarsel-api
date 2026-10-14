@@ -170,10 +170,10 @@ data object DelCv : StillingMal {
     override val name = "DEL_CV"
 
     override fun minsideTekst(tittel: String, arbeidsgiver: String) =
-        "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
+        "Vi har funnet stillingen «${tittel}» hos «${arbeidsgiver}» som kan passe deg. Interessert? Svar på deling av CV via lenka i annonsen."
 
     override fun smsTekst() =
-        "Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?"
+        "Hei! Vi har funnet en stilling som kan passe deg. Logg inn på Nav for å se stillingen. Vennlig hilsen Nav"
 
     override fun epostTittel() =
         "Stilling som kan passe for deg?"
@@ -181,7 +181,7 @@ data object DelCv : StillingMal {
     override fun epostHtmlBody() =
         Maler.epostHtmlBodyTemplate(
             """
-                Vi søker etter kandidater til denne stillingen. Kan denne stillingen passe for deg?
+                Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på Nav for å se stillingen, og svar på om du ønsker å dele cv'en din med arbeidsgiveren.
             """.trimIndent()
         )
 }
