@@ -26,7 +26,7 @@ class MinsideBestillingJsonTest {
         val json = sendOgLes { it.sendBestilling(varsel(mal, "stilling-1"), mal, "Tittel", "Arbeidsgiver AS") }
 
         assertFellesFelter(json)
-        assertThat(json["link"].asText()).isEqualTo("https://www.nav.no/arbeid/stilling/stilling-1")
+        assertThat(json["link"].asText()).isEqualTo("https://vis-stilling.intern.dev.nav.no/arbeid/stilling/stilling-1")
         assertThat(json["tekster"].single()["tekst"].asText()).isEqualTo(mal.minsideTekst("Tittel", "Arbeidsgiver AS"))
         assertEksternVarsling(json["eksternVarsling"], mal.smsTekst(), mal.epostTittel(), mal.epostHtmlBody())
     }

@@ -29,7 +29,7 @@ sealed interface Mal {
                 val domain = if (isProd)
                     "www.nav.no"
                 else
-                    "vis-stilling.intern.dev.nav.no/arbeid/stilling"
+                    "vis-stilling.intern.dev.nav.no"
 
                 return "https://$domain/arbeid/stilling/$avsenderReferanseId"
             }

@@ -236,7 +236,7 @@ class VarslerApiTest {
             assertEquals(2, it.size)
             it.values.forEach {
                 assertEquals("beskjed", it["type"].asText())
-                assertEquals("https://www.nav.no/arbeid/stilling/$stillingId1", it["link"].asText())
+                assertEquals("https://vis-stilling.intern.dev.nav.no/arbeid/stilling/$stillingId1", it["link"].asText())
                 assertEquals("substantial", it["sensitivitet"].asText())
             }
         }
