@@ -25,7 +25,14 @@ sealed interface Mal {
 
     fun lenkeurl(avsenderReferanseId: String, isProd: Boolean): String {
         return when (varselType) {
-            VarselType.STILLING -> "https://www.nav.no/arbeid/stilling/$avsenderReferanseId"
+            VarselType.STILLING -> {
+                val domain = if (isProd)
+                    "www.nav.no"
+                else
+                    "vis-stilling.intern.dev.nav.no/arbeid/stilling"
+
+                return "https://$domain/arbeid/stilling/$avsenderReferanseId"
+            }
             VarselType.REKRUTTERINGSTREFF -> {
                 val domain = if (isProd)
                     "www.nav.no"
