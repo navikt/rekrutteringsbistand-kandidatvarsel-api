@@ -193,6 +193,26 @@ data object DelCv : StillingMal {
         )
 }
 
+data object CvDeltMedArbeidsgiver : StillingMal {
+    override val name = "CV_DELT_MED_ARBEIDSGIVER"
+
+    override fun minsideTekst(tittel: String, arbeidsgiver: String) =
+        "Nav har delt din CV med arbeidsgiver $arbeidsgiver på stillingen $tittel"
+
+    override fun smsTekst() =
+        "Hei! Nav har delt din CV med arbeidsgiver. Logg inn på Nav for å se stillingen. Vennlig hilsen Nav"
+
+    override fun epostTittel() =
+        "Nav har delt din CV med arbeidsgiver"
+
+    override fun epostHtmlBody() =
+        Maler.epostHtmlBodyTemplate(
+            """
+                Nav har delt din CV med arbeidsgiver. Logg inn på Nav for å se stillingen.
+            """.trimIndent()
+        )
+}
+
 data object PassendeJobbarrangement : StillingMal {
     override val name = "PASSENDE_JOBBARRANGEMENT"
 

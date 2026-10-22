@@ -9,6 +9,7 @@ import com.github.navikt.tbd_libs.kafka.ConsumerProducerFactory
 import com.zaxxer.hikari.HikariDataSource
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.toi.kandidatvarsel.minside.*
+import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatCvDeltMedArbeidsgiverLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertTreffEndretLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatDelCvLytter
@@ -148,6 +149,7 @@ private fun registrerRapidsLyttere(
 
         if (delCvLytterAktivert) {
             KandidatDelCvLytter(rapidsConnection, dataSource)
+            KandidatCvDeltMedArbeidsgiverLytter(rapidsConnection, dataSource)
         } else {
             log.info("DelCv-lyttere er deaktivert i dette miljøet")
         }
