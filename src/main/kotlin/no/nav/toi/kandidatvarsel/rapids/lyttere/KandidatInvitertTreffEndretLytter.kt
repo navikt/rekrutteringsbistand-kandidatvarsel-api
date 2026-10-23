@@ -25,9 +25,11 @@ class KandidatInvitertTreffEndretLytter(
         River(rapidsConnection).apply {
             precondition {
                 it.requireValue("@event_name", eventName)
+                // Oppdateringer uten endredeFelter gjelder kun aktivitetskortet og skal ikke varsles
+                it.requireKey("endredeFelter")
             }
             validate {
-                it.requireKey("rekrutteringstreffId", "fnr", "hendelseId", "endredeFelter")
+                it.requireKey("rekrutteringstreffId", "fnr", "hendelseId")
                 it.interestedIn("endretAv")
             }
         }.register(this)
