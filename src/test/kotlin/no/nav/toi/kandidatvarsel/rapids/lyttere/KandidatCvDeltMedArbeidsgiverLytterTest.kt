@@ -87,7 +87,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         assertEquals(fødselsnummerPerAktørId.getValue(kandidatAktørId), varsler.single().mottakerFnr)
         assertEquals(navIdent, varsler.single().avsenderNavIdent)
         assertEquals(stillingsId, varsler.single().avsenderReferanseId)
-        assertEquals(hendelseId, varsler.single().varselId)
+        assertEquals(deterministiskVarselId(hendelseId, kandidatAktørId), varsler.single().varselId)
     }
 
     @Test
@@ -103,7 +103,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
 
         assertEquals(1, etter.size)
         assertEquals(før.single(), etter.single())
-        assertEquals(hendelseId, etter.single().varselId)
+        assertEquals(deterministiskVarselId(hendelseId, kandidatAktørId), etter.single().varselId)
     }
 
     @Test
@@ -115,7 +115,10 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
 
         val varsler = hentVarsler()
         assertEquals(2, varsler.size)
-        assertEquals(hendelseIder.toSet(), varsler.map { it.varselId }.toSet())
+        assertEquals(
+            hendelseIder.map { deterministiskVarselId(it, kandidatAktørId) }.toSet(),
+            varsler.map { it.varselId }.toSet(),
+        )
         varsler.forEach {
             assertEquals(CvDeltMedArbeidsgiver, it.mal)
             assertEquals(fødselsnummerPerAktørId.getValue(kandidatAktørId), it.mottakerFnr)

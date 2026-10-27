@@ -65,11 +65,7 @@ class KandidatCvDeltMedArbeidsgiverLytter(
         try {
             val fødselsnumre = hentOgValiderFødselsnumre(packet[FØDSELSNUMMERLISTE_KEY], aktørIder, hendelseId)
             fødselsnumre.forEach { (aktørId, fnr) ->
-                val varselId = if (aktørIder.size == 1) {
-                    hendelseId
-                } else {
-                    UUID.nameUUIDFromBytes("$hendelseId:$aktørId".toByteArray(UTF_8)).toString()
-                }
+                val varselId = UUID.nameUUIDFromBytes("$hendelseId:$aktørId".toByteArray(UTF_8)).toString()
                 VarselService.opprettVarsler(
                     dataSource = dataSource,
                     avsenderReferanseId = stillingId,
