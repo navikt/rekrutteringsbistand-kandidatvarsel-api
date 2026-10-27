@@ -118,7 +118,6 @@ class KandidatCvDeltMedArbeidsgiverBehovLytterTest {
     @ParameterizedTest
     @CsvSource(
         "stillingsId, ugyldig-uuid",
-        "@id, ugyldig-uuid",
         "tidspunkt, ugyldig-tidspunkt",
         "tidspunkt, 2026-09-24T10:15:30",
     )

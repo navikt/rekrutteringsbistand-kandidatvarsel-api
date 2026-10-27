@@ -31,7 +31,6 @@ class KandidatCvDeltMedArbeidsgiverBehovLytter(
                 it.requireKey("kandidater", "stillingsId", "utførtAvNavIdent", "tidspunkt", "@id")
                 it.require("stillingsId") { node -> UUID.fromString(node.asString()) }
                 it.require("tidspunkt") { node -> ZonedDateTime.parse(node.asString()) }
-                it.require("@id") { node -> UUID.fromString(node.asString()) }
                 it.require("kandidater") { node ->
                     require(node.isObject) { "'kandidater' må være et objekt med aktørId som nøkler" }
                 }
@@ -45,15 +44,14 @@ class KandidatCvDeltMedArbeidsgiverBehovLytter(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val hendelseId = packet["@id"].asString()
         try {
             packet["@behov"] = packet["@behov"].toList().map(JsonNode::stringValue) + FØDSELSNUMMERLISTE_KEY
             packet["aktøridliste"] = packet["kandidater"].propertyNames().toList()
             rapidsConnection.publish(packet.toJson())
-            log.info("Publiserte behov for $EVENT_NAME, hendelseId=$hendelseId")
+            log.info("Publiserte behov for $EVENT_NAME")
         } catch (e: Exception) {
-            log.error("Feil ved publisering av behov for $EVENT_NAME, hendelseId=$hendelseId")
-            secureLog.error("Feil ved publisering av behov for $EVENT_NAME, hendelseId=$hendelseId", e)
+            log.error("Feil ved publisering av behov for $EVENT_NAME")
+            secureLog.error("Feil ved publisering av behov for $EVENT_NAME", e)
             throw e
         }
     }

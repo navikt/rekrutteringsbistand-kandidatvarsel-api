@@ -26,6 +26,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.testcontainers.postgresql.PostgreSQLContainer
 import java.nio.charset.StandardCharsets.UTF_8
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -52,6 +53,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
     private val stillingsId = "cf43157d-7b67-4c13-b6a2-248df8f89103"
     private val navIdent = "Z123456"
     private val hendelseId = "c5482334-9a9a-44b5-bb47-cd314ea45ec0"
+    private val delingstidspunkt = "2026-10-20T14:19:42.263+02:00"
 
     @BeforeAll
     fun oppsett() {
@@ -87,7 +89,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         assertEquals(fødselsnummerPerAktørId.getValue(kandidatAktørId), varsler.single().mottakerFnr)
         assertEquals(navIdent, varsler.single().avsenderNavIdent)
         assertEquals(stillingsId, varsler.single().avsenderReferanseId)
-        assertEquals(deterministiskVarselId(hendelseId, kandidatAktørId), varsler.single().varselId)
+        assertEquals(deterministiskVarselId(kandidatAktørId), varsler.single().varselId)
     }
 
     @Test
@@ -103,20 +105,51 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
 
         assertEquals(1, etter.size)
         assertEquals(før.single(), etter.single())
-        assertEquals(deterministiskVarselId(hendelseId, kandidatAktørId), etter.single().varselId)
+        assertEquals(deterministiskVarselId(kandidatAktørId), etter.single().varselId)
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [1, 3])
+    fun `skal beholde uendrede varsler når samme deling får ny hendelseId`(antallKandidater: Int) {
+        val aktørIder = fødselsnummerPerAktørId.keys.take(antallKandidater)
+        testRapid.sendTestMessage(objectMapper.writeValueAsString(melding(aktørIder)))
+        val før = hentVarsler().toSet()
+        assertEquals(antallKandidater, før.size)
+
+        testRapid.sendTestMessage(
+            objectMapper.writeValueAsString(melding(aktørIder) + ("@id" to UUID.randomUUID().toString())),
+        )
+
+        assertEquals(før, hentVarsler().toSet())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["2026-10-20T12:19:42.263Z", "2026-10-20T14:19:42.263000000+02:00[Europe/Oslo]"])
+    fun `skal beholde ett uendret varsel når samme tidspunkt har ulik formatering`(tidspunkt: String) {
+        testRapid.sendTestMessage(objectMapper.writeValueAsString(melding()))
+        val før = hentVarsler()
+        assertEquals(1, før.size)
+
+        val melding = melding() + mapOf(
+            "@id" to UUID.randomUUID().toString(),
+            "tidspunkt" to tidspunkt,
+        )
+        testRapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+
+        assertEquals(før, hentVarsler())
     }
 
     @Test
-    fun `skal opprette separate varsler for samme kandidat med ulike hendelseIder`() {
-        val hendelseIder = listOf(hendelseId, UUID.randomUUID().toString())
-        hendelseIder.forEach { id ->
-            testRapid.sendTestMessage(objectMapper.writeValueAsString(melding() + ("@id" to id)))
+    fun `skal opprette separate varsler for samme kandidat ved nye delingstidspunkter`() {
+        val tidspunkter = listOf(delingstidspunkt, "2026-10-20T14:19:42.263000001+02:00")
+        tidspunkter.forEach { tidspunkt ->
+            testRapid.sendTestMessage(objectMapper.writeValueAsString(melding() + ("tidspunkt" to tidspunkt)))
         }
 
         val varsler = hentVarsler()
         assertEquals(2, varsler.size)
         assertEquals(
-            hendelseIder.map { deterministiskVarselId(it, kandidatAktørId) }.toSet(),
+            tidspunkter.map { deterministiskVarselId(kandidatAktørId, tidspunkt = it) }.toSet(),
             varsler.map { it.varselId }.toSet(),
         )
         varsler.forEach {
@@ -125,6 +158,23 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
             assertEquals(navIdent, it.avsenderNavIdent)
             assertEquals(stillingsId, it.avsenderReferanseId)
         }
+    }
+
+    @Test
+    fun `skal opprette separate varsler for ulike stillinger på samme tidspunkt`() {
+        val stillingsIder = listOf(stillingsId, UUID.randomUUID().toString())
+        stillingsIder.forEach { id ->
+            testRapid.sendTestMessage(objectMapper.writeValueAsString(melding() + ("stillingsId" to id)))
+        }
+
+        val varsler = dataSource.transaction { tx ->
+            stillingsIder.flatMap { MinsideVarsel.hentVarslerForStilling(tx, it) }
+        }
+        assertEquals(2, varsler.size)
+        assertEquals(
+            stillingsIder.map { deterministiskVarselId(kandidatAktørId, referanseId = it) }.toSet(),
+            varsler.map { it.varselId }.toSet(),
+        )
     }
 
     @ParameterizedTest
@@ -159,6 +209,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
                     val aktørId = it.asString()
                     aktørId to fødselsnummerPerAktørId.getValue(aktørId)
                 }
+                packet["@id"] = UUID.randomUUID().toString()
                 antallBesvarelser++
                 rapid.publish(packet.toJson())
             }
@@ -211,7 +262,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         assertEquals(3, før.size)
         assertEquals(3, før.map { it.varselId }.toSet().size)
         assertEquals(
-            førsteRekkefølge.map { deterministiskVarselId(hendelseId, it) }.toSet(),
+            førsteRekkefølge.map { deterministiskVarselId(it) }.toSet(),
             før.map { it.varselId }.toSet()
         )
 
@@ -342,7 +393,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         val varsler = hentVarsler()
         assertEquals(1, varsler.size)
         assertEquals(fødselsnummerPerAktørId.getValue(kandidatAktørId), varsler.single().mottakerFnr)
-        assertEquals(deterministiskVarselId(hendelseId, kandidatAktørId), varsler.single().varselId)
+        assertEquals(deterministiskVarselId(kandidatAktørId), varsler.single().varselId)
         assertEquals(0, rapid.inspektør.size)
     }
 
@@ -385,7 +436,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         assertEquals(1, etterFørste.size)
         val førsteVarsel = etterFørste.single()
         assertEquals(fødselsnummerPerAktørId.getValue(aktør1), førsteVarsel.mottakerFnr)
-        assertEquals(deterministiskVarselId(hendelseId, aktør1), førsteVarsel.varselId)
+        assertEquals(deterministiskVarselId(aktør1), førsteVarsel.varselId)
 
         val fullMelding = melding(
             aktørIder = aktørIder,
@@ -399,7 +450,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         val etterAndre = hentVarsler()
         assertEquals(2, etterAndre.size)
         assertEquals(
-            aktørIder.map { deterministiskVarselId(hendelseId, it) }.toSet(),
+            aktørIder.map { deterministiskVarselId(it) }.toSet(),
             etterAndre.map { it.varselId }.toSet(),
         )
         assertEquals(
@@ -477,7 +528,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         "utførtAvNavIdent" to navIdent,
         "utførtAvNavKontorKode" to "0403",
         "meldingTilArbeidsgiver" to "",
-        "tidspunkt" to "2026-10-20T14:19:42.263+02:00",
+        "tidspunkt" to delingstidspunkt,
         "kandidater" to aktørIder.associateWith {
             mapOf(
                 "harHullICv" to true,
@@ -488,6 +539,11 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         },
     ) + if (fødselsnummerliste != null) mapOf("fodselsnummerliste" to fødselsnummerliste) else emptyMap()
 
-    private fun deterministiskVarselId(hendelseId: String, aktørId: String): String =
-        UUID.nameUUIDFromBytes("$hendelseId:$aktørId".toByteArray(UTF_8)).toString()
+    private fun deterministiskVarselId(
+        aktørId: String,
+        tidspunkt: String = delingstidspunkt,
+        referanseId: String = stillingsId,
+    ): String = UUID.nameUUIDFromBytes(
+        "${CvDeltMedArbeidsgiver.name}:$referanseId:$aktørId:${ZonedDateTime.parse(tidspunkt).toInstant()}".toByteArray(UTF_8),
+    ).toString()
 }

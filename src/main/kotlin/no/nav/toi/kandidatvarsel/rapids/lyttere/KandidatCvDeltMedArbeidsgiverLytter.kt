@@ -36,11 +36,9 @@ class KandidatCvDeltMedArbeidsgiverLytter(
                     "stillingsId",
                     "utførtAvNavIdent",
                     "tidspunkt",
-                    "@id",
                 )
                 it.require("stillingsId") { node -> UUID.fromString(node.asString()) }
                 it.require("tidspunkt") { node -> ZonedDateTime.parse(node.asString()) }
-                it.require("@id") { node -> UUID.fromString(node.asString()) }
                 it.require("kandidater") { node ->
                     require(node.isObject) { "'kandidater' må være et objekt med aktørId som nøkler" }
                 }
@@ -56,16 +54,18 @@ class KandidatCvDeltMedArbeidsgiverLytter(
     ) {
         val stillingId = packet["stillingsId"].asString()
         val avsenderNavident = packet["utførtAvNavIdent"].asString()
-        val hendelseId = packet["@id"].asString()
+        val tidspunkt = ZonedDateTime.parse(packet["tidspunkt"].asString()).toInstant()
         val aktørIder = packet["kandidater"].propertyNames().toList()
 
         log.info("Mottok $EVENT_NAME for stillingId=$stillingId <se secure log>")
-        secureLog.info("Mottok $EVENT_NAME for stillingId=$stillingId, hendelseId=$hendelseId, antallKandidater=${aktørIder.size}, avsenderNavident=$avsenderNavident")
+        secureLog.info("Mottok $EVENT_NAME for stillingId=$stillingId, antallKandidater=${aktørIder.size}, avsenderNavident=$avsenderNavident")
 
         try {
-            val fødselsnumre = hentOgValiderFødselsnumre(packet[FØDSELSNUMMERLISTE_KEY], aktørIder, hendelseId)
+            val fødselsnumre = hentOgValiderFødselsnumre(packet[FØDSELSNUMMERLISTE_KEY], aktørIder)
             fødselsnumre.forEach { (aktørId, fnr) ->
-                val varselId = UUID.nameUUIDFromBytes("$hendelseId:$aktørId".toByteArray(UTF_8)).toString()
+                val varselId = UUID.nameUUIDFromBytes(
+                    "${CvDeltMedArbeidsgiver.name}:$stillingId:$aktørId:$tidspunkt".toByteArray(UTF_8),
+                ).toString()
                 VarselService.opprettVarsler(
                     dataSource = dataSource,
                     avsenderReferanseId = stillingId,
@@ -78,7 +78,7 @@ class KandidatCvDeltMedArbeidsgiverLytter(
             log.info("Behandlet $EVENT_NAME for stillingId=$stillingId")
         } catch (e: Exception) {
             log.error("Feil ved behandling av $EVENT_NAME for stillingId=$stillingId")
-            secureLog.error("Feil ved behandling av $EVENT_NAME for stillingId=$stillingId, hendelseId=$hendelseId", e)
+            secureLog.error("Feil ved behandling av $EVENT_NAME for stillingId=$stillingId", e)
             throw e
         }
     }
@@ -101,8 +101,7 @@ class KandidatCvDeltMedArbeidsgiverLytter(
 
     private fun hentOgValiderFødselsnumre(
         fødselsnummerlisteNode: JsonNode,
-        aktørIder: List<String>,
-        hendelseId: String,
+        aktørIder: List<String>
     ): List<Pair<String, String>> {
         require(fødselsnummerlisteNode.isObject) { "'$FØDSELSNUMMERLISTE_KEY' må være objekt" }
 
@@ -113,7 +112,7 @@ class KandidatCvDeltMedArbeidsgiverLytter(
             if (fnrNode.isNull) {
                 if (clusterName == DEV_GCP_CLUSTER) {
                     log.warn("Mangler fødselsnummer for kandidat i $EVENT_NAME, hopper over kandidat i dev")
-                    secureLog.warn("Mangler fødselsnummer for kandidat i $EVENT_NAME, hendelseId=$hendelseId, aktørId=$aktørId")
+                    secureLog.warn("Mangler fødselsnummer for kandidat i $EVENT_NAME, aktørId=$aktørId")
                     return@mapNotNull null
                 }
                 throw IllegalArgumentException("Fødselsnummer kan ikke være null")
