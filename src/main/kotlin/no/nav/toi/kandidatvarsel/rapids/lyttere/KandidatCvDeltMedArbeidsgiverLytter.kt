@@ -11,13 +11,16 @@ import no.nav.toi.kandidatvarsel.SecureLog
 import no.nav.toi.kandidatvarsel.VarselService
 import no.nav.toi.kandidatvarsel.log
 import no.nav.toi.kandidatvarsel.minside.CvDeltMedArbeidsgiver
+import tools.jackson.databind.JsonNode
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
 class KandidatCvDeltMedArbeidsgiverLytter(
-    rapidsConnection: RapidsConnection,
+    private val rapidsConnection: RapidsConnection,
     private val dataSource: DataSource,
+    private val clusterName: String = System.getenv("NAIS_CLUSTER_NAME") ?: "local",
 ) : River.PacketListener {
     private val secureLog = SecureLog(log)
 
@@ -25,18 +28,22 @@ class KandidatCvDeltMedArbeidsgiverLytter(
         River(rapidsConnection).apply {
             precondition {
                 it.requireValue("@event_name", EVENT_NAME)
-                it.requireKey("aktivitetskortuuid")
             }
             validate {
                 it.requireKey(
-                    "fnr",
+                    "kandidater",
                     "stillingsId",
                     "utførtAvNavIdent",
                     "tidspunkt",
                     "@id",
                 )
+                it.interestedIn(FØDSELSNUMMERLISTE_KEY, "@behov", AKTØR_ID_LISTE_KEY)
                 it.require("stillingsId") { node -> UUID.fromString(node.asString()) }
                 it.require("tidspunkt") { node -> ZonedDateTime.parse(node.asString()) }
+                it.require("@id") { node -> UUID.fromString(node.asString()) }
+                it.require("kandidater") { node ->
+                    require(node.isObject) { "'kandidater' må være et objekt med aktørId som nøkler" }
+                }
             }
         }.register(this)
     }
@@ -50,24 +57,48 @@ class KandidatCvDeltMedArbeidsgiverLytter(
         val stillingId = packet["stillingsId"].asString()
         val avsenderNavident = packet["utførtAvNavIdent"].asString()
         val hendelseId = packet["@id"].asString()
+        val aktørIder = packet["kandidater"].propertyNames().toList()
 
-        val fødselsnumre = packet["kandidater"].asArray().flatMap { it.propertyNames() }
         log.info("Mottok $EVENT_NAME for stillingId=$stillingId <se secure log>")
-        secureLog.info("Mottok $EVENT_NAME for stillingId=$stillingId, fnr=$fødselsnumre, avsenderNavident=$avsenderNavident")
+        secureLog.info("Mottok $EVENT_NAME for stillingId=$stillingId, hendelseId=$hendelseId, antallKandidater=${aktørIder.size}, avsenderNavident=$avsenderNavident")
 
         try {
-            VarselService.opprettVarsler(
-                dataSource = dataSource,
-                avsenderReferanseId = stillingId,
-                fnrList = fødselsnumre,
-                mal = CvDeltMedArbeidsgiver,
-                avsenderNavident = avsenderNavident,
-                varselId = hendelseId,
-            )
+            val fødselsnummerlisteNode = packet[FØDSELSNUMMERLISTE_KEY]
+            if (fødselsnummerlisteNode.isMissingNode) {
+                val eksisterendeBehov = hentBehov(packet)
+                if (FØDSELSNUMMERLISTE_KEY in eksisterendeBehov) {
+                    log.info("Ignorerer melding med allerede uløst behov for $EVENT_NAME, hendelseId=$hendelseId")
+                    return
+                }
+
+                packet["@behov"] = eksisterendeBehov + FØDSELSNUMMERLISTE_KEY
+                packet[AKTØR_ID_LISTE_KEY] = aktørIder
+                // MessageContext erstatter @id ved publisering av den opprinnelige hendelsen.
+                rapidsConnection.publish(packet.toJson())
+                log.info("Publiserte behov for $EVENT_NAME, hendelseId=$hendelseId")
+                return
+            }
+
+            val fødselsnumre = hentOgValiderFødselsnumre(packet[FØDSELSNUMMERLISTE_KEY], aktørIder, hendelseId)
+            fødselsnumre.forEach { (aktørId, fnr) ->
+                val varselId = if (aktørIder.size == 1) {
+                    hendelseId
+                } else {
+                    UUID.nameUUIDFromBytes("$hendelseId:$aktørId".toByteArray(UTF_8)).toString()
+                }
+                VarselService.opprettVarsler(
+                    dataSource = dataSource,
+                    avsenderReferanseId = stillingId,
+                    fnrList = listOf(fnr),
+                    mal = CvDeltMedArbeidsgiver,
+                    avsenderNavident = avsenderNavident,
+                    varselId = varselId,
+                )
+            }
             log.info("Behandlet $EVENT_NAME for stillingId=$stillingId")
         } catch (e: Exception) {
             log.error("Feil ved behandling av $EVENT_NAME for stillingId=$stillingId")
-            secureLog.error("Feil ved behandling av $EVENT_NAME for stillingId=$stillingId, fnr=$fødselsnumre", e)
+            secureLog.error("Feil ved behandling av $EVENT_NAME for stillingId=$stillingId, hendelseId=$hendelseId", e)
             throw e
         }
     }
@@ -83,5 +114,45 @@ class KandidatCvDeltMedArbeidsgiverLytter(
 
     private companion object {
         const val EVENT_NAME = "kandidat_v2.DelCvMedArbeidsgiver"
+        const val FØDSELSNUMMERLISTE_KEY = "fodselsnummerliste"
+        const val AKTØR_ID_LISTE_KEY = "aktøridliste"
+        const val DEV_GCP_CLUSTER = "dev-gcp"
+        val FNR_REGEX = Regex("\\d{11}")
+    }
+
+    private fun hentBehov(packet: JsonMessage): List<String> {
+        val behov = packet["@behov"]
+        if (behov.isMissingNode) return emptyList()
+        require(behov.isArray) { "'@behov' må være en liste" }
+        return behov.toList().map {
+            require(it.isString) { "Behov må være tekstverdier" }
+            it.asString()
+        }
+    }
+
+    private fun hentOgValiderFødselsnumre(
+        fødselsnummerlisteNode: JsonNode,
+        aktørIder: List<String>,
+        hendelseId: String,
+    ): List<Pair<String, String>> {
+        require(fødselsnummerlisteNode.isObject) { "'$FØDSELSNUMMERLISTE_KEY' må være objekt" }
+
+        return aktørIder.mapNotNull { aktørId ->
+            val fnrNode = fødselsnummerlisteNode[aktørId]
+                ?: throw IllegalArgumentException("Mangler fødselsnummer for kandidat")
+            require(!fnrNode.isMissingNode) { "Mangler fødselsnummer for kandidat" }
+            if (fnrNode.isNull) {
+                if (clusterName == DEV_GCP_CLUSTER) {
+                    log.warn("Mangler fødselsnummer for kandidat i $EVENT_NAME, hopper over kandidat i dev")
+                    secureLog.warn("Mangler fødselsnummer for kandidat i $EVENT_NAME, hendelseId=$hendelseId, aktørId=$aktørId")
+                    return@mapNotNull null
+                }
+                throw IllegalArgumentException("Fødselsnummer kan ikke være null")
+            }
+            require(fnrNode.isString) { "Fødselsnummer må være tekstverdi" }
+            val fnr = fnrNode.asString()
+            require(fnr.matches(FNR_REGEX)) { "Ugyldig fødselsnummerformat" }
+            aktørId to fnr
+        }
     }
 }

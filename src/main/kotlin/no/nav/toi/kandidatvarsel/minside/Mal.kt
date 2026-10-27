@@ -99,6 +99,7 @@ object Maler {
             VurdertSomAktuell.name -> VurdertSomAktuell
             PassendeStilling.name -> PassendeStilling
             DelCv.name -> DelCv
+            CvDeltMedArbeidsgiver.name -> CvDeltMedArbeidsgiver
             PassendeJobbarrangement.name -> PassendeJobbarrangement
             KandidatInvitertTreff.name -> KandidatInvitertTreff
             KandidatInvitertWorkOp.name -> KandidatInvitertWorkOp
@@ -115,6 +116,7 @@ object Maler {
             VurdertSomAktuell.name,
             PassendeStilling.name,
             DelCv.name,
+            CvDeltMedArbeidsgiver.name,
             PassendeJobbarrangement.name
         )
 
