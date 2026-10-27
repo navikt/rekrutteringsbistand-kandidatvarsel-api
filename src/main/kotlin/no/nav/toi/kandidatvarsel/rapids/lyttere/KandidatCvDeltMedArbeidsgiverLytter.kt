@@ -18,7 +18,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 class KandidatCvDeltMedArbeidsgiverLytter(
-    private val rapidsConnection: RapidsConnection,
+    rapidsConnection: RapidsConnection,
     private val dataSource: DataSource,
     private val clusterName: String = System.getenv("NAIS_CLUSTER_NAME") ?: "local",
 ) : River.PacketListener {
@@ -28,6 +28,7 @@ class KandidatCvDeltMedArbeidsgiverLytter(
         River(rapidsConnection).apply {
             precondition {
                 it.requireValue("@event_name", EVENT_NAME)
+                it.requireKey(FØDSELSNUMMERLISTE_KEY)
             }
             validate {
                 it.requireKey(
@@ -37,7 +38,6 @@ class KandidatCvDeltMedArbeidsgiverLytter(
                     "tidspunkt",
                     "@id",
                 )
-                it.interestedIn(FØDSELSNUMMERLISTE_KEY, "@behov", AKTØR_ID_LISTE_KEY)
                 it.require("stillingsId") { node -> UUID.fromString(node.asString()) }
                 it.require("tidspunkt") { node -> ZonedDateTime.parse(node.asString()) }
                 it.require("@id") { node -> UUID.fromString(node.asString()) }
@@ -63,22 +63,6 @@ class KandidatCvDeltMedArbeidsgiverLytter(
         secureLog.info("Mottok $EVENT_NAME for stillingId=$stillingId, hendelseId=$hendelseId, antallKandidater=${aktørIder.size}, avsenderNavident=$avsenderNavident")
 
         try {
-            val fødselsnummerlisteNode = packet[FØDSELSNUMMERLISTE_KEY]
-            if (fødselsnummerlisteNode.isMissingNode) {
-                val eksisterendeBehov = hentBehov(packet)
-                if (FØDSELSNUMMERLISTE_KEY in eksisterendeBehov) {
-                    log.info("Ignorerer melding med allerede uløst behov for $EVENT_NAME, hendelseId=$hendelseId")
-                    return
-                }
-
-                packet["@behov"] = eksisterendeBehov + FØDSELSNUMMERLISTE_KEY
-                packet[AKTØR_ID_LISTE_KEY] = aktørIder
-                // MessageContext erstatter @id ved publisering av den opprinnelige hendelsen.
-                rapidsConnection.publish(packet.toJson())
-                log.info("Publiserte behov for $EVENT_NAME, hendelseId=$hendelseId")
-                return
-            }
-
             val fødselsnumre = hentOgValiderFødselsnumre(packet[FØDSELSNUMMERLISTE_KEY], aktørIder, hendelseId)
             fødselsnumre.forEach { (aktørId, fnr) ->
                 val varselId = if (aktørIder.size == 1) {
@@ -115,19 +99,8 @@ class KandidatCvDeltMedArbeidsgiverLytter(
     private companion object {
         const val EVENT_NAME = "kandidat_v2.DelCvMedArbeidsgiver"
         const val FØDSELSNUMMERLISTE_KEY = "fodselsnummerliste"
-        const val AKTØR_ID_LISTE_KEY = "aktøridliste"
         const val DEV_GCP_CLUSTER = "dev-gcp"
         val FNR_REGEX = Regex("\\d{11}")
-    }
-
-    private fun hentBehov(packet: JsonMessage): List<String> {
-        val behov = packet["@behov"]
-        if (behov.isMissingNode) return emptyList()
-        require(behov.isArray) { "'@behov' må være en liste" }
-        return behov.toList().map {
-            require(it.isString) { "Behov må være tekstverdier" }
-            it.asString()
-        }
     }
 
     private fun hentOgValiderFødselsnumre(

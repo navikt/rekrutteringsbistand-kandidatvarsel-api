@@ -16,7 +16,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -131,6 +130,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         val rapid = TestRapid()
         val aktørIder = fødselsnummerPerAktørId.keys.take(antallKandidater)
         var antallBesvarelser = 0
+        KandidatCvDeltMedArbeidsgiverBehovLytter(rapid)
         KandidatCvDeltMedArbeidsgiverLytter(rapid, dataSource, clusterName = prodCluster)
         River(rapid).apply {
             precondition {
@@ -232,7 +232,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
     }
 
     @Test
-    fun `skal publisere behov uten å opprette varsler når fødselsnummerliste mangler`() {
+    fun `skal ignorere hendelse uten fødselsnummerliste`() {
         val melding = melding(fødselsnummerliste = null)
         assertFalse(melding.containsKey("fnr"))
         assertFalse(melding.containsKey("aktivitetskortuuid"))
@@ -241,60 +241,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         testRapid.sendTestMessage(objectMapper.writeValueAsString(melding))
 
         assertEquals(0, hentVarsler().size)
-        assertEquals(1, testRapid.inspektør.size)
-        val behov = testRapid.inspektør.message(0)
-        assertTrue(behov.path("@behov").isArray)
-        assertTrue(behov.path("@behov").map { it.asText() }.contains("fodselsnummerliste"))
-        assertEquals(listOf(kandidatAktørId), behov.path("aktøridliste").map { it.asText() })
-        assertFalse(behov.has("fodselsnummerliste"))
-        assertEquals(hendelseId, behov.path("@id").asText())
-        assertEquals(stillingsId, behov.path("stillingsId").asText())
-        assertEquals("kandidat_v2.DelCvMedArbeidsgiver", behov.path("@event_name").asText())
-    }
-
-    @Test
-    fun `skal bevare hendelsesId ved gjentatt publisering av behov`() {
-        val melding = objectMapper.writeValueAsString(melding(fødselsnummerliste = null))
-
-        testRapid.sendTestMessage(melding)
-        testRapid.sendTestMessage(melding)
-
-        assertEquals(2, testRapid.inspektør.size)
-        assertEquals(
-            listOf(hendelseId, hendelseId),
-            (0 until testRapid.inspektør.size).map { testRapid.inspektør.message(it).path("@id").asText() },
-        )
-        assertEquals(0, hentVarsler().size)
-    }
-
-    @Test
-    fun `skal bevare eksisterende behov og hendelsesdata når nytt behov legges til`() {
-        val aktørIder = fødselsnummerPerAktørId.keys.toList()
-        val melding = melding(aktørIder, fødselsnummerliste = null) + mapOf(
-            "@behov" to listOf("annetbehov"),
-            "annetbehov" to mapOf("verdi" to "eksisterende svar"),
-        )
-
-        testRapid.sendTestMessage(objectMapper.writeValueAsString(melding))
-
-        assertEquals(1, testRapid.inspektør.size)
-        val behov = testRapid.inspektør.message(0)
-        assertEquals(listOf("annetbehov", "fodselsnummerliste"), behov.path("@behov").map { it.asText() })
-        assertEquals(aktørIder.toSet(), behov.path("aktøridliste").map { it.asText() }.toSet())
-        assertEquals("eksisterende svar", behov.path("annetbehov").path("verdi").asText())
-        assertEquals(0, hentVarsler().size)
-    }
-
-    @Test
-    fun `skal avvise ugyldig behov uten å publisere eller opprette varsler`() {
-        val melding = melding(fødselsnummerliste = null) + ("@behov" to "fodselsnummerliste")
-
-        assertThrows<IllegalArgumentException> {
-            testRapid.sendTestMessage(objectMapper.writeValueAsString(melding))
-        }
-
         assertEquals(0, testRapid.inspektør.size)
-        assertEquals(0, hentVarsler().size)
     }
 
     @Test
