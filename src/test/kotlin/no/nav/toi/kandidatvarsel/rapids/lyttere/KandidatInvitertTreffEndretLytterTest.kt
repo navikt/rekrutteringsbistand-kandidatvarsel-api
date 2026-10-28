@@ -1,5 +1,10 @@
 package no.nav.toi.kandidatvarsel.rapids.lyttere
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
+import org.slf4j.LoggerFactory
 import no.nav.toi.kandidatvarsel.util.TestRapid
 import no.nav.toi.kandidatvarsel.DatabaseConfig
 import no.nav.toi.kandidatvarsel.minside.*
@@ -244,11 +249,14 @@ class KandidatInvitertTreffEndretLytterTest {
     }
     
     @Test
-    fun `skal ikke opprette varsel når endredeFelter mangler`() {
+    fun `skal ignorere melding uten endredeFelter uten å logge feil`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
         val fnr = "12345678901"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
-        
+        val logger = LoggerFactory.getLogger(KandidatInvitertTreffEndretLytter::class.java) as Logger
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(appender)
+
         testRapid.sendTestMessage("""
             {
                 "@event_name": "rekrutteringstreffoppdatering",
@@ -258,12 +266,14 @@ class KandidatInvitertTreffEndretLytterTest {
                 "hendelseId": "$hendelseId"
             }
         """.trimIndent())
+        logger.detachAppender(appender)
 
         val varsler = dataSource.transaction { tx ->
             MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId)
         }
         
         assertEquals(0, varsler.size)
+        assertEquals(emptyList<ILoggingEvent>(), appender.list.filter { it.level == Level.ERROR })
     }
     
     @Test
