@@ -108,6 +108,36 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
         assertEquals(deterministiskVarselId(kandidatAktørId), etter.single().varselId)
     }
 
+    @Test
+    fun `skal bare opprette manglende varsler når kandidatlisten er delvis behandlet`() {
+        val aktørIder = fødselsnummerPerAktørId.keys.toList()
+        val melding = objectMapper.writeValueAsString(melding(aktørIder))
+        dataSource.transaction { tx ->
+            MinsideVarsel.create(
+                mal = CvDeltMedArbeidsgiver,
+                avsenderReferanseId = stillingsId,
+                mottakerFnr = fødselsnummerPerAktørId.getValue(aktørIder.first()),
+                avsenderNavident = navIdent,
+                varselId = deterministiskVarselId(aktørIder.first()),
+            ).markerBestilt().insert(tx)
+        }
+        val førsteVarsel = hentVarsler().single()
+
+        testRapid.sendTestMessage(melding)
+
+        val varsler = hentVarsler()
+        assertEquals(aktørIder.size, varsler.size)
+        assertEquals(
+            aktørIder.map { deterministiskVarselId(it) }.toSet(),
+            varsler.map { it.varselId }.toSet(),
+        )
+        assertEquals(førsteVarsel, varsler.single { it.varselId == førsteVarsel.varselId })
+        assertEquals(
+            aktørIder.drop(1).map { fødselsnummerPerAktørId.getValue(it) }.toSet(),
+            varsler.filterNot { it.bestilt }.map { it.mottakerFnr }.toSet(),
+        )
+    }
+
     @ParameterizedTest
     @ValueSource(ints = [1, 3])
     fun `skal beholde uendrede varsler når samme deling får ny hendelseId`(antallKandidater: Int) {
