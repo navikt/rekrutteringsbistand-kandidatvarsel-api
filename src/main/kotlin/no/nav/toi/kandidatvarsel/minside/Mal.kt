@@ -99,6 +99,7 @@ object Maler {
             VurdertSomAktuell.name -> VurdertSomAktuell
             PassendeStilling.name -> PassendeStilling
             DelCv.name -> DelCv
+            CvDeltMedArbeidsgiver.name -> CvDeltMedArbeidsgiver
             PassendeJobbarrangement.name -> PassendeJobbarrangement
             KandidatInvitertTreff.name -> KandidatInvitertTreff
             KandidatInvitertWorkOp.name -> KandidatInvitertWorkOp
@@ -115,6 +116,7 @@ object Maler {
             VurdertSomAktuell.name,
             PassendeStilling.name,
             DelCv.name,
+            CvDeltMedArbeidsgiver.name,
             PassendeJobbarrangement.name
         )
 
@@ -189,6 +191,26 @@ data object DelCv : StillingMal {
         Maler.epostHtmlBodyTemplate(
             """
                 Vi har funnet en stilling som kanskje kan passe for deg. Logg inn på Nav for å se stillingen, og svar på om du ønsker å dele cv'en din med arbeidsgiveren.
+            """.trimIndent()
+        )
+}
+
+data object CvDeltMedArbeidsgiver : StillingMal {
+    override val name = "CV_DELT_MED_ARBEIDSGIVER"
+
+    override fun minsideTekst(tittel: String, arbeidsgiver: String) =
+        "Nav har delt din CV med arbeidsgiver $arbeidsgiver på stillingen $tittel"
+
+    override fun smsTekst() =
+        "Hei! Nav har delt din CV med arbeidsgiver. Logg inn på Nav for å se stillingen. Vennlig hilsen Nav"
+
+    override fun epostTittel() =
+        "Nav har delt din CV med arbeidsgiver"
+
+    override fun epostHtmlBody() =
+        Maler.epostHtmlBodyTemplate(
+            """
+                Nav har delt din CV med arbeidsgiver. Logg inn på Nav for å se stillingen.
             """.trimIndent()
         )
 }

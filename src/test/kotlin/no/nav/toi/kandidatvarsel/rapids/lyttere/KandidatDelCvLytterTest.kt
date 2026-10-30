@@ -20,7 +20,7 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KandidatDelCvLytterTest {
-    private val postgres = PostgreSQLContainer("postgres:15").apply { start() }
+    private val postgres = PostgreSQLContainer("postgres:18").apply { start() }
     private val dataSource = DatabaseConfig(
         hostname = postgres.host,
         port = postgres.firstMappedPort,
