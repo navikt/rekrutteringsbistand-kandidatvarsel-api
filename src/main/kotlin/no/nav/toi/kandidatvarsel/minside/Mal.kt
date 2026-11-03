@@ -101,6 +101,7 @@ object Maler {
             DelCv.name -> DelCv
             CvDeltMedArbeidsgiver.name -> CvDeltMedArbeidsgiver
             PassendeJobbarrangement.name -> PassendeJobbarrangement
+            StillingsannonseOppdatert.name -> StillingsannonseOppdatert
             KandidatInvitertTreff.name -> KandidatInvitertTreff
             KandidatInvitertWorkOp.name -> KandidatInvitertWorkOp
             KandidatInvitertTreffEndret.name -> KandidatInvitertTreffEndret
@@ -117,7 +118,8 @@ object Maler {
             PassendeStilling.name,
             DelCv.name,
             CvDeltMedArbeidsgiver.name,
-            PassendeJobbarrangement.name
+            PassendeJobbarrangement.name,
+            StillingsannonseOppdatert.name
         )
 
         VarselType.REKRUTTERINGSTREFF -> listOf(
@@ -232,6 +234,24 @@ data object PassendeJobbarrangement : StillingMal {
             """
                     Vi har funnet et jobbarrangement som kanskje passer for deg. Logg inn på Nav for å se arrangementet.
                 """.trimIndent()
+        )
+}
+
+data object StillingsannonseOppdatert : StillingMal {
+    override val name = "STILLINGSANNONSE_OPPDATERT"
+
+    override fun minsideTekst(tittel: String, arbeidsgiver: String) =
+        "Nav har oppdatert stillingsannonsen «${tittel}» hos ${arbeidsgiver}. Åpne annonsen for å se oppdateringen."
+
+    override fun smsTekst() =
+        "Nav har oppdatert en stillingsannonse"
+
+    override fun epostTittel() =
+        "Nav har oppdatert en stillingsannonse"
+
+    override fun epostHtmlBody() =
+        Maler.epostHtmlBodyTemplate(
+            "Nav har oppdatert en stillingsannonse som gjelder deg. Logg inn på Nav for å se oppdateringen."
         )
 }
 

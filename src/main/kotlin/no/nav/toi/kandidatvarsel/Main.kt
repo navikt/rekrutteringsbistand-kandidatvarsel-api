@@ -15,6 +15,8 @@ import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertTreffEndretLytte
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatInvitertLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatDelCvLytter
 import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatTreffAvlystLytter
+import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatLukketKandidatlisteBehovLytter
+import no.nav.toi.kandidatvarsel.rapids.lyttere.KandidatLukketKandidatlisteLytter
 import org.flywaydb.core.api.output.MigrateResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -152,6 +154,8 @@ private fun registrerRapidsLyttere(
             KandidatDelCvLytter(rapidsConnection, dataSource)
             KandidatCvDeltMedArbeidsgiverBehovLytter(rapidsConnection)
             KandidatCvDeltMedArbeidsgiverLytter(rapidsConnection, dataSource)
+            KandidatLukketKandidatlisteBehovLytter(rapidsConnection)
+            KandidatLukketKandidatlisteLytter(rapidsConnection, dataSource)
         } else {
             log.info("DelCv-lyttere er deaktivert i dette miljøet")
         }
