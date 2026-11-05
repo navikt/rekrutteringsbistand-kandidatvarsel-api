@@ -39,6 +39,17 @@ class KandidatLukketKandidatlisteBehovLytterTest {
     }
 
     @Test
+    fun `publiserer behov med stillingsId som key`() {
+        val stillingsIder = listOf(UUID.randomUUID().toString(), UUID.randomUUID().toString())
+        stillingsIder.forEach { stillingsId ->
+            send(melding() + ("stillingsId" to stillingsId))
+        }
+
+        assertEquals(stillingsIder.size, rapid.inspektør.size)
+        assertEquals(stillingsIder, (0 until rapid.inspektør.size).map { rapid.inspektør.key(it) })
+    }
+
+    @Test
     fun `ber ikke om behov på nytt når det er etterspurt eller besvart`() {
         send(melding() + ("@behov" to listOf("fodselsnummerliste")))
         send(melding() + ("fodselsnummerliste" to mottakere.associateWith { "01019012345" }))

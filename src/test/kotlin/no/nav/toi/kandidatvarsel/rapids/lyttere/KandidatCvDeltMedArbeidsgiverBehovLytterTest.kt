@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import java.util.UUID
 
 class KandidatCvDeltMedArbeidsgiverBehovLytterTest {
     private val testRapid = TestRapid().also { KandidatCvDeltMedArbeidsgiverBehovLytter(it) }
@@ -44,6 +45,17 @@ class KandidatCvDeltMedArbeidsgiverBehovLytterTest {
             listOf("fodselsnummerliste"),
             testRapid.inspektør.message(0).path("@behov").map { it.asText() },
         )
+    }
+
+    @Test
+    fun `skal publisere behov med stillingsId som key`() {
+        val stillingsIder = listOf(UUID.randomUUID().toString(), UUID.randomUUID().toString())
+        stillingsIder.forEach { stillingsId ->
+            testRapid.sendTestMessage(objectMapper.writeValueAsString(melding() + ("stillingsId" to stillingsId)))
+        }
+
+        assertEquals(stillingsIder.size, testRapid.inspektør.size)
+        assertEquals(stillingsIder, (0 until testRapid.inspektør.size).map { testRapid.inspektør.key(it) })
     }
 
     @Test

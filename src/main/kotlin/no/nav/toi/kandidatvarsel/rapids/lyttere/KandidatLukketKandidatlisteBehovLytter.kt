@@ -52,7 +52,7 @@ class KandidatLukketKandidatlisteBehovLytter(
 
             packet["@behov"] = packet["@behov"].toList().map(JsonNode::stringValue) + "fodselsnummerliste"
             packet["aktøridliste"] = mottakere
-            rapidsConnection.publish(packet.toJson())
+            rapidsConnection.publish(packet["stillingsId"].asString(), packet.toJson())
             log.info("Publiserte fødselsnummerbehov for $EVENT_NAME, antallMottakere=${mottakere.size}")
         } catch (e: Exception) {
             log.error("Feil ved behandling av fødselsnummerbehov for $EVENT_NAME")
