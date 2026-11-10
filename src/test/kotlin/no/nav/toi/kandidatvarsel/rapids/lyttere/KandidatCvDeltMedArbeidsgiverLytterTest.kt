@@ -225,7 +225,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
                 it.require("@behov") { behov ->
                     require(behov.toList().any { it.asString() == "fodselsnummerliste" })
                 }
-                it.requireKey("aktøridliste", "@id")
+                it.requireKey("aktørIder", "@id")
             }
         }.register(object : River.PacketListener {
             override fun onPacket(
@@ -235,7 +235,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
                 meterRegistry: MeterRegistry,
             ) {
                 assertEquals(hendelseId, packet["@id"].asString())
-                packet["fodselsnummerliste"] = packet["aktøridliste"].toList().associate {
+                packet["fodselsnummerliste"] = packet["aktørIder"].toList().associate {
                     val aktørId = it.asString()
                     aktørId to fødselsnummerPerAktørId.getValue(aktørId)
                 }
@@ -346,7 +346,7 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
     fun `skal ikke republisere når uløst behov allerede finnes`() {
         val melding = melding(fødselsnummerliste = null) + mapOf(
             "@behov" to listOf("fodselsnummerliste"),
-            "aktøridliste" to listOf(kandidatAktørId),
+            "aktørIder" to listOf(kandidatAktørId),
         )
 
         testRapid.sendTestMessage(objectMapper.writeValueAsString(melding))

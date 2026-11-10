@@ -46,7 +46,7 @@ class KandidatCvDeltMedArbeidsgiverBehovLytter(
     ) {
         try {
             packet["@behov"] = packet["@behov"].toList().map(JsonNode::stringValue) + FØDSELSNUMMERLISTE_KEY
-            packet["aktøridliste"] = packet["kandidater"].propertyNames().toList()
+            packet["aktørIder"] = packet["kandidater"].propertyNames().toList()
             rapidsConnection.publish(packet["stillingsId"].asString(), packet.toJson())
             log.info("Publiserte behov for $EVENT_NAME")
         } catch (e: Exception) {

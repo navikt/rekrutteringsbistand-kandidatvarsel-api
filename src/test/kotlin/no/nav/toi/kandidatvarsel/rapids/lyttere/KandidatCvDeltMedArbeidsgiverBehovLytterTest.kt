@@ -25,13 +25,14 @@ class KandidatCvDeltMedArbeidsgiverBehovLytterTest {
         assertEquals(1, testRapid.inspektør.size)
         val forventet = melding + mapOf(
             "@behov" to listOf("fodselsnummerliste"),
-            "aktøridliste" to aktørIder,
+            "aktørIder" to aktørIder,
         )
         val behov = testRapid.inspektør.message(0)
         forventet.forEach { (felt, verdi) ->
             assertEquals(objectMapper.valueToTree(verdi), behov.path(felt), felt)
         }
         assertFalse(behov.has("fodselsnummerliste"))
+        assertFalse(behov.has("aktøridliste"))
     }
 
     @Test
@@ -102,7 +103,7 @@ class KandidatCvDeltMedArbeidsgiverBehovLytterTest {
         val behov = mutableListOf("annetbehov").apply { add(posisjon, "fodselsnummerliste") }
         val melding = melding() + mapOf(
             "@behov" to behov,
-            "aktøridliste" to aktørIder,
+            "aktørIder" to aktørIder,
         )
 
         testRapid.sendTestMessage(objectMapper.writeValueAsString(melding))

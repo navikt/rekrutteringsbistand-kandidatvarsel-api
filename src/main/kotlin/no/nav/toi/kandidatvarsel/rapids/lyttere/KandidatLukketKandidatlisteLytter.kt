@@ -25,7 +25,7 @@ class KandidatLukketKandidatlisteLytter(
         River(rapidsConnection).apply {
             precondition {
                 it.requireValue("@event_name", EVENT_NAME)
-                it.requireKey("fodselsnummerliste")
+                it.requireKey("fodselsnummerliste", "aktørIdSamtykkeStatusListe")
             }
             validate {
                 it.requireKey("stillingsId", "utførtAvNavIdent", "tidspunkt")
@@ -52,7 +52,9 @@ class KandidatLukketKandidatlisteLytter(
         try {
             val stillingId = packet["stillingsId"].asString()
             val tidspunkt = ZonedDateTime.parse(packet["tidspunkt"].asString()).toInstant()
-            val mottakere = packet["aktørIderFikkIkkeJobben"].toList().map(JsonNode::asString).distinct()
+            val kandidater = packet["aktørIderFikkIkkeJobben"].toList().map(JsonNode::asString).distinct()
+            if (kandidater.isEmpty()) return
+            val mottakere = hentMottakereMedSamtykke(packet["aktørIdSamtykkeStatusListe"], kandidater)
             if (mottakere.isEmpty()) return
 
             val fødselsnumre = hentOgValiderFødselsnumre(packet["fodselsnummerliste"], mottakere)
@@ -80,6 +82,24 @@ class KandidatLukketKandidatlisteLytter(
         log.error("Ugyldig $EVENT_NAME-melding")
     }
 
+    private fun hentMottakereMedSamtykke(node: JsonNode, kandidater: List<String>): List<String> {
+        require(node.isArray) { "'aktørIdSamtykkeStatusListe' må være en liste" }
+        val statuser = node.toList().associate { status ->
+            val aktørId = status.path("aktørId")
+            val samtykkeStatus = status.path("samtykkeStatus")
+            require(aktørId.isString && aktørId.asString().matches(Regex("\\d{13}"))) {
+                "Ugyldig aktør-ID i samtykkestatus"
+            }
+            require(samtykkeStatus.isString && samtykkeStatus.asString() in SAMTYKKESTATUSER) {
+                "Ugyldig samtykkestatus"
+            }
+            aktørId.asString() to samtykkeStatus.asString()
+        }
+        require(statuser.size == node.size()) { "Duplikate aktør-ID-er i samtykkestatus" }
+        require(kandidater.all { it in statuser }) { "Mangler samtykkestatus for kandidat" }
+        return kandidater.filter { statuser.getValue(it) == "HAR_GYLDIG_SAMTYKKE" }
+    }
+
     private fun hentOgValiderFødselsnumre(node: JsonNode, mottakere: List<String>): List<Pair<String, String>> {
         require(node.isObject) { "'fodselsnummerliste' må være et objekt" }
         return mottakere.mapNotNull { aktørId ->
@@ -98,5 +118,6 @@ class KandidatLukketKandidatlisteLytter(
 
     private companion object {
         const val EVENT_NAME = "kandidat_v2.LukketKandidatliste"
+        val SAMTYKKESTATUSER = setOf("IKKE_SPURT", "IKKE_SVART", "HAR_GYLDIG_SAMTYKKE", "HAR_IKKE_GYLDIG_SAMTYKKE")
     }
 }

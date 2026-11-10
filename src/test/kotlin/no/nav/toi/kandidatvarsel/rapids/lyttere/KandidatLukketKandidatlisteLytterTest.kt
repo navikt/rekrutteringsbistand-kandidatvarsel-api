@@ -21,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.testcontainers.postgresql.PostgreSQLContainer
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.ZonedDateTime
@@ -72,20 +74,29 @@ class KandidatLukketKandidatlisteLytterTest {
         }
     }
 
-    @Test
-    fun `lukking berikes og bestilles hos minside uten duplikater ved ny levering`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["fodselsnummerliste", "aktørIdSamtykkeStatusListe"])
+    fun `lukking venter på begge behov og bestilles uten duplikater ved ny levering`(førsteSvar: String) {
         val flytRapid = TestRapid().also {
             KandidatLukketKandidatlisteBehovLytter(it)
             KandidatLukketKandidatlisteLytter(it, dataSource, "local")
         }
-        flytRapid.sendTestMessage(mapper.writeValueAsString(melding() - "fodselsnummerliste"))
+        flytRapid.sendTestMessage(mapper.writeValueAsString(melding() - "fodselsnummerliste" - "aktørIdSamtykkeStatusListe"))
         assertEquals(0, hentVarsler().size)
         assertEquals(1, flytRapid.inspektør.size)
 
         val behov = flytRapid.inspektør.message(0)
-        assertEquals(mottakere, behov["aktøridliste"].map { it.asText() })
+        assertEquals(mottakere, behov["aktørIder"].map { it.asText() })
         val beriket = behov.deepCopy<ObjectNode>().apply {
+            set<ObjectNode>(førsteSvar, mapper.valueToTree(melding().getValue(førsteSvar)))
+        }
+        flytRapid.sendTestMessage(beriket.toString())
+        assertEquals(0, hentVarsler().size)
+        assertEquals(1, flytRapid.inspektør.size)
+
+        beriket.apply {
             set<ObjectNode>("fodselsnummerliste", mapper.valueToTree(fødselsnumre))
+            set<ObjectNode>("aktørIdSamtykkeStatusListe", mapper.valueToTree(samtykkestatuser()))
         }
         flytRapid.sendTestMessage(beriket.toString())
         flytRapid.sendTestMessage(beriket.toString())
@@ -187,7 +198,51 @@ class KandidatLukketKandidatlisteLytterTest {
     fun `tom liste og melding uten berikelse oppretter ingen varsler`() {
         send(melding() + ("aktørIderFikkIkkeJobben" to emptyList<String>()))
         send(melding() - "fodselsnummerliste")
+        send(melding() - "aktørIdSamtykkeStatusListe")
+        send(melding() + ("aktørIdSamtykkeStatusListe" to null))
         assertEquals(0, hentVarsler().size)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["IKKE_SPURT", "IKKE_SVART", "HAR_IKKE_GYLDIG_SAMTYKKE"])
+    fun `varsler bare kandidaten med gyldig samtykke`(status: String) {
+        val samtykker = samtykkestatuser().map {
+            if (it["aktørId"] == mottakere.last()) it + ("samtykkeStatus" to status) else it
+        }
+        send(melding() + mapOf(
+            "aktørIdSamtykkeStatusListe" to samtykker,
+            "fodselsnummerliste" to (fødselsnumre - mottakere.last()),
+        ))
+
+        assertEquals(listOf(fødselsnumre.getValue(mottakere.first())), hentVarsler().map { it.mottakerFnr })
+    }
+
+    @Test
+    fun `oppretter ingen varsler når ingen har gyldig samtykke`() {
+        send(melding() + mapOf(
+            "aktørIdSamtykkeStatusListe" to samtykkestatuser().map { it + ("samtykkeStatus" to "IKKE_SVART") },
+            "fodselsnummerliste" to emptyMap<String, String>(),
+        ))
+        assertEquals(0, hentVarsler().size)
+    }
+
+    @Test
+    fun `avviser ufullstendige ugyldige og duplikate samtykkesvar før varsler lagres`() {
+        val samtykker = samtykkestatuser()
+        listOf(
+            emptyMap<String, String>(),
+            samtykker.filter { it["aktørId"] != mottakere.last() },
+            samtykker + samtykker.first(),
+            samtykker.map { if (it["aktørId"] == mottakere.last()) it - "samtykkeStatus" else it },
+            samtykker.map { if (it["aktørId"] == mottakere.last()) it + ("samtykkeStatus" to "UKJENT") else it },
+        ).forEach { svar ->
+            assertThrows<IllegalArgumentException> { send(melding() + ("aktørIdSamtykkeStatusListe" to svar)) }
+            assertEquals(0, hentVarsler().size)
+        }
+    }
+
+    private fun samtykkestatuser() = fødselsnumre.keys.map {
+        mapOf("aktørId" to it, "samtykkeStatus" to "HAR_GYLDIG_SAMTYKKE", "brukerAkas" to false)
     }
 
     private fun hentVarsler() = dataSource.transaction { MinsideVarsel.hentVarslerForStilling(it, stillingId) }
@@ -201,5 +256,6 @@ class KandidatLukketKandidatlisteLytterTest {
         "aktørIderFikkIkkeJobben" to mottakere,
         "aktørIderFikkJobben" to listOf(fødselsnumre.keys.last()),
         "fodselsnummerliste" to fødselsnumre,
+        "aktørIdSamtykkeStatusListe" to samtykkestatuser(),
     )
 }

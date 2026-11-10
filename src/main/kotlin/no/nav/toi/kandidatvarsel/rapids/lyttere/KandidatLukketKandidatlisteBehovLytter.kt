@@ -19,10 +19,7 @@ class KandidatLukketKandidatlisteBehovLytter(
         River(rapidsConnection).apply {
             precondition {
                 it.requireValue("@event_name", EVENT_NAME)
-                it.forbid("fodselsnummerliste")
-                it.interestedIn("@behov", parser = { node ->
-                    require("fodselsnummerliste" !in node.toList().map(JsonNode::stringValue))
-                })
+                it.interestedIn("@behov", "fodselsnummerliste", "aktørIdSamtykkeStatusListe")
             }
             validate {
                 it.requireKey("stillingsId", "utførtAvNavIdent", "tidspunkt")
@@ -50,18 +47,23 @@ class KandidatLukketKandidatlisteBehovLytter(
             val mottakere = packet["aktørIderFikkIkkeJobben"].toList().map(JsonNode::asString).distinct()
             if (mottakere.isEmpty()) return
 
-            packet["@behov"] = packet["@behov"].toList().map(JsonNode::stringValue) + "fodselsnummerliste"
-            packet["aktøridliste"] = mottakere
+            val eksisterendeBehov = packet["@behov"].toList().map(JsonNode::stringValue)
+            val nyeBehov = listOf("fodselsnummerliste", "aktørIdSamtykkeStatusListe")
+                .filter { it !in eksisterendeBehov && packet[it].isMissingNode }
+            if (nyeBehov.isEmpty()) return
+
+            packet["@behov"] = eksisterendeBehov + nyeBehov
+            packet["aktørIder"] = mottakere
             rapidsConnection.publish(packet["stillingsId"].asString(), packet.toJson())
-            log.info("Publiserte fødselsnummerbehov for $EVENT_NAME, antallMottakere=${mottakere.size}")
+            log.info("Publiserte behov for $EVENT_NAME, antallMottakere=${mottakere.size}")
         } catch (e: Exception) {
-            log.error("Feil ved behandling av fødselsnummerbehov for $EVENT_NAME")
+            log.error("Feil ved behandling av behov for $EVENT_NAME")
             throw e
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("Ugyldig $EVENT_NAME-melding for fødselsnummerbehov")
+        log.error("Ugyldig $EVENT_NAME-melding for behov")
     }
 
     private companion object {

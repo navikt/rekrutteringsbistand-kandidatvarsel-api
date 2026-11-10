@@ -1,8 +1,10 @@
 package no.nav.toi.kandidatvarsel.rapids.lyttere
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.toi.kandidatvarsel.util.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -15,7 +17,7 @@ class KandidatLukketKandidatlisteBehovLytterTest {
     private val fikkJobben = "1000000000003"
 
     @Test
-    fun `ber bare om fødselsnumre for unike kandidater som ikke fikk jobben`() {
+    fun `ber om fødselsnumre og samtykke for unike kandidater som ikke fikk jobben`() {
         val melding = melding() + mapOf(
             "aktørIderFikkIkkeJobben" to mottakere + mottakere.first(),
             "@behov" to listOf("annetbehov"),
@@ -25,8 +27,9 @@ class KandidatLukketKandidatlisteBehovLytterTest {
 
         assertEquals(1, rapid.inspektør.size)
         val behov = rapid.inspektør.message(0)
-        assertEquals(mottakere, behov["aktøridliste"].map { it.asText() })
-        assertEquals(listOf("annetbehov", "fodselsnummerliste"), behov["@behov"].map { it.asText() })
+        assertFalse(behov.has("aktøridliste"))
+        assertEquals(mottakere, behov["aktørIder"].map { it.asText() })
+        assertEquals(listOf("annetbehov", "fodselsnummerliste", "aktørIdSamtykkeStatusListe"), behov["@behov"].map { it.asText() })
         assertEquals("eksisterende svar", behov["annetbehov"].asText())
         assertEquals(listOf(fikkJobben), behov["aktørIderFikkJobben"].map { it.asText() })
     }
@@ -35,7 +38,7 @@ class KandidatLukketKandidatlisteBehovLytterTest {
     fun `publiserer behov uten eksisterende behovsliste`() {
         send(melding())
         assertEquals(1, rapid.inspektør.size)
-        assertEquals(listOf("fodselsnummerliste"), rapid.inspektør.message(0)["@behov"].map { it.asText() })
+        assertEquals(listOf("fodselsnummerliste", "aktørIdSamtykkeStatusListe"), rapid.inspektør.message(0)["@behov"].map { it.asText() })
     }
 
     @Test
@@ -51,9 +54,32 @@ class KandidatLukketKandidatlisteBehovLytterTest {
 
     @Test
     fun `ber ikke om behov på nytt når det er etterspurt eller besvart`() {
-        send(melding() + ("@behov" to listOf("fodselsnummerliste")))
-        send(melding() + ("fodselsnummerliste" to mottakere.associateWith { "01019012345" }))
+        send(melding() + ("@behov" to listOf("fodselsnummerliste", "aktørIdSamtykkeStatusListe")))
+        send(melding() + mapOf(
+            "fodselsnummerliste" to mottakere.associateWith { "01019012345" },
+            "aktørIdSamtykkeStatusListe" to emptyList<Any>(),
+        ))
         assertEquals(0, rapid.inspektør.size)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["fodselsnummerliste", "aktørIdSamtykkeStatusListe"])
+    fun `legger bare til manglende behov og bevarer eksisterende svar`(eksisterendeBehov: String) {
+        val svar: JsonNode = if (eksisterendeBehov == "fodselsnummerliste") {
+            mapper.valueToTree(mottakere.associateWith { "01019012345" })
+        } else {
+            mapper.valueToTree(mottakere.map { mapOf("aktørId" to it, "samtykkeStatus" to "IKKE_SVART") })
+        }
+        send(melding() + mapOf("@behov" to listOf(eksisterendeBehov), eksisterendeBehov to svar))
+
+        assertEquals(1, rapid.inspektør.size)
+        val behov = rapid.inspektør.message(0)
+        assertEquals(svar, behov[eksisterendeBehov])
+        assertEquals(
+            setOf("fodselsnummerliste", "aktørIdSamtykkeStatusListe"),
+            behov["@behov"].map { it.asText() }.toSet(),
+        )
+        assertEquals(2, behov["@behov"].size())
     }
 
     @Test
