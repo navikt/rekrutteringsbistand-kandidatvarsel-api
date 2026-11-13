@@ -32,9 +32,6 @@ spec:
         - application: rekrutteringsbistand-frontend
         - application: rekrutteringsbistand-frontend2
         - application: rekrutteringsbistand-kandidat-api
-        - application: rekrutteringsbistand-kandidat-api
-          namespace: toi
-          cluster: {{ fssCluster }}
     outbound:
       rules:
         - application: rekrutteringsbistand-stilling-api
