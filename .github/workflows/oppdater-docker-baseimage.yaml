@@ -1,7 +1,7 @@
 name: Oppdater Docker run-time base-image
 on:
   schedule:
-    - cron: '33 5 * * 1'
+    - cron: '33 5 * * *'
   workflow_dispatch:
 
 jobs:
