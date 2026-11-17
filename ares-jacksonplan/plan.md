@@ -8,11 +8,11 @@ Utvikleren oppretter brancher og pull requests manuelt.
 
 ## Forutsetninger og avklaringer
 
-- Planen forutsetter at Jackson 2 kan beholdes midlertidig der migrering krever omfattende endringer. Dette må bekreftes.
+- Jackson 2 kan beholdes midlertidig der migrering krever omfattende endringer.
 - JSON-kontrakter, autentisering og forretningslogikk skal beholde dagens oppførsel.
 - Nye felt, mottakere, logger med payloads eller tilgangsregler inngår ikke.
 - Gradle Wrapper, Java-versjon, Docker-images, CI-actions og Nais-konfigurasjon oppgraderes ikke uten et dokumentert behov og egen avklaring.
-- OpenTelemetry-avhengigheten bruker allerede en alpha-versjon. Dersom artefaktet ikke har en stabil release eller støttet stabil erstatning, må et unntak avklares.
+- OpenTelemetry-avhengigheten kan få unntak fra kravet om stabil release dersom artefaktet bare finnes som alpha. Tilgjengelige versjoner skal kontrolleres før unntaket brukes.
 
 ## Utgangspunkt
 
@@ -38,7 +38,7 @@ Ingen versjonsendringer.
 
 ```bash
 ./gradlew --version
-./gradlew clean build
+./gradlew clean build --warning-mode fail --configuration-cache -Dorg.gradle.configuration-cache.parallel=true
 ./gradlew dependencies --configuration runtimeClasspath
 ./gradlew dependencies --configuration testRuntimeClasspath
 ./gradlew dependencyInsight --dependency jackson --configuration runtimeClasspath
@@ -58,7 +58,7 @@ Ingen versjonsendringer.
 
 ```bash
 ./gradlew dependencyUpdates
-./gradlew clean build
+./gradlew clean build --warning-mode fail --configuration-cache -Dorg.gradle.configuration-cache.parallel=true
 ```
 
 Kontroller Kotlin-, Gradle- og JDK-kompatibilitet før pluginoppgradering. Ikke stol på versjonsrapporten alene.
@@ -163,7 +163,7 @@ Et tredjepartsbibliotek kan blokkere det siste uten å blokkere det første.
 
 Hver iterasjon skal ha:
 
-- Grønt `./gradlew clean build`.
+- Grønt `./gradlew clean build --warning-mode fail --configuration-cache -Dorg.gradle.configuration-cache.parallel=true`.
 - Beståtte relevante kontrakt- og integrasjonstester.
 - Gjennomgått kildekode- og avhengighetsdiff.
 - Dokumenterte unntak og blokkeringer.
