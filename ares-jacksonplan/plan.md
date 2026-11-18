@@ -71,6 +71,8 @@ Kontroller Kotlin-, Gradle- og JDK-kompatibilitet før pluginoppgradering. Ikke 
 
 ## Iterasjon 2: Oppgrader øvrige avhengigheter
 
+**Status:** Fullført 18. november 2026. Alle fem grupper er oppgradert og verifisert med 206 tester uten feil eller hoppede tester. Direkte Jackson-pinner er uendret, men transitive avhengigheter løfter Jackson 2 til `2.22.4` i begge konfigurasjoner og Jackson 3 til `3.2.4` i produksjon og `3.3.0` i tester. Se [resultatet fra iterasjon 2](iterasjon-2.md) for versjoner, kompatibilitetsforbehold og rollback.
+
 Del arbeidet i separate deliterasjoner:
 
 | Gruppe | Avhengigheter |
