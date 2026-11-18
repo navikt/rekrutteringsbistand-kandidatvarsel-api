@@ -24,9 +24,11 @@ Kartleggingen viser:
 - Ben Manes-pluginen finnes allerede i bygget.
 - Kotlin-pluginen er `2.4.20`, Gradle Wrapper er `9.9.1`, og JVM-toolchain er Java 25.
 
-Oppløste avhengighetsversjoner, nyeste offentlige release-versjoner og dagens byggstatus er ikke verifisert. De kontrolleres før endringer.
+Byggstatus og oppløste avhengighetsversjoner er verifisert i iterasjon 0, se [baseline-resultatet](iterasjon-0.md). Nyeste offentlige release-versjoner kontrolleres i iterasjon 1.
 
 ## Iterasjon 0: Etabler baseline
+
+**Status:** Fullført og verifisert på nytt 18. november 2026. Bygget er grønt med 206 tester uten feil eller hoppede tester. Avhengigheter og JSON-grenser er dokumentert i [baseline-resultatet](iterasjon-0.md).
 
 Ingen versjonsendringer.
 
@@ -48,6 +50,8 @@ Ingen versjonsendringer.
 **Ferdig når:** Utgangspunktet kan reproduseres, eller konkrete blokkeringer er avklart.
 
 ## Iterasjon 1: Finn målversjoner og oppgrader Gradle-plugins
+
+**Status:** Fullført 18. november 2026. Kotlin-pluginen er oppgradert til `2.4.21`, og Ben Manes-pluginen til `0.67.0`. Bygget er grønt med 206 tester. Kontrollerte målversjoner og begrensningen i dokumentert Gradle-støtte er beskrevet i [resultatet fra iterasjon 1](iterasjon-1.md).
 
 1. Bruk eksisterende Ben Manes-plugin til å finne oppgraderingskandidater.
 2. Kontroller hver målversjon mot Maven Central, Gradle Plugin Portal eller bibliotekets offentlige pakkeregister og release-informasjon.

@@ -4,9 +4,25 @@
 
 Fullført 17. november 2026 på branchen `start-jackson-migrering`, med utgangspunkt i commit `b9fbb46aea3767bbd7f1ae7c990ffdd4bd454bff`. Ingen kode, avhengigheter eller versjoner er endret i iterasjonen.
 
-Arbeidskopien hadde fra før endringer i `ares-jacksonplan/plan.md` og en usporet `cplt-docker-tests.txt`. Disse er ikke rørt. Byggkommandoen nedenfor følger den eksisterende arbeidskopien av planen.
+Ved kjøringen 17. november hadde arbeidskopien fra før endringer i `ares-jacksonplan/plan.md` og en usporet `cplt-docker-tests.txt`. Disse ble ikke rørt i den kjøringen. Byggkommandoen nedenfor fulgte den eksisterende arbeidskopien av planen.
 
 ## Miljø og reproduksjon
+
+### Ny verifikasjon 18. november 2026
+
+Alle seks kommandoene nedenfor er kjørt på nytt med utgangspunkt i commit `055f92e341fe2b264848322ed6adc74fc39493df`. Arbeidskopien var ren før denne dokumentasjonsoppdateringen. Alle kommandoene fullførte med exitkode 0.
+
+- Bygget fullførte på 27 sekunder og gjenbrukte configuration cache.
+- JUnit-rapportene viser fortsatt 206 tester i 24 testklasser, uten feil eller hoppede tester.
+- Begge classpathene har fortsatt Jackson 2 `2.22.3`, Jackson 3 `3.2.2` og delte annotasjoner `2.22`. Ingen uoppløste avhengigheter ble rapportert.
+- Hele avhengighetstreet i hver av de to runtime-rapportene er sammenlignet med den versjonerte baseline-rapporten og er uendret.
+- Gradle er fortsatt `9.9.1`, og launcher-JVM er Eclipse Adoptium `25.0.5+8-LTS`.
+- Tidligere nektet lesetilgang til Docker-konfigurasjon og portkonflikter oppstod ikke. Årsaken til at miljøet nå virker, er ikke undersøkt.
+- Eksisterende kompilator- og JVM-advarsler består. Ingen kode, versjoner eller byggkonfigurasjon er endret.
+
+Nye rårapporter ligger lokalt i `build/reports/jackson-baseline/`: `runtimeClasspath.txt`, `testRuntimeClasspath.txt`, `runtimeClasspath-jackson.txt` og `testRuntimeClasspath-jackson.txt`. De slettes av neste `clean`. De versjonerte rapportene under [iterasjon-0/](iterasjon-0/) beholdes som opprinnelig baseline.
+
+### Opprinnelig miljø og kjøring
 
 | Verktøy | Verifisert versjon |
 |---|---|
@@ -136,6 +152,8 @@ Ingen bygg- eller testfeil og ingen gjenstående sandbox-blokkeringer ble observ
 
 `--warning-mode fail` ga ikke byggfeil. Flagget gjør ikke Kotlin-kompilatorens advarsler til feil. Advarslene over tilhører baseline og skal ikke tilskrives senere oppgraderinger.
 
+Et separat kontrollpunkt er logging av hele kandidatsøk-responsen på INFO i `kandidatsøk/KandidatsokApiKlient.kt:39–41`. Payloadinnhold er ikke undersøkt eller gjengitt her. Dette er derfor ikke en bekreftet personopplysningslekkasje. Loggingen er ikke endret i iterasjon 0.
+
 ## Endringskontroll
 
 `git diff --exit-code -- build.gradle.kts settings.gradle.kts gradle.properties gradle src .github/workflows` fullførte uten diff. Iterasjonen endrer ikke kjørbar kode, autentisering, JSON-kontrakter, databaseskjema, CI eller Nais-konfigurasjon.
@@ -147,7 +165,7 @@ Ingen deploy er nødvendig. Rollback av denne iterasjonen innebærer å ta ut ba
 | Sikkerhet | Ingen endring i auth, tilgang eller dataflyt. Testlogger og payloads er ikke inkludert i baseline-filene. |
 | Plattform | Bygg og Docker-baserte tester fungerer i cplt. Ingen endring i CI, ressurser eller Nais. |
 | Arkitektur | Eksisterende mappergrenser og bibliotekseierskap er kartlagt, uten ny felles mapper eller migrering. |
-| Endringssikkerhet | To grønne rene bygg, registrerte avhengighetsgrafer og ingen diff i kode eller byggkonfigurasjon. Dekningsgap er skilt fra testfeil. |
+| Endringssikkerhet | To grønne rene bygg 17. november og ny verifikasjon 18. november. Avhengighetsgrafene er uendret, og det er ingen diff i kode eller byggkonfigurasjon. Dekningsgap er skilt fra testfeil. |
 | Brukeropplevelse | Ingen endring i brukerflyten. Dokumentasjonens kommandoer er kjørt, og lenkede avhengighetsrapporter finnes. Ingen UI er endret eller visuelt testet. |
 
 Konklusjon: Iterasjon 0 er fullført. Iterasjon 1 er ikke startet.
