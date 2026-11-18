@@ -45,3 +45,5 @@ replay_pid*
 
 # Generated bin directories
 bin/
+
+./ares-jacksonplan/
