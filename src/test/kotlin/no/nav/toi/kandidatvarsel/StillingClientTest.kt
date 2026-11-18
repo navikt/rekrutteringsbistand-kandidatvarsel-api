@@ -70,6 +70,27 @@ class StillingClientTest {
     }
 
     @Test
+    fun `returnerer null når svaret inneholder ugyldig JSON`(wm: WireMockRuntimeInfo) {
+        stubStilling(body = "{ ugyldig json")
+        assertThat(klient(wm).getStilling(stillingId)).isNull()
+    }
+
+    @Test
+    fun `returnerer null når påkrevd tittel er null`(wm: WireMockRuntimeInfo) {
+        stubStilling(body = """{"title":null,"businessName":"Testbedrift AS"}""")
+        assertThat(klient(wm).getStilling(stillingId)).isNull()
+    }
+
+    @Test
+    fun `parser norsk tekst i stillingssvar`(wm: WireMockRuntimeInfo) {
+        stubStilling(body = """{"title":"Øya","businessName":"Ås & Øde"}""")
+
+        val stilling = klient(wm).getStilling(stillingId)
+
+        assertThat(stilling).isEqualTo(Stilling(title = "Øya", businessName = "Ås & Øde"))
+    }
+
+    @Test
     fun `returnerer null og beholder interrupt-flagget når tråden avbrytes`(wm: WireMockRuntimeInfo) {
         stubFor(get(urlEqualTo(stillingPath)).willReturn(aResponse().withFixedDelay(2000)))
         val klient = klient(wm).also { it.getStilling(UUID.randomUUID()) } // henter token før avbruddet

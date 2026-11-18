@@ -75,6 +75,14 @@ class RekrutteringstreffRapidTest {
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
         
+        assertEquals(
+            setOf(
+                "@event_name", "varselId", "avsenderReferanseId", "fnr", "eksternStatus",
+                "minsideStatus", "opprettet", "avsenderNavident", "eksternFeilmelding", "eksternKanal", "mal"
+            ),
+            packet.keys
+        )
+
         // Verifiser alle forventede felter
         assertEquals("minsideVarselSvar", packet["@event_name"])
         assertNotNull(packet["varselId"], "varselId skal være satt")
@@ -84,6 +92,8 @@ class RekrutteringstreffRapidTest {
         assertEquals(navident, packet["avsenderNavident"])
         assertEquals("KANDIDAT_INVITERT_TREFF", packet["mal"])
         assertEquals("SENDT", packet["eksternStatus"])
+        assertEquals("UNDER_UTSENDING", packet["minsideStatus"])
+        assertNull(packet["eksternFeilmelding"])
         assertEquals("SMS", packet["eksternKanal"])
         
         // Verifiser at opprettet er en nylig ZonedDateTime-streng (mellom ett minutt siden og nå)
@@ -239,6 +249,37 @@ class RekrutteringstreffRapidTest {
         val rapidFlettedata = packet["flettedata"] as? List<String>
         assertNotNull(rapidFlettedata, "flettedata skal være med i rapid-meldingen")
         assertEquals(listOf("navn", "tidspunkt"), rapidFlettedata)
+    }
+
+    @Test
+    fun `skal lese flettedata fra JSONB med MinsideVarsel sin RowMapper`() {
+        val varselId = UUID.randomUUID().toString()
+        val jsonArray = """["navn","tidspunkt"]"""
+
+        app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
+                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+                avsenderReferanseId = rekrutteringstreffId,
+                mottakerFnr = fnr,
+                avsenderNavident = navident,
+                varselId = varselId
+            ).insert(tx)
+
+            tx.sql("""
+                update minside_varsel
+                set flettedata = CAST(:json AS jsonb)
+                where varsel_id = :varsel_id
+            """.trimIndent())
+                .param("json", jsonArray)
+                .param("varsel_id", varselId)
+                .update()
+        }
+
+        val varsel = app.dataSource.transaction { tx ->
+            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.finnFraVarselId(tx, varselId)
+        }
+
+        assertEquals(listOf("navn", "tidspunkt"), varsel?.flettedata)
     }
 
     @Test

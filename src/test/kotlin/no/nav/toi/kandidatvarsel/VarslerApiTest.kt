@@ -22,6 +22,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -109,6 +110,9 @@ class VarslerApiTest {
             assertEquals(navident, varsel["avsenderNavident"] as String)
             assertEquals("UNDER_UTSENDING", varsel["minsideStatus"] as String)
             assertEquals("UNDER_UTSENDING", varsel["eksternStatus"] as String)
+            val opprettet = varsel["opprettet"]
+            assertTrue(opprettet is String, "opprettet skal være en ISO_LOCAL_DATE_TIME-streng")
+            LocalDateTime.parse(opprettet as String)
         }
     }
 
@@ -144,6 +148,35 @@ class VarslerApiTest {
         
         val varsler: List<Map<String, Any?>> = objectMapper.readValue(getResponse.body())
         assertEquals(2, varsler.size)
+    }
+
+    @Test
+    fun `POST stilling med ukjent request-felt gir 500`() {
+        val body = objectMapper.writeValueAsString(
+            mapOf(
+                "fnr" to listOf(fnr1),
+                "mal" to "VURDERT_SOM_AKTUELL",
+                "ukjent" to "verdi"
+            )
+        )
+
+        val response = httpPost("/api/varsler/stilling/${UUID.randomUUID()}", body, token)
+
+        assertEquals(500, response.statusCode())
+    }
+
+    @Test
+    fun `POST stilling med eksplisitt null i fnr gir 500`() {
+        val body = objectMapper.writeValueAsString(
+            mapOf(
+                "fnr" to null,
+                "mal" to "VURDERT_SOM_AKTUELL"
+            )
+        )
+
+        val response = httpPost("/api/varsler/stilling/${UUID.randomUUID()}", body, token)
+
+        assertEquals(500, response.statusCode())
     }
 
     @Test
