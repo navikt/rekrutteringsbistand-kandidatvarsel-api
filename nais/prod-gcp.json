@@ -7,6 +7,8 @@
     ],
     "env": {},
     "dbTier": "db-custom-1-3840",
+    "gcp_db_point_in_time_recovery": true,
+    "gcp_db_query_string_length": 4500,
     "kafkaPool": "nav-prod",
     "kafka_consumer_group_id": "rekrutteringsbistand-kandidatvarsel-api-1"
 }

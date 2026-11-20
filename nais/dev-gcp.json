@@ -11,6 +11,8 @@
         "FAKEDINGS_APP_CLIENT_ID": "dev-gcp:toi:rekrutteringsbistand-kandidatvarsel-api"
     },
     "dbTier": "db-f1-micro",
+    "gcp_db_point_in_time_recovery": false,
+    "gcp_db_query_string_length": 1024,
     "kafkaPool": "nav-dev",
     "kafka_consumer_group_id": "rekrutteringsbistand-kandidatvarsel-api-1"
 }
