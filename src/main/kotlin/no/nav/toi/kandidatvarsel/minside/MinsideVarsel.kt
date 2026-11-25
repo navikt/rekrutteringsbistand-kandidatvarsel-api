@@ -1,7 +1,7 @@
 package no.nav.toi.kandidatvarsel.minside
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.readValue
 import com.fasterxml.uuid.Generators
 import no.nav.toi.kandidatvarsel.EksternStatusDto
 import no.nav.toi.kandidatvarsel.MinsideStatusDto
@@ -14,13 +14,13 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.jvm.optionals.getOrNull
 
-private val objectMapper: ObjectMapper = jacksonObjectMapper()
+private val objectMapper = jacksonObjectMapper()
 
 /** Parser flettedata fra database JSON-streng til liste av strenger */
 private fun parseFlettedataFraDb(jsonString: String?, varselId: String): List<String>? {
     if (jsonString == null) return null
     return try {
-        objectMapper.readValue(jsonString, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
+        objectMapper.readValue<List<String>>(jsonString)
     } catch (e: Exception) {
         throw IllegalStateException("Kunne ikke parse flettedata for varsel_id=$varselId", e)
     }
@@ -70,8 +70,8 @@ data class MinsideVarsel(
     fun markerBestilt() = copy(bestilt = true)
 
     /** Sjekker om varselet har en status som skal publiseres på rapid */
-    fun skalPubliseresPåRapid(): Boolean = 
-        eksternStatus == EksternStatus.SENDT || 
+    fun skalPubliseresPåRapid(): Boolean =
+        eksternStatus == EksternStatus.SENDT ||
         eksternStatus == EksternStatus.FEILET
 
     /** Konverterer flettedata-listen til JSON for lagring i database */
@@ -284,11 +284,11 @@ data class MinsideVarsel(
                 val malStreng = rs.getString("mal")
                 val mal = Maler.valueOf(malStreng)
                 val varselId = rs.getString("varsel_id")
-                
+
                 // Leser flettedata-feltet fra JSONB som JSON-streng
                 val flettedataJson = rs.getString("flettedata")
                 val flettedata: List<String>? = parseFlettedataFraDb(flettedataJson, varselId)
-                
+
                 return MinsideVarsel(
                     dbid = rs.getLong("dbid"),
                     opprettet = rs.getObject("opprettet", LocalDateTime::class.java),

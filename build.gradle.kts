@@ -11,6 +11,7 @@ val javalinVersion = "7.2.4"
 val logbackVersion = "1.6.7"
 val logstashLogbackEncoderVersion = "9.0"
 val jacksonVersion = "2.22.3"
+val jackson3Version = "3.3.0"
 val javaJwtVersion = "4.6.2"
 val jwksRsaVersion = "0.24.2"
 val auditLogVersion = "4.2026.11.16_22.48-f6f69ab8d9b9"
@@ -50,6 +51,9 @@ dependencies {
     implementation(platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation(platform("tools.jackson:jackson-bom:$jackson3Version"))
+    implementation("tools.jackson.core:jackson-databind")
+    implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("com.auth0:java-jwt:$javaJwtVersion")
     implementation("com.auth0:jwks-rsa:$jwksRsaVersion")
     implementation("no.nav.common:audit-log:$auditLogVersion")

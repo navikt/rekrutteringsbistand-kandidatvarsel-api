@@ -1,7 +1,6 @@
 package no.nav.toi.kandidatvarsel.minside
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.toi.kandidatvarsel.StillingClient
 import no.nav.toi.kandidatvarsel.noClassLogger
@@ -11,7 +10,7 @@ import org.apache.kafka.clients.producer.Producer
 import java.util.*
 import javax.sql.DataSource
 
-private val objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+private val objectMapper = jacksonObjectMapper()
 private val log = noClassLogger()
 
 /** Finn neste varsel som er klar for bestilling, og bestill det hos minside.
