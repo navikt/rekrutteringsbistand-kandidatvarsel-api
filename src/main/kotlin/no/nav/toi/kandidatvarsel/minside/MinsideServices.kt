@@ -106,7 +106,8 @@ private fun publiserPåRapid(varsel: MinsideVarsel, rapidsConnection: RapidsConn
         "avsenderNavident" to responseDto.avsenderNavident,
         "eksternFeilmelding" to responseDto.eksternFeilmelding,
         "eksternKanal" to responseDto.eksternKanal,
-        "mal" to varsel.mal.name
+        "mal" to varsel.mal.name,
+        "type" to varsel.mal.varselType.name
     ) + if (varsel.flettedata != null) mapOf("flettedata" to varsel.flettedata) else emptyMap()
 
     rapidsConnection.publish(responseDto.mottakerFnr, objectMapper.writeValueAsString(packet))
