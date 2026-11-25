@@ -50,7 +50,7 @@ sealed interface Mal {
 sealed interface StillingMal : Mal {
     override val varselType: VarselType get() = VarselType.STILLING
     fun minsideTekst(tittel: String, arbeidsgiver: String): String
-    override fun brukerRapid() = false
+    override fun brukerRapid() = true
 }
 
 sealed interface RekrutteringstreffMal : Mal {

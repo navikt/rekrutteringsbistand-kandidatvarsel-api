@@ -8,6 +8,9 @@ import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
 import no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff
 import no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
 import no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell
+import no.nav.toi.kandidatvarsel.minside.Mal
+import no.nav.toi.kandidatvarsel.minside.Maler
+import no.nav.toi.kandidatvarsel.minside.VarselType
 import no.nav.toi.kandidatvarsel.minside.MinsideVarsel.Companion.finnFraVarselId
 import no.nav.toi.kandidatvarsel.minside.MinsideVarsel.Companion.hentVarslerForRekrutteringstreff
 import org.junit.jupiter.api.AfterAll
@@ -30,7 +33,7 @@ private val objectMapper = jacksonObjectMapper()
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SystemStubsExtension::class)
 @WireMockTest(httpPort = kandidatsokPort)
-class RekrutteringstreffRapidTest {
+class MinsideVarselSvarRapidTest {
     private val app = LocalApp()
     private lateinit var minside: FakeMinside
 
@@ -320,22 +323,89 @@ class RekrutteringstreffRapidTest {
         assertEquals(listOf("navn", "tidspunkt"), varsel?.flettedata)
     }
 
-    @Test
-    fun `skal publisere melding på rapid når stilling-varsel får SENDT status`() {
+    private fun opprettStillingVarsel(mal: Mal = VurdertSomAktuell, stillingId: String = UUID.randomUUID().toString()): String {
         val varselId = UUID.randomUUID().toString()
-        val stillingId = UUID.randomUUID().toString()
-        // Opprett varsel
         app.dataSource.transaction { tx ->
             create(
-                mal = VurdertSomAktuell,
+                mal = mal,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident,
                 varselId = varselId
             ).insert(tx)
         }
+        return varselId
+    }
+
+    @Test
+    fun `skal publisere melding på rapid når stilling-varsel får SENDT status`() {
+        val stillingId = UUID.randomUUID().toString()
+        val varselId = opprettStillingVarsel(stillingId = stillingId)
 
         minside.eksterntVarselSendt(varselId, "SMS")
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
+
+        assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
+        val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
+
+        assertEquals(
+            setOf(
+                "@event_name", "varselId", "avsenderReferanseId", "fnr", "eksternStatus",
+                "minsideStatus", "opprettet", "avsenderNavident", "eksternFeilmelding", "eksternKanal", "mal", "type"
+            ),
+            packet.keys
+        )
+        assertEquals("minsideVarselSvar", packet["@event_name"])
+        assertTrue(packet["varselId"].toString().startsWith("A"), "varselId skal ha prefix 'A'")
+        assertEquals(stillingId, packet["avsenderReferanseId"])
+        assertEquals(fnr, packet["fnr"])
+        assertEquals(navident, packet["avsenderNavident"])
+        assertEquals("VURDERT_SOM_AKTUELL", packet["mal"])
+        assertEquals("STILLING", packet["type"])
+        assertEquals("SENDT", packet["eksternStatus"])
+        assertEquals("UNDER_UTSENDING", packet["minsideStatus"])
+        assertNull(packet["eksternFeilmelding"])
+        assertEquals("SMS", packet["eksternKanal"])
+    }
+
+    @Test
+    fun `skal publisere minsideVarselSvar med type STILLING for alle stilling-maler`() {
+        val maler = Maler.malerForVarselType(VarselType.STILLING).map(Maler::valueOf)
+        maler.forEach { mal ->
+            minside.eksterntVarselSendt(opprettStillingVarsel(mal), "SMS")
+        }
+
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
+
+        assertEquals(maler.size, app.testRapid.inspektør.size)
+        val publiserteMaler = (0 until app.testRapid.inspektør.size).map { i ->
+            val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(i).toString())
+            assertEquals("minsideVarselSvar", packet["@event_name"])
+            assertEquals("STILLING", packet["type"], "Feil type for mal ${packet["mal"]}")
+            packet["mal"]
+        }
+        assertEquals(maler.map { it.name }.toSet(), publiserteMaler.toSet())
+    }
+
+    @Test
+    fun `skal publisere melding på rapid når stilling-varsel får FEILET status`() {
+        val varselId = opprettStillingVarsel()
+
+        minside.eksterntVarselFeilet(varselId, "Kunne ikke sende SMS")
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
+
+        assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
+        val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
+        assertEquals("STILLING", packet["type"])
+        assertEquals("FEILET", packet["eksternStatus"])
+        assertEquals("Kunne ikke sende SMS", packet["eksternFeilmelding"])
+    }
+
+    @Test
+    fun `skal IKKE publisere melding på rapid når stilling-varsel får BESTILT status`() {
+        val varselId = opprettStillingVarsel()
+
+        minside.eksterntVarselBestilt(varselId)
         sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(0, app.testRapid.inspektør.size, "Skal IKKE ha publisert noen meldinger på rapid")
