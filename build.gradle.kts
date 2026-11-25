@@ -50,7 +50,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
     implementation(platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation(platform("tools.jackson:jackson-bom:$jackson3Version"))
     implementation("tools.jackson.core:jackson-databind")
     implementation("tools.jackson.module:jackson-module-kotlin")
