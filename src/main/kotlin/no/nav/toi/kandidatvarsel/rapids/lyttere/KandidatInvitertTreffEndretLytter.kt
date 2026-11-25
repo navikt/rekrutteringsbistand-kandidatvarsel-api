@@ -41,19 +41,23 @@ class KandidatInvitertTreffEndretLytter(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry
     ) {
-        val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
-        val fnr = packet["fnr"].asText()
-        val avsenderNavident = packet["endretAv"].asText("SYSTEM")
-        val hendelseId = packet["hendelseId"].asText()
-        
+        val rekrutteringstreffId = packet["rekrutteringstreffId"].asString()
+        val fnr = packet["fnr"].asString()
+        val avsenderNavident = packet["endretAv"].asString("SYSTEM")
+        val hendelseId = packet["hendelseId"].asString()
+
         // Leser endredeFelter fra rapid-meldingen og konverterer til flettedata for varsling
         val endredeFelterNode = packet["endredeFelter"]
         val flettedata: List<String> = if (endredeFelterNode.isArray && endredeFelterNode.size() > 0) {
             endredeFelterNode.mapNotNull { node ->
+                if (!node.isString) {
+                    log.warn("Ignorerer endredeFelter-element som ikke er tekst, type=${node.nodeType}")
+                    return@mapNotNull null
+                }
                 try {
-                    EndringFlettedata.valueOf(node.asText()).displayTekst  // Konverter til displayTekst for varsling
+                    EndringFlettedata.valueOf(node.asString()).displayTekst  // Konverter til displayTekst for varsling
                 } catch (e: IllegalArgumentException) {
-                    log.warn("Ukjent endredeFelter-verdi: ${node.asText()}, ignorerer")
+                    log.warn("Ukjent endredeFelter-verdi: ${node.asString()}, ignorerer", e)
                     null
                 }
             }
@@ -61,7 +65,7 @@ class KandidatInvitertTreffEndretLytter(
             log.info("Ingen endredeFelter for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
             return
         }
-        
+
         if (flettedata.isEmpty()) {
             log.info("endredeFelter inneholder kun ugyldige verdier for rekrutteringstreffId=$rekrutteringstreffId, hopper over varsling")
             return

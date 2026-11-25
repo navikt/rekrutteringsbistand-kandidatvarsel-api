@@ -23,24 +23,14 @@ sealed interface Mal {
     fun epostTittel(): String
     fun epostHtmlBody(): String
 
-    fun lenkeurl(avsenderReferanseId: String, isProd: Boolean): String {
-        return when (varselType) {
-            VarselType.STILLING -> {
-                val domain = if (isProd)
-                    "www.nav.no"
-                else
-                    "vis-stilling.intern.dev.nav.no"
-
-                return "https://$domain/arbeid/stilling/$avsenderReferanseId"
-            }
-            VarselType.REKRUTTERINGSTREFF -> {
-                val domain = if (isProd)
-                    "www.nav.no"
-                else
-                    "rekrutteringstreff-bruker.intern.dev.nav.no"
-
-                return "https://$domain/rekrutteringstreff/$avsenderReferanseId"
-            }
+    fun lenkeurl(avsenderReferanseId: String, isProd: Boolean): String = when (varselType) {
+        VarselType.STILLING -> {
+            val domain = if (isProd) "www.nav.no" else "vis-stilling.intern.dev.nav.no"
+            "https://$domain/arbeid/stilling/$avsenderReferanseId"
+        }
+        VarselType.REKRUTTERINGSTREFF -> {
+            val domain = if (isProd) "www.nav.no" else "rekrutteringstreff-bruker.intern.dev.nav.no"
+            "https://$domain/rekrutteringstreff/$avsenderReferanseId"
         }
     }
 

@@ -348,6 +348,31 @@ class KandidatInvitertTreffEndretLytterTest {
         assertEquals(1, varsler.size)
         assertEquals(listOf("navn", "tidspunkt"), varsler[0].flettedata)  // Kun gyldige konverteres til displayTekst
     }
+
+    @Test
+    fun `skal ignorere endredeFelter-elementer som ikke er tekst`() {
+        val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
+        val fnr = "12345678901"
+        val hendelseId = "87654321-4321-4321-4321-210987654321"
+
+        testRapid.sendTestMessage("""
+            {
+                "@event_name": "rekrutteringstreffoppdatering",
+                "rekrutteringstreffId": "$rekrutteringstreffId",
+                "fnr": "$fnr",
+                "endretAv": "Z123456",
+                "hendelseId": "$hendelseId",
+                "endredeFelter": ["NAVN", {}, [], "TIDSPUNKT"]
+            }
+        """.trimIndent())
+
+        val varsler = dataSource.transaction { tx ->
+            MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId)
+        }
+
+        assertEquals(1, varsler.size)
+        assertEquals(listOf("navn", "tidspunkt"), varsler[0].flettedata)
+    }
     
     @Test
     fun `skal konvertere alle gyldige endredeFelter-verdier til displayTekst`() {

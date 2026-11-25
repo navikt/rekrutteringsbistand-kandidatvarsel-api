@@ -1,15 +1,15 @@
 package no.nav.toi.kandidatvarsel
 
 import auth.obo.KandidatsokApiKlient
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.zaxxer.hikari.HikariDataSource
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus
-import io.javalin.json.JavalinJackson
+import io.javalin.json.JavalinJackson3
 import io.javalin.validation.ValidationException
 import org.flywaydb.core.api.output.MigrateResult
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 import java.util.concurrent.atomic.AtomicReference
 
 private val noClassLogger = noClassLogger()
@@ -23,11 +23,12 @@ fun startJavalin(
     port: Int = 8080,
 ): Javalin = Javalin
     .create {
-        val objectMapper = jacksonObjectMapper().apply {
-            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            registerModule(JavaTimeModule())
-        }
-        it.jsonMapper(JavalinJackson(objectMapper))
+        val objectMapper = jacksonMapperBuilder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build()
+        it.jsonMapper(JavalinJackson3(objectMapper))
 
         it.startup.showJavalinBanner = false
 
@@ -55,4 +56,3 @@ fun startJavalin(
     .apply {
         start(port)
     }
-
