@@ -38,10 +38,10 @@ class KandidatInvitertLytter(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry
     ) {
-        val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
-        val fnr = packet["fnr"].asText()
-        val avsenderNavident = packet["opprettetAv"].asText()
-        val hendelseId = packet["hendelseId"].asText()
+        val rekrutteringstreffId = packet["rekrutteringstreffId"].asString()
+        val fnr = packet["fnr"].asString()
+        val avsenderNavident = packet["opprettetAv"].asString()
+        val hendelseId = packet["hendelseId"].asString()
 
         log.info("Mottok $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId, mal=${mal.name}")
         secureLog.info("Mottok $eventName-hendelse for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, avsenderNavident=$avsenderNavident, hendelseId=$hendelseId, mal=${mal.name}")

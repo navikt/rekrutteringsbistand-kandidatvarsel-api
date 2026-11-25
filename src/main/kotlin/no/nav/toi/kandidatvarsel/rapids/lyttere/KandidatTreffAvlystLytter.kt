@@ -40,9 +40,9 @@ class KandidatTreffAvlystLytter(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry
     ) {
-        val rekrutteringstreffId = packet["rekrutteringstreffId"].asText()
-        val fnr = packet["fnr"].asText()
-        val hendelseId = packet["hendelseId"].asText()
+        val rekrutteringstreffId = packet["rekrutteringstreffId"].asString()
+        val fnr = packet["fnr"].asString()
+        val hendelseId = packet["hendelseId"].asString()
 
         log.info("Mottok $eventName med avlysning for rekrutteringstreffId=$rekrutteringstreffId, mal=${mal.name}")
         secureLog.info("Mottok $eventName med avlysning for rekrutteringstreffId=$rekrutteringstreffId, fnr=$fnr, hendelseId=$hendelseId, mal=${mal.name}")
