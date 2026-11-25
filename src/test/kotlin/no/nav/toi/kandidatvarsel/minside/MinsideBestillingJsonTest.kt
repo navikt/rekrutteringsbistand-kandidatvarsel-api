@@ -2,6 +2,7 @@ package no.nav.toi.kandidatvarsel.minside
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.apache.kafka.clients.producer.MockProducer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.assertj.core.api.Assertions.assertThat
@@ -61,6 +62,28 @@ class MinsideBestillingJsonTest {
             }
             assertThat(json["varselId"].asText()).`as`(mal.name).isEqualTo(varselId)
         }
+    }
+
+    /**
+     * Sikrer rollback-kompatibilitet i tilfelle det oppstår feil ved migrering fra v2 til v3 av Jackspon.
+     * Jackson 2 må kunne lese JSONB skrevet av Jackson 3. Testen kan slettes når det ikke lenger er interessant å ha
+     * muligheten til å gå tilbake til v2 av Jakson.
+     */
+    @Test
+    fun `Jackson 2 leser JSONB skrevet med Jackson 3`() {
+        val varsel = MinsideVarsel.create(
+            mal = KandidatInvitertTreffEndret,
+            avsenderReferanseId = "syntetisk-treff",
+            mottakerFnr = "syntetisk-fnr",
+            avsenderNavident = "Z000001",
+            flettedata = listOf("navn", "tidspunkt")
+        )
+
+        val jsonb = requireNotNull(varsel.flettedataAsJsonb())
+
+        assertThat(jsonb.type).isEqualTo("jsonb")
+        assertThat(objectMapper.readValue<List<String>>(requireNotNull(jsonb.value)))
+            .containsExactly("navn", "tidspunkt")
     }
 
     private fun assertFellesFelter(json: JsonNode) {
