@@ -50,6 +50,10 @@ class KandidatInvitertTreffEndretLytter(
         val endredeFelterNode = packet["endredeFelter"]
         val flettedata: List<String> = if (endredeFelterNode.isArray && endredeFelterNode.size() > 0) {
             endredeFelterNode.mapNotNull { node ->
+                if (!node.isString) {
+                    log.warn("Ignorerer endredeFelter-element som ikke er tekst, type=${node.nodeType}")
+                    return@mapNotNull null
+                }
                 try {
                     EndringFlettedata.valueOf(node.asString()).displayTekst  // Konverter til displayTekst for varsling
                 } catch (e: IllegalArgumentException) {
