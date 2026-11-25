@@ -3,7 +3,13 @@ package no.nav.toi.kandidatvarsel
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.tomakehurst.wiremock.junit5.WireMockTest
+import no.nav.toi.kandidatvarsel.minside.MinsideVarsel.Companion.create
 import no.nav.toi.kandidatvarsel.minside.sjekkVarselOppdateringer
+import no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff
+import no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret
+import no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell
+import no.nav.toi.kandidatvarsel.minside.MinsideVarsel.Companion.finnFraVarselId
+import no.nav.toi.kandidatvarsel.minside.MinsideVarsel.Companion.hentVarslerForRekrutteringstreff
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -57,8 +63,8 @@ class RekrutteringstreffRapidTest {
     fun `skal publisere melding på rapid når rekrutteringstreff-varsel får SENDT status`() {
         // Opprett varsel
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
+            create(
+                mal = KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident
@@ -66,19 +72,19 @@ class RekrutteringstreffRapidTest {
         }
 
         val varsel = app.dataSource.transaction { tx ->
-             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
+            hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
         }
-        
+
         minside.eksterntVarselSendt(varsel.varselId, "SMS")
         sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
-        
+
         assertEquals(
             setOf(
                 "@event_name", "varselId", "avsenderReferanseId", "fnr", "eksternStatus",
-                "minsideStatus", "opprettet", "avsenderNavident", "eksternFeilmelding", "eksternKanal", "mal"
+                "minsideStatus", "opprettet", "avsenderNavident", "eksternFeilmelding", "eksternKanal", "mal", "type"
             ),
             packet.keys
         )
@@ -95,7 +101,7 @@ class RekrutteringstreffRapidTest {
         assertEquals("UNDER_UTSENDING", packet["minsideStatus"])
         assertNull(packet["eksternFeilmelding"])
         assertEquals("SMS", packet["eksternKanal"])
-        
+
         // Verifiser at opprettet er en nylig ZonedDateTime-streng (mellom ett minutt siden og nå)
         val opprettet = ZonedDateTime.parse(packet["opprettet"] as String, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
         val now = ZonedDateTime.now()
@@ -107,8 +113,8 @@ class RekrutteringstreffRapidTest {
     fun `skal publisere melding på rapid når rekrutteringstreff-varsel får FEILET status`() {
         // Opprett varsel
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
+            create(
+                mal = KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident
@@ -116,15 +122,15 @@ class RekrutteringstreffRapidTest {
         }
 
         val varsel = app.dataSource.transaction { tx ->
-             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
+            hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
         }
-        
+
         minside.eksterntVarselFeilet(varsel.varselId, "Kunne ikke sende SMS")
         sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
-        
+
         assertEquals("minsideVarselSvar", packet["@event_name"])
         assertEquals(rekrutteringstreffId, packet["avsenderReferanseId"])
         assertEquals(fnr, packet["fnr"])
@@ -134,11 +140,41 @@ class RekrutteringstreffRapidTest {
     }
 
     @Test
+    fun `skal publisere minsideVarselSvar med type REKRUTTERINGSTREFF for alle rekrutteringstreff-maler`() {
+        val maler = listOf(
+            KandidatInvitertTreff,
+            KandidatInvitertTreffEndret
+        )
+        maler.forEach { mal ->
+            val varselId = UUID.randomUUID().toString()
+            app.dataSource.transaction { tx ->
+                create(
+                    mal = mal,
+                    avsenderReferanseId = rekrutteringstreffId,
+                    mottakerFnr = fnr,
+                    avsenderNavident = navident,
+                    varselId = varselId
+                ).insert(tx)
+            }
+            minside.eksterntVarselSendt(varselId, "SMS")
+        }
+
+        sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
+
+        assertEquals(maler.size, app.testRapid.inspektør.size)
+        (0 until app.testRapid.inspektør.size).forEach { i ->
+            val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(i).toString())
+            assertEquals("minsideVarselSvar", packet["@event_name"])
+            assertEquals("REKRUTTERINGSTREFF", packet["type"], "Feil type for mal ${packet["mal"]}")
+        }
+    }
+
+    @Test
     fun `skal IKKE publisere melding på rapid når rekrutteringstreff-varsel får OPPRETTET status`() {
         // Opprett varsel
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
+            create(
+                mal = KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident
@@ -146,9 +182,9 @@ class RekrutteringstreffRapidTest {
         }
 
         val varsel = app.dataSource.transaction { tx ->
-             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
+            hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
         }
-        
+
         minside.varselOpprettet(varsel.varselId)
         sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
@@ -159,8 +195,8 @@ class RekrutteringstreffRapidTest {
     fun `skal IKKE publisere melding på rapid når rekrutteringstreff-varsel får BESTILT status`() {
         // Opprett varsel
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
+            create(
+                mal = KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident
@@ -168,9 +204,9 @@ class RekrutteringstreffRapidTest {
         }
 
         val varsel = app.dataSource.transaction { tx ->
-             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
+            hentVarslerForRekrutteringstreff(tx, rekrutteringstreffId).first()
         }
-        
+
         minside.eksterntVarselBestilt(varsel.varselId)
         sjekkVarselOppdateringer(app.dataSource, minside.consumer, app.testRapid)
 
@@ -182,8 +218,8 @@ class RekrutteringstreffRapidTest {
         val varselId = UUID.randomUUID().toString()
         // Opprett varsel
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+            create(
+                mal = KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident,
@@ -196,7 +232,7 @@ class RekrutteringstreffRapidTest {
 
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
-        
+
         // Verifiser alle forventede felter
         assertEquals("minsideVarselSvar", packet["@event_name"])
         assertNotNull(packet["varselId"])
@@ -206,23 +242,23 @@ class RekrutteringstreffRapidTest {
         assertEquals("KANDIDAT_INVITERT_TREFF_ENDRET", packet["mal"])
         assertEquals("SENDT", packet["eksternStatus"])
         assertEquals("SMS", packet["eksternKanal"])
-        
+
         // Verifiser at opprettet er en nylig ZonedDateTime-streng (mellom ett minutt siden og nå)
         val opprettet = ZonedDateTime.parse(packet["opprettet"] as String, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
         val now = ZonedDateTime.now()
         assertTrue(opprettet.isAfter(now.minusMinutes(1)), "opprettet skal være etter ett minutt siden")
         assertTrue(opprettet.isBefore(now.plusSeconds(1)), "opprettet skal være før nå")
     }
-    
+
     @Test
     fun `skal publisere melding med flettedata på rapid når endret rekrutteringstreff-varsel får SENDT status`() {
         val varselId = UUID.randomUUID().toString()
         val endringsTekster = listOf("navn", "tidspunkt")
-        
+
         // Opprett varsel med flettedata (displayTekster for endringene)
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+            create(
+                mal = KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident,
@@ -236,14 +272,14 @@ class RekrutteringstreffRapidTest {
 
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
-        
+
         // Verifiser alle forventede felter
         assertEquals("minsideVarselSvar", packet["@event_name"])
         assertEquals(rekrutteringstreffId, packet["avsenderReferanseId"])
         assertEquals(fnr, packet["fnr"])
         assertEquals("KANDIDAT_INVITERT_TREFF_ENDRET", packet["mal"])
         assertEquals("SENDT", packet["eksternStatus"])
-        
+
         // Verifiser at flettedata er med i meldingen
         @Suppress("UNCHECKED_CAST")
         val rapidFlettedata = packet["flettedata"] as? List<String>
@@ -257,26 +293,28 @@ class RekrutteringstreffRapidTest {
         val jsonArray = """["navn","tidspunkt"]"""
 
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
+            create(
+                mal = KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident,
                 varselId = varselId
             ).insert(tx)
 
-            tx.sql("""
+            tx.sql(
+                """
                 update minside_varsel
                 set flettedata = CAST(:json AS jsonb)
                 where varsel_id = :varsel_id
-            """.trimIndent())
+            """.trimIndent()
+            )
                 .param("json", jsonArray)
                 .param("varsel_id", varselId)
                 .update()
         }
 
         val varsel = app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.finnFraVarselId(tx, varselId)
+            finnFraVarselId(tx, varselId)
         }
 
         assertEquals(listOf("navn", "tidspunkt"), varsel?.flettedata)
@@ -288,8 +326,8 @@ class RekrutteringstreffRapidTest {
         val stillingId = UUID.randomUUID().toString()
         // Opprett varsel
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.VurdertSomAktuell,
+            create(
+                mal = VurdertSomAktuell,
                 avsenderReferanseId = stillingId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident,
@@ -306,10 +344,10 @@ class RekrutteringstreffRapidTest {
     @Test
     fun `skal publisere melding med EPOST kanal på rapid når rekrutteringstreff-varsel sendes via epost`() {
         val varselId = UUID.randomUUID().toString()
-        
+
         app.dataSource.transaction { tx ->
-            no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
-                mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreff,
+            create(
+                mal = KandidatInvitertTreff,
                 avsenderReferanseId = rekrutteringstreffId,
                 mottakerFnr = fnr,
                 avsenderNavident = navident,
@@ -322,7 +360,7 @@ class RekrutteringstreffRapidTest {
 
         assertEquals(1, app.testRapid.inspektør.size, "Skal ha publisert 1 melding på rapid")
         val packet = objectMapper.readValue<Map<String, Any?>>(app.testRapid.inspektør.message(0).toString())
-        
+
         assertEquals("minsideVarselSvar", packet["@event_name"])
         assertEquals("SENDT", packet["eksternStatus"])
         assertEquals("EPOST", packet["eksternKanal"])
