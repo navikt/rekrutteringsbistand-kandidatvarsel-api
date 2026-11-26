@@ -5,7 +5,6 @@ import tools.jackson.module.kotlin.readValue
 import com.fasterxml.uuid.Generators
 import no.nav.toi.kandidatvarsel.EksternStatusDto
 import no.nav.toi.kandidatvarsel.MinsideStatusDto
-import no.nav.toi.kandidatvarsel.QueryRequestDto
 import no.nav.toi.kandidatvarsel.VarselResponseDto
 import org.postgresql.util.PGobject
 import org.springframework.jdbc.core.simple.JdbcClient
@@ -272,12 +271,6 @@ data class MinsideVarsel(
                 .query(RowMapper)
                 .list()
         }
-
-        fun hentVarslerForQuery(jdbcClient: JdbcClient, queryRequestDto: QueryRequestDto): List<MinsideVarsel> =
-            jdbcClient.sql(""" select * from minside_varsel where mottaker_fnr = :mottaker_fnr """)
-                .param("mottaker_fnr", queryRequestDto.fnr)
-                .query(RowMapper)
-                .list()
 
         object RowMapper: org.springframework.jdbc.core.RowMapper<MinsideVarsel> {
             override fun mapRow(rs: ResultSet, rowNum: Int): MinsideVarsel {

@@ -1,6 +1,5 @@
 package no.nav.toi.kandidatvarsel
 
-import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jwt.SignedJWT
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,10 +12,8 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStub
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
 import java.util.*
 
-private const val kandidatsokPort = 10000
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SystemStubsExtension::class)
-@WireMockTest(httpPort = kandidatsokPort)
 class TilgangsstyringTest {
     private val app = LocalApp()
     @BeforeEach fun beforeEach() = app.prepare()
@@ -28,7 +25,6 @@ class TilgangsstyringTest {
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
-        "KANDIDATSOK_API_URL", "http://localhost:$kandidatsokPort",
         "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
         "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
         "AD_GROUP_REKBIS_JOBBSOKERRETTET", UUID.randomUUID().toString()

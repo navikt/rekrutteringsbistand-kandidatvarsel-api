@@ -3,8 +3,6 @@ package no.nav.toi.kandidatvarsel
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
-import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jwt.SignedJWT
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,11 +21,8 @@ import java.net.http.HttpResponse
 import java.util.*
 
 
-private const val kandidatsokPort = 10002
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SystemStubsExtension::class)
-@WireMockTest(httpPort = kandidatsokPort)
 class VarslerEndepunktTest {
     private val app = LocalApp()
     private val httpClient = HttpClient.newBuilder().build()
@@ -45,7 +40,6 @@ class VarslerEndepunktTest {
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_ISSUER", issuer,
         "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
-        "KANDIDATSOK_API_URL", "http://localhost:$kandidatsokPort",
         "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
         "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
         "AD_GROUP_REKBIS_JOBBSOKERRETTET", UUID.randomUUID().toString()

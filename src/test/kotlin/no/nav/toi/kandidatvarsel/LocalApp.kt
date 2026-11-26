@@ -1,7 +1,5 @@
 package no.nav.toi.kandidatvarsel
 
-import auth.obo.KandidatsokApiKlient
-import auth.obo.OnBehalfOfTokenClient
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -67,17 +65,6 @@ class LocalApp() {
             }
         }
 
-    val kandidatsokApiKlient = KandidatsokApiKlient(
-        OnBehalfOfTokenClient(
-            tokenEndpoint = tokenEndpoint,
-            clientId = "client-id",
-            clientSecret = "client",
-            scope = "",
-            issuernavn = issuer
-        ),
-        kandidatsokUrl = "http://localhost:10000"
-    )
-
     private val flyway = Flyway.configure()
         .dataSource(dataSource)
         .cleanDisabled(false)
@@ -88,7 +75,7 @@ class LocalApp() {
 
     val testRapid = TestRapid()
 
-    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, { true }, port = 0)
+    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, { true }, port = 0)
     private val httpClient = HttpClient.newBuilder().build()
     private val objectMapper = jacksonObjectMapper()
 

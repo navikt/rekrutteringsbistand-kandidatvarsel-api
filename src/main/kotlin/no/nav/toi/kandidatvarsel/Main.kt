@@ -1,7 +1,5 @@
 package no.nav.toi.kandidatvarsel
 
-import auth.obo.KandidatsokApiKlient
-import auth.obo.OnBehalfOfTokenClient
 import com.github.navikt.tbd_libs.rapids_and_rivers.KafkaRapid
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.github.navikt.tbd_libs.kafka.AivenConfig
@@ -76,9 +74,7 @@ fun startOppApplikasjon(
     val minsideOppdateringConsumer = kafkaConfig.minsideOppdateringsConsumer()
 
     val azureTokenClient = opprettAzureTokenClient()
-    val onBehalfOfTokenClient = opprettOnBehalfOfTokenClient()
     val stillingClient = StillingClientImpl(azureTokenClient)
-    val kandidatsokApiKlient = KandidatsokApiKlient(onBehalfOfTokenClient, getenvOrThrow("KANDIDATSOK_API_URL"))
 
     val minsideBestillingThread = backgroundThread("minside-utsending", avsluttSignal) {
         if (!bestillVarsel(dataSource, stillingClient, minsideBestillingProducer)) {
@@ -94,7 +90,6 @@ fun startOppApplikasjon(
         azureAdConfig = AzureAdConfig.nais(),
         dataSource = dataSource,
         migrateResult = migreringsResultat,
-        kandidatsokApiKlient = kandidatsokApiKlient,
         isRapidRunning = kafkaRapid::isRunning
     )
 
@@ -130,14 +125,6 @@ private fun opprettAzureTokenClient() = AzureTokenClient(
     clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
     clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
     scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-stilling-api/.default"
-)
-
-private fun opprettOnBehalfOfTokenClient() = OnBehalfOfTokenClient(
-    tokenEndpoint = getenvOrThrow("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
-    clientId = getenvOrThrow("AZURE_APP_CLIENT_ID"),
-    clientSecret = getenvOrThrow("AZURE_APP_CLIENT_SECRET"),
-    scope = "api://${getenv("NAIS_CLUSTER_NAME")}.toi.rekrutteringsbistand-kandidatsok-api/.default",
-    issuernavn = getenvOrThrow("AZURE_OPENID_CONFIG_ISSUER")
 )
 
 private fun registrerRapidsLyttere(
