@@ -1,6 +1,5 @@
 package no.nav.toi.kandidatvarsel
 
-import auth.obo.KandidatsokApiKlient
 import io.javalin.http.HttpStatus
 import io.javalin.http.bodyAsClass
 import io.javalin.router.JavalinDefaultRoutingApi
@@ -55,10 +54,6 @@ enum class MalDto(val mal: Mal) {
     KANDIDAT_INVITERT_TREFF_ENDRET(KandidatInvitertTreffEndret),
 }
 
-data class QueryRequestDto(
-    val fnr: String,
-)
-
 data class NyeVarslerRequestDto(
     val fnr: List<String>,
     val mal: MalDto,
@@ -79,7 +74,7 @@ data class VarselResponseDto(
     val eksternKanal: Kanal?,
 )
 
-fun JavalinDefaultRoutingApi.handleVarsler(dataSource: DataSource, kandidatsokApiKlient: KandidatsokApiKlient) {
+fun JavalinDefaultRoutingApi.handleVarsler(dataSource: DataSource) {
     get(
         "/api/varsler/stilling/{stillingId}",
         { ctx ->
@@ -122,45 +117,5 @@ fun JavalinDefaultRoutingApi.handleVarsler(dataSource: DataSource, kandidatsokAp
         REKBIS_ARBEIDSGIVERRETTET
 
     )
-
-   /* TODO: Ser ikke ut som om denne lenger brukes. Lar den stå utkommentert nå, men når vi er
-       Helst sikre brtyr det at vi kan fjerne mye relatert kode.
-   post(
-        "/api/varsler/query",
-        { ctx ->
-            log.info("Mottok request for å hente varsler for en bruker")
-            val queryRequestDto = ctx.bodyAsClass<QueryRequestDto>()
-            val navident = ctx.authenticatedUser().navident
-            val fnr = queryRequestDto.fnr
-            var fikkTilgang = false
-            try {
-                val roller = ctx.authenticatedUser().roller
-
-                if (roller.size == 1 && roller.first() == REKBIS_JOBBSØKERRETTET) {
-                    kandidatsokApiKlient.verifiserKandidatTilgang(ctx, navident, fnr)
-                }
-
-                val varsler = dataSource.transaction { tx ->
-                    val minsideVarsler = MinsideVarsel.hentVarslerForQuery(tx, queryRequestDto)
-                        .map { it.toResponse() }
-                    val altinnVarsler = AltinnVarsel.hentVarslerForQuery(tx, queryRequestDto)
-                        .map { it.toResponse() }
-                    minsideVarsler + altinnVarsler
-                }
-                fikkTilgang = true
-                ctx.json(varsler)
-            } finally {
-                AuditLogg.logCefMessage(
-                    navIdent = navident,
-                    userid = fnr,
-                    msg = "Hentet beskjeder om rekruttering sendt til bruker",
-                    tilgang = fikkTilgang
-                )
-            }
-        },
-        REKBIS_UTVIKLER,
-        REKBIS_JOBBSØKERRETTET,
-        REKBIS_ARBEIDSGIVERRETTET,
-    )*/
 }
 

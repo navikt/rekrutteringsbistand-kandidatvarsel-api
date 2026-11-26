@@ -1,6 +1,5 @@
 package no.nav.toi.kandidatvarsel
 
-import auth.obo.KandidatsokApiKlient
 import com.zaxxer.hikari.HikariDataSource
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus
@@ -18,7 +17,6 @@ fun startJavalin(
     azureAdConfig: AzureAdConfig,
     dataSource: HikariDataSource,
     migrateResult: AtomicReference<MigrateResult>,
-    kandidatsokApiKlient: KandidatsokApiKlient,
     isRapidRunning: () -> Boolean,
     port: Int = 8080,
 ): Javalin = Javalin
@@ -35,7 +33,7 @@ fun startJavalin(
         with(it.routes) {
             azureAdAuthentication(azureAdConfig)
             handleHealth(dataSource, migrateResult, isRapidRunning)
-            handleVarsler(dataSource, kandidatsokApiKlient)
+            handleVarsler(dataSource)
             handleMeldingsmal()
 
             exception(ValidationException::class.java) { e, ctx ->

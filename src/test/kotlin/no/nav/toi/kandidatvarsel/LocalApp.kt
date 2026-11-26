@@ -1,7 +1,5 @@
 package no.nav.toi.kandidatvarsel
 
-import auth.obo.KandidatsokApiKlient
-import auth.obo.OnBehalfOfTokenClient
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -26,9 +24,8 @@ const val rekbisArbeidsgiverrettet = "52bc2af7-38d1-468b-b68d-0f3a4de45af2"
 const val rekbisUtvikler = "a1749d9a-52e0-4116-bb9f-935c38f6c74a"
 
 private const val authPort = 18306
-const val issuer = "http://localhost:$authPort/default"
-const val tokenEndpoint = "$issuer/token"
-const val jwksUri = "$issuer/jwks"
+private const val issuer = "http://localhost:$authPort/default"
+private const val jwksUri = "$issuer/jwks"
 
 private val azureAdConfig = AzureAdConfig(
     issuers = listOf(
@@ -67,17 +64,6 @@ class LocalApp() {
             }
         }
 
-    val kandidatsokApiKlient = KandidatsokApiKlient(
-        OnBehalfOfTokenClient(
-            tokenEndpoint = tokenEndpoint,
-            clientId = "client-id",
-            clientSecret = "client",
-            scope = "",
-            issuernavn = issuer
-        ),
-        kandidatsokUrl = "http://localhost:10000"
-    )
-
     private val flyway = Flyway.configure()
         .dataSource(dataSource)
         .cleanDisabled(false)
@@ -88,7 +74,7 @@ class LocalApp() {
 
     val testRapid = TestRapid()
 
-    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, kandidatsokApiKlient, { true }, port = 0)
+    private var javalin = startJavalin(azureAdConfig, dataSource, migrateResult, { true }, port = 0)
     private val httpClient = HttpClient.newBuilder().build()
     private val objectMapper = jacksonObjectMapper()
 

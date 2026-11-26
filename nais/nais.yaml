@@ -35,7 +35,6 @@ spec:
     outbound:
       rules:
         - application: rekrutteringsbistand-stilling-api
-        - application: rekrutteringsbistand-kandidatsok-api
         - application: logging
           namespace: nais-system
   env:
@@ -51,9 +50,6 @@ spec:
       value: {{adGroupRekbisJobbsokerrettet}}
     - name: AD_GROUP_REKBIS_UTVIKLER
       value: {{adGroupRekbisUtvikler}}
-    - name: KANDIDATSOK_API_URL
-      value: http://rekrutteringsbistand-kandidatsok-api
-
     {{#each env }}
     - name: {{ @key }}
       value: {{ this }}

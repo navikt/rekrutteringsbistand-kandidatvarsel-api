@@ -56,10 +56,5 @@ data class AltinnVarsel(
                 .query(RowMapper)
                 .list()
 
-        fun hentVarslerForQuery(jdbcClient: JdbcClient, queryRequestDto: QueryRequestDto): List<AltinnVarsel> =
-            jdbcClient.sql("""select * from altinn_varsel where mottaker_fnr = :mottaker_fnr""")
-                .param("mottaker_fnr", queryRequestDto.fnr)
-                .query(RowMapper)
-                .list()
     }
 }

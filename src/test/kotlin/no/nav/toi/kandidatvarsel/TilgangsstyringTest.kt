@@ -1,38 +1,17 @@
 package no.nav.toi.kandidatvarsel
 
-import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.nimbusds.jwt.SignedJWT
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.extension.ExtendWith
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
-import uk.org.webcompere.systemstubs.jupiter.SystemStub
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
-import java.util.*
 
-private const val kandidatsokPort = 10000
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(SystemStubsExtension::class)
-@WireMockTest(httpPort = kandidatsokPort)
 class TilgangsstyringTest {
     private val app = LocalApp()
     @BeforeEach fun beforeEach() = app.prepare()
     @AfterAll fun afterAll() = app.close()
-
-    @SystemStub
-    private val variables = EnvironmentVariables(
-        "AZURE_APP_CLIENT_ID", "1",
-        "AZURE_OPENID_CONFIG_ISSUER", issuer,
-        "AZURE_OPENID_CONFIG_ISSUER", issuer,
-        "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
-        "KANDIDATSOK_API_URL", "http://localhost:$kandidatsokPort",
-        "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
-        "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
-        "AD_GROUP_REKBIS_JOBBSOKERRETTET", UUID.randomUUID().toString()
-    )
 
     @Test
     fun `tilganger ved ingen roller`() {
