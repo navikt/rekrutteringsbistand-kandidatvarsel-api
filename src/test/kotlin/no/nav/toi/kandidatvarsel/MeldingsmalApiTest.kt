@@ -9,19 +9,13 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.extension.ExtendWith
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
-import uk.org.webcompere.systemstubs.jupiter.SystemStub
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.util.*
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(SystemStubsExtension::class)
 class MeldingsmalApiTest {
     private val app = LocalApp()
     private val httpClient = HttpClient.newBuilder().build()
@@ -32,17 +26,6 @@ class MeldingsmalApiTest {
 
     @AfterAll
     fun afterAll() = app.close()
-
-    @SystemStub
-    private val variables = EnvironmentVariables(
-        "AZURE_APP_CLIENT_ID", "1",
-        "AZURE_OPENID_CONFIG_ISSUER", issuer,
-        "AZURE_OPENID_CONFIG_ISSUER", issuer,
-        "AZURE_OPENID_CONFIG_JWKS_URI", jwksUri,
-        "AD_GROUP_REKBIS_UTVIKLER", UUID.randomUUID().toString(),
-        "AD_GROUP_REKBIS_ARBEIDSGIVERRETTET", UUID.randomUUID().toString(),
-        "AD_GROUP_REKBIS_JOBBSOKERRETTET", UUID.randomUUID().toString()
-    )
 
     @Test
     fun `GET meldingsmal endepunkt returnerer alle meldingsmaler uten auth`() {

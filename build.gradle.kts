@@ -26,13 +26,11 @@ val opentelemetryLogbackMdcVersion = "2.33.1-alpha"
 val tbdLibsVersion = "20261029.1843"
 
 val junitVersion = "6.1.3"
-val systemStubsVersion = "2.1.8"
 val assertjVersion = "3.27.7"
 val mockOAuth2ServerVersion = "7.0.1"
 val wiremockVersion = "3.13.2"
 val jsonassertVersion = "1.5.3"
 val testcontainersVersion = "2.0.5"
-val mockkVersion = "1.14.12"
 
 application {
     mainClass.set("no.nav.toi.kandidatvarsel.MainKt")
@@ -77,14 +75,12 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:$junitVersion"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("uk.org.webcompere:system-stubs-jupiter:$systemStubsVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOAuth2ServerVersion")
     testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
     testImplementation("org.skyscreamer:jsonassert:$jsonassertVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:$testcontainersVersion")
-    testImplementation("io.mockk:mockk:$mockkVersion")
 }
 
 tasks.test {

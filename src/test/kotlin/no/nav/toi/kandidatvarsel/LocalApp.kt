@@ -24,9 +24,8 @@ const val rekbisArbeidsgiverrettet = "52bc2af7-38d1-468b-b68d-0f3a4de45af2"
 const val rekbisUtvikler = "a1749d9a-52e0-4116-bb9f-935c38f6c74a"
 
 private const val authPort = 18306
-const val issuer = "http://localhost:$authPort/default"
-const val tokenEndpoint = "$issuer/token"
-const val jwksUri = "$issuer/jwks"
+private const val issuer = "http://localhost:$authPort/default"
+private const val jwksUri = "$issuer/jwks"
 
 private val azureAdConfig = AzureAdConfig(
     issuers = listOf(
