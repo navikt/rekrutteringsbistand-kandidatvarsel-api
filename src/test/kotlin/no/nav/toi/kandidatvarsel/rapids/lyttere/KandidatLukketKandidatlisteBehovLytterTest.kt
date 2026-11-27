@@ -56,7 +56,7 @@ class KandidatLukketKandidatlisteBehovLytterTest {
     fun `ber ikke om behov på nytt når det er etterspurt eller besvart`() {
         send(melding() + ("@behov" to listOf("fodselsnummerliste", "aktørIdSamtykkeStatusListe")))
         send(melding() + mapOf(
-            "fodselsnummerliste" to mottakere.associateWith { "01019012345" },
+            "fodselsnummerliste" to mottakere.associateWith { "00000000001" },
             "aktørIdSamtykkeStatusListe" to emptyList<Any>(),
         ))
         assertEquals(0, rapid.inspektør.size)
@@ -66,7 +66,7 @@ class KandidatLukketKandidatlisteBehovLytterTest {
     @ValueSource(strings = ["fodselsnummerliste", "aktørIdSamtykkeStatusListe"])
     fun `legger bare til manglende behov og bevarer eksisterende svar`(eksisterendeBehov: String) {
         val svar: JsonNode = if (eksisterendeBehov == "fodselsnummerliste") {
-            mapper.valueToTree(mottakere.associateWith { "01019012345" })
+            mapper.valueToTree(mottakere.associateWith { "00000000001" })
         } else {
             mapper.valueToTree(mottakere.map { mapOf("aktørId" to it, "samtykkeStatus" to "IKKE_SVART") })
         }

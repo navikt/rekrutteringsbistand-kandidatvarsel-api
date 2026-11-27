@@ -58,7 +58,7 @@ class KandidatDelCvLytterTest {
 
     @Test
     fun `skal opprette varsel når samtykke er forespurt`() {
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val stillingId = UUID.randomUUID()
         val stillingsTittel = "Senior Utvikler"
         val forespurtAvIdent = "Z123456"
@@ -89,7 +89,7 @@ class KandidatDelCvLytterTest {
         val stillingId = UUID.randomUUID()
         val hendelseId = UUID.randomUUID().toString()
         val melding = samtykkeForespurtMelding(
-            fnr = "12345678901",
+            fnr = "00000000005",
             stillingId = stillingId,
             stillingsTittel = "Senior Utvikler",
             forespurtAvIdent = "Z123456",
@@ -103,7 +103,7 @@ class KandidatDelCvLytterTest {
         assertEquals(1, før.size)
         assertEquals(DelCv.name, før.single().mal.name)
         assertEquals(stillingId.toString(), før.single().avsenderReferanseId)
-        assertEquals("12345678901", før.single().mottakerFnr)
+        assertEquals("00000000005", før.single().mottakerFnr)
         assertEquals("Z123456", før.single().avsenderNavIdent)
 
         testRapid.sendTestMessage(melding)
@@ -123,7 +123,7 @@ class KandidatDelCvLytterTest {
         val aktivitetskortuuid = UUID.randomUUID().toString()
         hendelseIder.forEach { hendelseId ->
             testRapid.sendTestMessage(samtykkeForespurtMelding(
-                fnr = "12345678901",
+                fnr = "00000000005",
                 stillingId = stillingId,
                 stillingsTittel = "Senior Utvikler",
                 forespurtAvIdent = "Z123456",
@@ -140,7 +140,7 @@ class KandidatDelCvLytterTest {
         varsler.forEach {
             assertEquals(DelCv.name, it.mal.name)
             assertEquals(stillingId.toString(), it.avsenderReferanseId)
-            assertEquals("12345678901", it.mottakerFnr)
+            assertEquals("00000000005", it.mottakerFnr)
             assertEquals("Z123456", it.avsenderNavIdent)
         }
     }
@@ -151,7 +151,7 @@ class KandidatDelCvLytterTest {
         val hendelseId = UUID.randomUUID().toString()
         val aktivitetskortuuid = UUID.randomUUID().toString()
         val opprinneligMelding = samtykkeForespurtMelding(
-            fnr = "12345678901",
+            fnr = "00000000005",
             stillingId = stillingId,
             stillingsTittel = "Senior Utvikler",
             forespurtAvIdent = "Z123456",
@@ -166,7 +166,7 @@ class KandidatDelCvLytterTest {
         assertEquals(0, førBerikelse.size)
 
         val beriketMelding = samtykkeForespurtMelding(
-            fnr = "12345678901",
+            fnr = "00000000005",
             stillingId = stillingId,
             stillingsTittel = "Senior Utvikler",
             forespurtAvIdent = "Z123456",
@@ -182,7 +182,7 @@ class KandidatDelCvLytterTest {
         assertEquals(hendelseId, etterBerikelse.single().varselId)
         assertEquals(DelCv.name, etterBerikelse.single().mal.name)
         assertEquals(stillingId.toString(), etterBerikelse.single().avsenderReferanseId)
-        assertEquals("12345678901", etterBerikelse.single().mottakerFnr)
+        assertEquals("00000000005", etterBerikelse.single().mottakerFnr)
         assertEquals("Z123456", etterBerikelse.single().avsenderNavIdent)
 
         val førsteVarsel = etterBerikelse.single()
@@ -198,7 +198,7 @@ class KandidatDelCvLytterTest {
     fun `skal avvise komplett melding uten hendelseId`() {
         val stillingId = UUID.randomUUID()
         val meldingUtenHendelseId = samtykkeForespurtMelding(
-            fnr = "12345678901",
+            fnr = "00000000005",
             stillingId = stillingId,
             stillingsTittel = "Senior Utvikler",
             forespurtAvIdent = "Z123456",

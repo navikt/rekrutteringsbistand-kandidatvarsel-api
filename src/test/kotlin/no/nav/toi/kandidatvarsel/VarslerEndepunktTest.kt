@@ -31,8 +31,8 @@ class VarslerEndepunktTest {
 
     private val navident = "Z999999"
     private val token = app.userToken(navIdent = navident)
-    private val fnr1 = "11111111111"
-    private val fnr2 = "22222222222"
+    private val fnr1 = "00000000004"
+    private val fnr2 = "00000000007"
 
     @Test
     fun `GET stilling endepunkt returnerer varsler for stillingId`() {

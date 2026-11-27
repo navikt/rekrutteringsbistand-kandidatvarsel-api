@@ -16,7 +16,7 @@ class StillingsannonseOppdatertTest {
         val varsel = MinsideVarsel.create(
             mal = mal,
             avsenderReferanseId = stillingId,
-            mottakerFnr = "12345678901",
+            mottakerFnr = "00000000005",
             avsenderNavident = "Z000001",
             varselId = "0199a0f0-0000-7000-8000-000000000001",
         )

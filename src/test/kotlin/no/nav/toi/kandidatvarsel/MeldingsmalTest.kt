@@ -249,7 +249,7 @@ class MeldingsmalTest {
             no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
                 mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
                 avsenderReferanseId = rekrutteringstreffId,
-                mottakerFnr = "12345678901",
+                mottakerFnr = "00000000005",
                 avsenderNavident = "Z123456",
                 flettedata = originalFlettedata
             ).insert(tx)
@@ -270,7 +270,7 @@ class MeldingsmalTest {
         val varselUtenFlettedata = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
             mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
             avsenderReferanseId = "test-treff-id",
-            mottakerFnr = "12345678901",
+            mottakerFnr = "00000000005",
             avsenderNavident = "Z123456",
             flettedata = emptyList()
         )
@@ -292,7 +292,7 @@ class MeldingsmalTest {
         val varselMedNullFlettedata = no.nav.toi.kandidatvarsel.minside.MinsideVarsel.create(
             mal = no.nav.toi.kandidatvarsel.minside.KandidatInvitertTreffEndret,
             avsenderReferanseId = "test-treff-id",
-            mottakerFnr = "12345678901",
+            mottakerFnr = "00000000005",
             avsenderNavident = "Z123456",
             flettedata = null
         )

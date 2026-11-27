@@ -53,7 +53,7 @@ class KandidatTreffAvlystLytterTest {
     @Test
     fun `skal opprette varsel når rekrutteringstreffSvarOgStatus med svar=true og treffstatus=avlyst mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -64,7 +64,7 @@ class KandidatTreffAvlystLytterTest {
                 "hendelseId": "$hendelseId",
                 "svar": true,
                 "treffstatus": "avlyst",
-                "endretAv": "12345678901",
+                "endretAv": "00000000005",
                 "endretAvPersonbruker": false
             }
         """.trimIndent())
@@ -84,7 +84,7 @@ class KandidatTreffAvlystLytterTest {
     @Test
     fun `skal opprette workop-varsel når workopSvarOgStatus med svar=true og treffstatus=avlyst mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -95,7 +95,7 @@ class KandidatTreffAvlystLytterTest {
                 "hendelseId": "$hendelseId",
                 "svar": true,
                 "treffstatus": "avlyst",
-                "endretAv": "12345678901",
+                "endretAv": "00000000005",
                 "endretAvPersonbruker": false
             }
         """.trimIndent())
@@ -130,7 +130,7 @@ class KandidatTreffAvlystLytterTest {
         assertEquals(mal, før.single().mal.name)
         assertEquals(hendelseId, før.single().varselId)
         assertEquals(referanseId, før.single().avsenderReferanseId)
-        assertEquals("12345678901", før.single().mottakerFnr)
+        assertEquals("00000000005", før.single().mottakerFnr)
         assertEquals("SYSTEM", før.single().avsenderNavIdent)
 
         testRapid.sendTestMessage(melding)
@@ -162,7 +162,7 @@ class KandidatTreffAvlystLytterTest {
         varsler.forEach {
             assertEquals(mal, it.mal.name)
             assertEquals(referanseId, it.avsenderReferanseId)
-            assertEquals("12345678901", it.mottakerFnr)
+            assertEquals("00000000005", it.mottakerFnr)
             assertEquals("SYSTEM", it.avsenderNavIdent)
         }
     }
@@ -171,7 +171,7 @@ class KandidatTreffAvlystLytterTest {
         {
             "@event_name": "$eventName",
             "rekrutteringstreffId": "$referanseId",
-            "fnr": "12345678901",
+            "fnr": "00000000005",
             "hendelseId": "$hendelseId",
             "svar": true,
             "treffstatus": "avlyst"
@@ -184,11 +184,11 @@ class KandidatTreffAvlystLytterTest {
             {
                 "@event_name": "rekrutteringstreffSvarOgStatus",
                 "rekrutteringstreffId": "12345678-1234-1234-1234-123456789012",
-                "fnr": "12345678901",
+                "fnr": "00000000005",
                 "hendelseId": "87654321-4321-4321-4321-210987654321",
                 "svar": false,
                 "treffstatus": "avlyst",
-                "endretAv": "12345678901",
+                "endretAv": "00000000005",
                 "endretAvPersonbruker": false
             }
         """.trimIndent())
@@ -206,11 +206,11 @@ class KandidatTreffAvlystLytterTest {
             {
                 "@event_name": "rekrutteringstreffSvarOgStatus",
                 "rekrutteringstreffId": "12345678-1234-1234-1234-123456789012",
-                "fnr": "12345678901",
+                "fnr": "00000000005",
                 "hendelseId": "87654321-4321-4321-4321-210987654321",
                 "svar": true,
                 "treffstatus": "fullført",
-                "endretAv": "12345678901",
+                "endretAv": "00000000005",
                 "endretAvPersonbruker": false
             }
         """.trimIndent())
@@ -230,7 +230,7 @@ class KandidatTreffAvlystLytterTest {
             {
                 "@event_name": "rekrutteringstreffSvarOgStatus",
                 "rekrutteringstreffId": "$rekrutteringstreffId",
-                "fnr": "12345678901",
+                "fnr": "00000000005",
                 "svar": true,
                 "treffstatus": "avlyst"
             }

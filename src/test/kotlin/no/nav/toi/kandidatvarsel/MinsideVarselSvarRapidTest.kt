@@ -37,7 +37,7 @@ class MinsideVarselSvarRapidTest {
     @AfterAll
     fun afterAll() = app.close()
 
-    private val fnr = "12345678910"
+    private val fnr = "00000000006"
     private val rekrutteringstreffId = UUID.randomUUID().toString()
     private val navident = "Z123456"
 

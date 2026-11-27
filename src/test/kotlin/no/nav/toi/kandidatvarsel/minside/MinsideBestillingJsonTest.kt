@@ -94,7 +94,7 @@ class MinsideBestillingJsonTest {
         assertThat(json["@event_name"].asText()).isEqualTo("opprett")
         assertThat(json["type"].asText()).isEqualTo("beskjed")
         assertThat(json["varselId"].asText()).isEqualTo(varselId)
-        assertThat(json["ident"].asText()).isEqualTo("12345678901")
+        assertThat(json["ident"].asText()).isEqualTo("00000000005")
         assertThat(json["sensitivitet"].asText()).isEqualTo("substantial")
 
         val tekst = json["tekster"].single()
@@ -129,7 +129,7 @@ class MinsideBestillingJsonTest {
         varselId = varselId,
         avsenderReferanseId = avsenderReferanseId,
         opprettet = LocalDateTime.now(),
-        mottakerFnr = "12345678901",
+        mottakerFnr = "00000000005",
         avsenderNavIdent = "Z000001",
         bestilt = false,
         minsideStatus = null,

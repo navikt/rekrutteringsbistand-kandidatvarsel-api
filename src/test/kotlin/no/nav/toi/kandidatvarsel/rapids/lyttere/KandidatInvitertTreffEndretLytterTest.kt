@@ -58,7 +58,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal opprette varsel når kandidat invitert treff endret melding mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -88,7 +88,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal opprette workop-varsel når kandidat invitert workop endret melding mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -133,7 +133,7 @@ class KandidatInvitertTreffEndretLytterTest {
         assertEquals(mal, før.single().mal.name)
         assertEquals(hendelseId, før.single().varselId)
         assertEquals(referanseId, før.single().avsenderReferanseId)
-        assertEquals("12345678901", før.single().mottakerFnr)
+        assertEquals("00000000005", før.single().mottakerFnr)
         assertEquals("Z123456", før.single().avsenderNavIdent)
         assertEquals(listOf("navn", "tidspunkt"), før.single().flettedata)
 
@@ -166,7 +166,7 @@ class KandidatInvitertTreffEndretLytterTest {
         varsler.forEach {
             assertEquals(mal, it.mal.name)
             assertEquals(referanseId, it.avsenderReferanseId)
-            assertEquals("12345678901", it.mottakerFnr)
+            assertEquals("00000000005", it.mottakerFnr)
             assertEquals("Z123456", it.avsenderNavIdent)
             assertEquals(listOf("navn", "tidspunkt"), it.flettedata)
         }
@@ -176,7 +176,7 @@ class KandidatInvitertTreffEndretLytterTest {
         {
             "@event_name": "$eventName",
             "rekrutteringstreffId": "$referanseId",
-            "fnr": "12345678901",
+            "fnr": "00000000005",
             "endretAv": "Z123456",
             "hendelseId": "$hendelseId",
             "endredeFelter": ["NAVN", "TIDSPUNKT"]
@@ -186,7 +186,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal bruke SYSTEM som avsender når endretAv mangler`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -214,7 +214,7 @@ class KandidatInvitertTreffEndretLytterTest {
         testRapid.sendTestMessage("""
             {
                 "@event_name": "rekrutteringstreffoppdatering",
-                "fnr": "12345678901",
+                "fnr": "00000000005",
                 "endretAv": "Z123456",
                 "hendelseId": "87654321-4321-4321-4321-210987654321",
                 "endredeFelter": ["NAVN"]
@@ -251,7 +251,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal ignorere melding uten endredeFelter uten å logge feil`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
         val logger = LoggerFactory.getLogger(KandidatInvitertTreffEndretLytter::class.java) as Logger
         val appender = ListAppender<ILoggingEvent>().apply { start() }
@@ -279,7 +279,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal ikke opprette varsel når endredeFelter er tom liste`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
         
         testRapid.sendTestMessage("""
@@ -303,7 +303,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal ikke opprette varsel når endredeFelter kun inneholder ugyldige verdier`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
         
         testRapid.sendTestMessage("""
@@ -327,7 +327,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal filtrere ut ugyldige endredeFelter-verdier`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -352,7 +352,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal ignorere endredeFelter-elementer som ikke er tekst`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -377,7 +377,7 @@ class KandidatInvitertTreffEndretLytterTest {
     @Test
     fun `skal konvertere alle gyldige endredeFelter-verdier til displayTekst`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
