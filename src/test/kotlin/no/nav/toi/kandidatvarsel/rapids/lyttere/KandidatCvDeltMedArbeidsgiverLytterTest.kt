@@ -46,9 +46,9 @@ class KandidatCvDeltMedArbeidsgiverLytterTest {
     private val objectMapper = jacksonObjectMapper()
     private val kandidatAktørId = "1000000000001"
     private val fødselsnummerPerAktørId = mapOf(
-        kandidatAktørId to "01019012345",
-        "1000000000002" to "02029023456",
-        "1000000000003" to "03039034567",
+        kandidatAktørId to "00000000001",
+        "1000000000002" to "00000000002",
+        "1000000000003" to "00000000003",
     )
     private val stillingsId = "cf43157d-7b67-4c13-b6a2-248df8f89103"
     private val navIdent = "Z123456"

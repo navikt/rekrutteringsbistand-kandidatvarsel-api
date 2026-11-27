@@ -43,9 +43,9 @@ class KandidatLukketKandidatlisteLytterTest {
     private val stillingId = "cf43157d-7b67-4c13-b6a2-248df8f89103"
     private val tidspunkt = "2026-10-30T14:15:07.057+01:00"
     private val fødselsnumre = mapOf(
-        "1000000000001" to "01019012345",
-        "1000000000002" to "02029023456",
-        "1000000000003" to "03039034567",
+        "1000000000001" to "00000000001",
+        "1000000000002" to "00000000002",
+        "1000000000003" to "00000000003",
     )
     private val mottakere = fødselsnumre.keys.take(2)
 

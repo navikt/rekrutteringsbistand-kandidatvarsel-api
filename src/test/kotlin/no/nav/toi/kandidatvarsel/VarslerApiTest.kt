@@ -39,9 +39,9 @@ class VarslerApiTest {
 
     private val navident = "Z999999"
     private val token = app.userToken(navIdent = navident)
-    private val fnr1 = "11111111111"
-    private val fnr2 = "22222222222"
-    private val fnr3 = "33333333333"
+    private val fnr1 = "00000000004"
+    private val fnr2 = "00000000007"
+    private val fnr3 = "00000000008"
     private val stillingId1 = "11111111-1111-1111-1111-111111111111"
     private val stillingId2 = "22222222-2222-2222-2222-222222222222"
 

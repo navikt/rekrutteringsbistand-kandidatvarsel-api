@@ -90,7 +90,7 @@ class KandidatCvDeltMedArbeidsgiverBehovLytterTest {
 
     @Test
     fun `skal ikke publisere behov når fødselsnummerliste finnes`() {
-        val melding = melding() + ("fodselsnummerliste" to mapOf(aktørIder.first() to "01019012345"))
+        val melding = melding() + ("fodselsnummerliste" to mapOf(aktørIder.first() to "00000000001"))
 
         testRapid.sendTestMessage(objectMapper.writeValueAsString(melding))
 

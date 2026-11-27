@@ -53,7 +53,7 @@ class KandidatInvitertLytterTest {
     @Test
     fun `skal opprette varsel når kandidat invitert melding mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -81,7 +81,7 @@ class KandidatInvitertLytterTest {
     @Test
     fun `skal opprette workop-varsel når workopinvitasjon melding mottas`() {
         val rekrutteringstreffId = "12345678-1234-1234-1234-123456789012"
-        val fnr = "12345678901"
+        val fnr = "00000000005"
         val hendelseId = "87654321-4321-4321-4321-210987654321"
 
         testRapid.sendTestMessage("""
@@ -124,7 +124,7 @@ class KandidatInvitertLytterTest {
         assertEquals(mal, før.single().mal.name)
         assertEquals(hendelseId, før.single().varselId)
         assertEquals(referanseId, før.single().avsenderReferanseId)
-        assertEquals("12345678901", før.single().mottakerFnr)
+        assertEquals("00000000005", før.single().mottakerFnr)
         assertEquals("Z123456", før.single().avsenderNavIdent)
 
         testRapid.sendTestMessage(melding)
@@ -156,7 +156,7 @@ class KandidatInvitertLytterTest {
         varsler.forEach {
             assertEquals(mal, it.mal.name)
             assertEquals(referanseId, it.avsenderReferanseId)
-            assertEquals("12345678901", it.mottakerFnr)
+            assertEquals("00000000005", it.mottakerFnr)
             assertEquals("Z123456", it.avsenderNavIdent)
         }
     }
@@ -165,7 +165,7 @@ class KandidatInvitertLytterTest {
         {
             "@event_name": "$eventName",
             "rekrutteringstreffId": "$referanseId",
-            "fnr": "12345678901",
+            "fnr": "00000000005",
             "opprettetAv": "Z123456",
             "hendelseId": "$hendelseId"
         }
@@ -178,7 +178,7 @@ class KandidatInvitertLytterTest {
         testRapid.sendTestMessage("""
             {
                 "@event_name": "rekrutteringstreffinvitasjon",
-                "fnr": "12345678901",
+                "fnr": "00000000005",
                 "opprettetAv": "Z123456",
                 "hendelseId": "87654321-4321-4321-4321-210987654321"
             }
@@ -218,7 +218,7 @@ class KandidatInvitertLytterTest {
             {
                 "@event_name": "kandidatInvitert",
                 "varselId": "$varselId",
-                "fnr": "12345678901"
+                "fnr": "00000000005"
             }
         """.trimIndent())
 
