@@ -1,12 +1,12 @@
 package no.nav.toi.kandidatvarsel.minside
 
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.toi.kandidatvarsel.StillingClient
 import no.nav.toi.kandidatvarsel.noClassLogger
 import no.nav.toi.kandidatvarsel.transaction
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 import javax.sql.DataSource
 
@@ -51,20 +51,7 @@ fun sjekkVarselOppdateringer(
         val oppdateringer = oppdateringerSeq.toList()
         if (oppdateringer.isEmpty()) return@pollOppdateringer
 
-        // Logg alle varselId-er med deres ekstern status i samme loggmelding
-        val oppdateringerInfo = oppdateringer.joinToString("; ") { oppdatering ->
-            val status = when (oppdatering) {
-                is StatusOppdatering -> oppdatering.status.name
-                is EksternVarselBestilt -> "bestilt"
-                is EksternVarselSendt -> "sendt"
-                is EksternVarselFerdigstilt -> "ferdigstilt"
-                is EksternVarselFeilet -> "feilet"
-                is EksternVarselVenter -> "venter"
-                is EksternVarselKansellert -> "kansellert"
-            }
-            "${oppdatering.varselId}($status,${oppdatering.partitionOffset})"
-        }
-        log.info("Behandler ${oppdateringer.size} oppdateringer: $oppdateringerInfo")
+        loggVarsler(oppdateringer)
 
         dataSource.transaction { tx ->
             val varsler = MinsideVarsel.finnFraVarselIder(tx, oppdateringer.map { it.varselId })
@@ -87,6 +74,28 @@ fun sjekkVarselOppdateringer(
                 }
             }
         }
+    }
+}
+
+private fun loggVarsler(oppdateringer: List<VarselOppdatering>) {
+    // Bruker log level debug istedenfor info, for at ikke andre loggmeldinger skal drukne i mengden.
+    // Det ble logget 777.000 ganger i løpet av 24 timer, og det er for mye.
+    if (log.isDebugEnabled) {
+        // Logg alle varselId-er med deres ekstern status i samme loggmelding
+        val oppdateringerInfo = oppdateringer.joinToString("; ") { oppdatering ->
+            val status = when (oppdatering) {
+                is StatusOppdatering -> oppdatering.status.name
+                is EksternVarselBestilt -> "bestilt"
+                is EksternVarselSendt -> "sendt"
+                is EksternVarselFerdigstilt -> "ferdigstilt"
+                is EksternVarselFeilet -> "feilet"
+                is EksternVarselVenter -> "venter"
+                is EksternVarselKansellert -> "kansellert"
+            }
+            "${oppdatering.varselId}($status,${oppdatering.partitionOffset})"
+        }
+
+        log.debug("Behandler ${oppdateringer.size} oppdateringer: $oppdateringerInfo")
     }
 }
 
